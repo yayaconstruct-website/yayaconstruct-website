@@ -8,22 +8,40 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          server-dir: yayaconstruct.com/public_html/
-          dangerous-clean-slate: true
-          exclude: |
-            **/.git*
-            **/.git*/**
-            .DS_Store
-            README.md
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Deploy coming soon page
+        env:
+          FTP_SERVER:   ${{ secrets.FTP_SERVER }}
+          FTP_USER:     ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -e "
+            set ftp:ssl-allow yes;
+            set ssl:verify-certificate no;
+            set ftp:passive-mode yes;
+            put index.html -o yayaconstruct.com/public_html/index.html;
+            quit
+          " -u "$FTP_USER","$FTP_PASSWORD" ftp://$FTP_SERVER
+
+      - name: Deploy WordPress theme
+        env:
+          FTP_SERVER:   ${{ secrets.FTP_SERVER }}
+          FTP_USER:     ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -e "
+            set ftp:ssl-allow yes;
+            set ssl:verify-certificate no;
+            set ftp:passive-mode yes;
+            mirror --reverse --delete --parallel=5 \
+              yayaconstruct-theme/ \
+              yayaconstruct.com/public_html/wp-content/themes/yayaconstruct-theme/;
+            quit
+          " -u "$FTP_USER","$FTP_PASSWORD" ftp://$FTP_SERVER
