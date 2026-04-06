@@ -282,7 +282,35 @@ function yaya_contact_form() {
         wp_send_json(['success' => false, 'error' => 'Missing required fields']);
     }
 
-    $to      = get_theme_mod('yaya_contact_email', 'info@yayaconstruct.com');
+    $to = get_theme_mod('yaya_contact_email', 'info@yayaconstruct.com');
+    $contact_page = get_posts([
+        'post_type'   => 'page',
+        'post_status' => 'publish',
+        'numberposts' => 1,
+        'meta_query'  => [
+            [
+                'key'   => '_wp_page_template',
+                'value' => 'page-contact.php',
+            ],
+        ],
+    ]);
+
+    if (empty($contact_page)) {
+        $contact_page = get_posts([
+            'post_type'   => 'page',
+            'post_status' => 'publish',
+            'name'        => 'contact',
+            'numberposts' => 1,
+        ]);
+    }
+
+    if (!empty($contact_page)) {
+        $page_email = get_post_meta($contact_page[0]->ID, '_yaya_contact_info_email', true);
+        if (!empty($page_email) && is_email($page_email)) {
+            $to = $page_email;
+        }
+    }
+
     $subject = 'New Message from ' . $name . ' – Yaya Construct';
     $body    = "Name: $name\nEmail: $email\nPhone: $phone\nProject Type: $type\n\nMessage:\n$message";
     $headers = [
@@ -1043,3 +1071,157 @@ function yaya_save_home_meta_box($post_id) {
     }
 }
 add_action('save_post_page', 'yaya_save_home_meta_box');
+
+/* ─────────────────────────────────────────
+   CONTACT PAGE EDITOR FIELDS
+───────────────────────────────────────── */
+function yaya_contact_page_defaults() {
+    return [
+        'hero' => [
+            'label'   => 'Get In Touch',
+            'heading' => "LET'S BUILD\nSOMETHING GREAT",
+        ],
+        'info' => [
+            'section_label'    => 'Contact',
+            'heading'          => "REACH OUT\nTO US",
+            'address_label'    => 'Office Address',
+            'address1'         => get_theme_mod('yaya_contact_address1', '123 Construction Ave'),
+            'address2'         => get_theme_mod('yaya_contact_address2', 'Building District, City 10001'),
+            'phone_label'      => 'Phone',
+            'phone'            => get_theme_mod('yaya_contact_phone', '+1 (555) 000-0000'),
+            'email_label'      => 'Email',
+            'email'            => get_theme_mod('yaya_contact_email', 'info@yayaconstruct.com'),
+            'hours_label'      => 'Working Hours',
+            'hours1'           => get_theme_mod('yaya_contact_hours1', 'Mon–Fri: 7:00 AM – 6:00 PM'),
+            'hours2'           => get_theme_mod('yaya_contact_hours2', 'Sat: 8:00 AM – 2:00 PM'),
+            'social_label'     => 'Follow Us',
+            'instagram_url'    => 'https://www.instagram.com/yayaconstruct/',
+            'linkedin_url'     => '',
+            'facebook_url'     => '',
+        ],
+        'form' => [
+            'heading'            => "SEND US\nA MESSAGE",
+            'first_name_label'   => 'First Name',
+            'first_name_placeholder' => 'John',
+            'last_name_label'    => 'Last Name',
+            'last_name_placeholder' => 'Smith',
+            'email_label'        => 'Email',
+            'email_placeholder'  => 'you@email.com',
+            'phone_label'        => 'Phone',
+            'phone_placeholder'  => '+1 555 000 0000',
+            'project_type_label' => 'Project Type',
+            'project_type_placeholder' => 'Select a service...',
+            'project_type_options' => "General Construction\nCommercial Building\nResidential Project\nRenovation & Refit\nDesign & Build\nProject Management\nOther",
+            'message_label'      => 'Message',
+            'message_placeholder' => 'Tell us about your project...',
+            'submit_label'       => 'Send Message →',
+            'submit_loading_label' => 'Sending...',
+            'success_message'    => 'Thank you! Your message has been received. We\'ll be in touch within 24 hours.',
+            'error_message'      => 'Something went wrong. Please try again or email us directly.',
+        ],
+    ];
+}
+
+function yaya_get_contact_page_field($post_id, $key, $fallback = '') {
+    $value = get_post_meta($post_id, $key, true);
+    return $value !== '' ? $value : $fallback;
+}
+
+function yaya_add_contact_meta_box() {
+    add_meta_box(
+        'yaya_contact_details_editor',
+        'Contact Page Details',
+        'yaya_render_contact_meta_box',
+        'page',
+        'normal',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'yaya_add_contact_meta_box');
+
+function yaya_render_contact_meta_box($post) {
+    $template = get_page_template_slug($post->ID);
+    $slug     = $post->post_name;
+
+    if ($template !== 'page-contact.php' && !in_array($slug, ['contact', 'contact-us', 'get-in-touch'], true)) {
+        echo '<p>This panel is used by the Contact page. Assign the Contact template to this page to use these fields.</p>';
+        return;
+    }
+
+    $defaults = yaya_contact_page_defaults();
+    wp_nonce_field('yaya_contact_page_meta_box', 'yaya_contact_page_meta_nonce');
+
+    echo '<p>Use the regular page title, excerpt, and content editor if you want extra Contact page content later. Use the fields below to manage the currently visible Contact page components.</p>';
+    echo '<style>
+        .yaya-meta-grid{display:grid;gap:16px}
+        .yaya-meta-section{border:1px solid #dcdcde;padding:16px;background:#fff}
+        .yaya-meta-row{display:grid;gap:12px;grid-template-columns:1fr 2fr;margin-bottom:12px}
+        .yaya-meta-row:last-child{margin-bottom:0}
+        .yaya-meta-row label{font-weight:600}
+        .yaya-meta-row input,.yaya-meta-row textarea{width:100%}
+      </style>';
+
+    $sections = [
+        'hero' => 'Hero Section',
+        'info' => 'Contact Info Section',
+        'form' => 'Form Section',
+    ];
+
+    echo '<div class="yaya-meta-grid">';
+    foreach ($sections as $section_key => $section_title) {
+        echo '<div class="yaya-meta-section"><h3>' . esc_html($section_title) . '</h3>';
+        foreach ($defaults[$section_key] as $field_key => $fallback) {
+            $meta_key = "_yaya_contact_{$section_key}_{$field_key}";
+            $value = yaya_get_contact_page_field($post->ID, $meta_key, $fallback);
+            $field_id = "yaya_contact_{$section_key}_{$field_key}";
+            $label = ucwords(str_replace('_', ' ', $field_key));
+            echo '<div class="yaya-meta-row">';
+            echo '<label for="' . esc_attr($field_id) . '">' . esc_html($label) . '</label>';
+            if (in_array($field_key, ['heading', 'project_type_options', 'success_message', 'error_message'], true)) {
+                echo '<textarea rows="3" id="' . esc_attr($field_id) . '" name="' . esc_attr($field_id) . '">' . esc_textarea($value) . '</textarea>';
+            } else {
+                $type = str_ends_with($field_key, '_url') ? 'url' : 'text';
+                echo '<input type="' . esc_attr($type) . '" id="' . esc_attr($field_id) . '" name="' . esc_attr($field_id) . '" value="' . esc_attr($value) . '">';
+            }
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+    echo '</div>';
+}
+
+function yaya_save_contact_meta_box($post_id) {
+    if (!isset($_POST['yaya_contact_page_meta_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['yaya_contact_page_meta_nonce'])), 'yaya_contact_page_meta_box')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $defaults = yaya_contact_page_defaults();
+    foreach ($defaults as $section_key => $fields) {
+        foreach ($fields as $field_key => $fallback) {
+            $field = "yaya_contact_{$section_key}_{$field_key}";
+            if (!isset($_POST[$field])) {
+                continue;
+            }
+
+            $value = wp_unslash($_POST[$field]);
+            if (str_ends_with($field_key, '_url')) {
+                $value = esc_url_raw($value);
+            } elseif (in_array($field_key, ['heading', 'project_type_options', 'success_message', 'error_message'], true)) {
+                $value = sanitize_textarea_field($value);
+            } else {
+                $value = sanitize_text_field($value);
+            }
+
+            update_post_meta($post_id, "_yaya_contact_{$section_key}_{$field_key}", $value);
+        }
+    }
+}
+add_action('save_post_page', 'yaya_save_contact_meta_box');

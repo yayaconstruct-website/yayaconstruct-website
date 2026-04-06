@@ -2,26 +2,67 @@
 <?php get_header(); ?>
 
 <?php
-$address1 = get_theme_mod('yaya_contact_address1', '123 Construction Ave');
-$address2 = get_theme_mod('yaya_contact_address2', 'Building District, City 10001');
-$phone    = get_theme_mod('yaya_contact_phone',    '+1 (555) 000-0000');
-$email    = get_theme_mod('yaya_contact_email',    'info@yayaconstruct.com');
-$hours1   = get_theme_mod('yaya_contact_hours1',   'Mon–Fri: 7:00 AM – 6:00 PM');
-$hours2   = get_theme_mod('yaya_contact_hours2',   'Sat: 8:00 AM – 2:00 PM');
+$contact_defaults = function_exists('yaya_contact_page_defaults') ? yaya_contact_page_defaults() : [];
+$contact_get = function ($section, $field, $fallback = '') {
+  if (function_exists('yaya_get_contact_page_field')) {
+    return yaya_get_contact_page_field(get_the_ID(), "_yaya_contact_{$section}_{$field}", $fallback);
+  }
+  return $fallback;
+};
+
+$contact_hero_label = $contact_get('hero', 'label', $contact_defaults['hero']['label'] ?? 'Get In Touch');
+$contact_hero_heading = $contact_get('hero', 'heading', $contact_defaults['hero']['heading'] ?? "LET'S BUILD\nSOMETHING GREAT");
+
+$contact_info_label = $contact_get('info', 'section_label', $contact_defaults['info']['section_label'] ?? 'Contact');
+$contact_info_heading = $contact_get('info', 'heading', $contact_defaults['info']['heading'] ?? "REACH OUT\nTO US");
+$address_label = $contact_get('info', 'address_label', $contact_defaults['info']['address_label'] ?? 'Office Address');
+$address1 = $contact_get('info', 'address1', $contact_defaults['info']['address1'] ?? '');
+$address2 = $contact_get('info', 'address2', $contact_defaults['info']['address2'] ?? '');
+$phone_label = $contact_get('info', 'phone_label', $contact_defaults['info']['phone_label'] ?? 'Phone');
+$phone = $contact_get('info', 'phone', $contact_defaults['info']['phone'] ?? '');
+$email_label = $contact_get('info', 'email_label', $contact_defaults['info']['email_label'] ?? 'Email');
+$email = $contact_get('info', 'email', $contact_defaults['info']['email'] ?? '');
+$hours_label = $contact_get('info', 'hours_label', $contact_defaults['info']['hours_label'] ?? 'Working Hours');
+$hours1 = $contact_get('info', 'hours1', $contact_defaults['info']['hours1'] ?? '');
+$hours2 = $contact_get('info', 'hours2', $contact_defaults['info']['hours2'] ?? '');
+$social_label = $contact_get('info', 'social_label', $contact_defaults['info']['social_label'] ?? 'Follow Us');
+$instagram_url = $contact_get('info', 'instagram_url', $contact_defaults['info']['instagram_url'] ?? '');
+$linkedin_url = $contact_get('info', 'linkedin_url', $contact_defaults['info']['linkedin_url'] ?? '');
+$facebook_url = $contact_get('info', 'facebook_url', $contact_defaults['info']['facebook_url'] ?? '');
+
+$form_heading = $contact_get('form', 'heading', $contact_defaults['form']['heading'] ?? "SEND US\nA MESSAGE");
+$first_name_label = $contact_get('form', 'first_name_label', $contact_defaults['form']['first_name_label'] ?? 'First Name');
+$first_name_placeholder = $contact_get('form', 'first_name_placeholder', $contact_defaults['form']['first_name_placeholder'] ?? 'John');
+$last_name_label = $contact_get('form', 'last_name_label', $contact_defaults['form']['last_name_label'] ?? 'Last Name');
+$last_name_placeholder = $contact_get('form', 'last_name_placeholder', $contact_defaults['form']['last_name_placeholder'] ?? 'Smith');
+$form_email_label = $contact_get('form', 'email_label', $contact_defaults['form']['email_label'] ?? 'Email');
+$form_email_placeholder = $contact_get('form', 'email_placeholder', $contact_defaults['form']['email_placeholder'] ?? 'you@email.com');
+$form_phone_label = $contact_get('form', 'phone_label', $contact_defaults['form']['phone_label'] ?? 'Phone');
+$form_phone_placeholder = $contact_get('form', 'phone_placeholder', $contact_defaults['form']['phone_placeholder'] ?? '+1 555 000 0000');
+$project_type_label = $contact_get('form', 'project_type_label', $contact_defaults['form']['project_type_label'] ?? 'Project Type');
+$project_type_placeholder = $contact_get('form', 'project_type_placeholder', $contact_defaults['form']['project_type_placeholder'] ?? 'Select a service...');
+$project_type_options = $contact_get('form', 'project_type_options', $contact_defaults['form']['project_type_options'] ?? "General Construction\nCommercial Building\nResidential Project\nRenovation & Refit\nDesign & Build\nProject Management\nOther");
+$message_label = $contact_get('form', 'message_label', $contact_defaults['form']['message_label'] ?? 'Message');
+$message_placeholder = $contact_get('form', 'message_placeholder', $contact_defaults['form']['message_placeholder'] ?? 'Tell us about your project...');
+$submit_label = $contact_get('form', 'submit_label', $contact_defaults['form']['submit_label'] ?? 'Send Message →');
+$submit_loading_label = $contact_get('form', 'submit_loading_label', $contact_defaults['form']['submit_loading_label'] ?? 'Sending...');
+$success_message = $contact_get('form', 'success_message', $contact_defaults['form']['success_message'] ?? 'Thank you! Your message has been received. We\'ll be in touch within 24 hours.');
+$error_message = $contact_get('form', 'error_message', $contact_defaults['form']['error_message'] ?? 'Something went wrong. Please try again or email us directly.');
+$project_type_options = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $project_type_options))));
 ?>
 
 <div class="page-wrap">
 
   <div class="contact-hero">
-    <div class="section-label" style="color:var(--rust)">Get In Touch</div>
-    <h1>LET'S BUILD<br>SOMETHING GREAT</h1>
+    <div class="section-label" style="color:var(--rust)"><?php echo esc_html($contact_hero_label); ?></div>
+    <h1><?php echo wp_kses(nl2br(esc_html($contact_hero_heading)), ['br' => []]); ?></h1>
   </div>
 
   <div class="contact-body">
 
     <div class="contact-info">
-      <div class="section-label">Contact</div>
-      <h2>REACH OUT<br>TO US</h2>
+      <div class="section-label"><?php echo esc_html($contact_info_label); ?></div>
+      <h2><?php echo wp_kses(nl2br(esc_html($contact_info_heading)), ['br' => []]); ?></h2>
 
       <div class="contact-detail">
         <div class="contact-item">
@@ -31,7 +72,7 @@ $hours2   = get_theme_mod('yaya_contact_hours2',   'Sat: 8:00 AM – 2:00 PM');
             </svg>
           </div>
           <div>
-            <div class="contact-item-label">Office Address</div>
+            <div class="contact-item-label"><?php echo esc_html($address_label); ?></div>
             <div class="contact-item-value"><?php echo esc_html($address1); ?><br><?php echo esc_html($address2); ?></div>
           </div>
         </div>
@@ -43,7 +84,7 @@ $hours2   = get_theme_mod('yaya_contact_hours2',   'Sat: 8:00 AM – 2:00 PM');
             </svg>
           </div>
           <div>
-            <div class="contact-item-label">Phone</div>
+            <div class="contact-item-label"><?php echo esc_html($phone_label); ?></div>
             <div class="contact-item-value"><a href="tel:<?php echo esc_attr(preg_replace('/[^+\d]/', '', $phone)); ?>" style="color:inherit;text-decoration:none"><?php echo esc_html($phone); ?></a></div>
           </div>
         </div>
@@ -55,7 +96,7 @@ $hours2   = get_theme_mod('yaya_contact_hours2',   'Sat: 8:00 AM – 2:00 PM');
             </svg>
           </div>
           <div>
-            <div class="contact-item-label">Email</div>
+            <div class="contact-item-label"><?php echo esc_html($email_label); ?></div>
             <div class="contact-item-value"><a href="mailto:<?php echo esc_attr($email); ?>" style="color:inherit;text-decoration:none"><?php echo esc_html($email); ?></a></div>
           </div>
         </div>
@@ -67,78 +108,74 @@ $hours2   = get_theme_mod('yaya_contact_hours2',   'Sat: 8:00 AM – 2:00 PM');
             </svg>
           </div>
           <div>
-            <div class="contact-item-label">Working Hours</div>
+            <div class="contact-item-label"><?php echo esc_html($hours_label); ?></div>
             <div class="contact-item-value"><?php echo esc_html($hours1); ?><br><?php echo esc_html($hours2); ?></div>
           </div>
         </div>
       </div>
 
-      <div class="contact-item-label" style="margin-bottom:0.8rem">Follow Us</div>
+      <div class="contact-item-label" style="margin-bottom:0.8rem"><?php echo esc_html($social_label); ?></div>
       <div class="social-links">
-        <a class="social-link" href="https://www.instagram.com/yayaconstruct/" target="_blank" aria-label="Instagram">
+        <?php if ($instagram_url) : ?><a class="social-link" href="<?php echo esc_url($instagram_url); ?>" target="_blank" aria-label="Instagram" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
             <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
           </svg>
-        </a>
-        <a class="social-link" href="#" target="_blank" aria-label="LinkedIn">
+        </a><?php endif; ?>
+        <?php if ($linkedin_url) : ?><a class="social-link" href="<?php echo esc_url($linkedin_url); ?>" target="_blank" aria-label="LinkedIn" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
             <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>
           </svg>
-        </a>
-        <a class="social-link" href="#" target="_blank" aria-label="Facebook">
+        </a><?php endif; ?>
+        <?php if ($facebook_url) : ?><a class="social-link" href="<?php echo esc_url($facebook_url); ?>" target="_blank" aria-label="Facebook" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
             <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
           </svg>
-        </a>
+        </a><?php endif; ?>
       </div>
     </div>
 
     <div class="contact-form">
-      <h2>SEND US<br>A MESSAGE</h2>
+      <h2><?php echo wp_kses(nl2br(esc_html($form_heading)), ['br' => []]); ?></h2>
       <?php wp_nonce_field('yaya_contact_nonce', 'yaya_nonce'); ?>
       <div class="form-row">
         <div class="form-group">
-          <label for="cf-first">First Name</label>
-          <input type="text" id="cf-first" placeholder="John" autocomplete="given-name" />
+          <label for="cf-first"><?php echo esc_html($first_name_label); ?></label>
+          <input type="text" id="cf-first" placeholder="<?php echo esc_attr($first_name_placeholder); ?>" autocomplete="given-name" />
         </div>
         <div class="form-group">
-          <label for="cf-last">Last Name</label>
-          <input type="text" id="cf-last" placeholder="Smith" autocomplete="family-name" />
+          <label for="cf-last"><?php echo esc_html($last_name_label); ?></label>
+          <input type="text" id="cf-last" placeholder="<?php echo esc_attr($last_name_placeholder); ?>" autocomplete="family-name" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label for="cf-email">Email</label>
-          <input type="email" id="cf-email" placeholder="you@email.com" autocomplete="email" />
+          <label for="cf-email"><?php echo esc_html($form_email_label); ?></label>
+          <input type="email" id="cf-email" placeholder="<?php echo esc_attr($form_email_placeholder); ?>" autocomplete="email" />
         </div>
         <div class="form-group">
-          <label for="cf-phone">Phone</label>
-          <input type="tel" id="cf-phone" placeholder="+1 555 000 0000" autocomplete="tel" />
+          <label for="cf-phone"><?php echo esc_html($form_phone_label); ?></label>
+          <input type="tel" id="cf-phone" placeholder="<?php echo esc_attr($form_phone_placeholder); ?>" autocomplete="tel" />
         </div>
       </div>
       <div class="form-group">
-        <label for="cf-type">Project Type</label>
+        <label for="cf-type"><?php echo esc_html($project_type_label); ?></label>
         <select id="cf-type">
-          <option value="">Select a service...</option>
-          <option>General Construction</option>
-          <option>Commercial Building</option>
-          <option>Residential Project</option>
-          <option>Renovation &amp; Refit</option>
-          <option>Design &amp; Build</option>
-          <option>Project Management</option>
-          <option>Other</option>
+          <option value=""><?php echo esc_html($project_type_placeholder); ?></option>
+          <?php foreach ($project_type_options as $option) : ?>
+            <option><?php echo esc_html($option); ?></option>
+          <?php endforeach; ?>
         </select>
       </div>
       <div class="form-group">
-        <label for="cf-message">Message</label>
-        <textarea id="cf-message" placeholder="Tell us about your project..."></textarea>
+        <label for="cf-message"><?php echo esc_html($message_label); ?></label>
+        <textarea id="cf-message" placeholder="<?php echo esc_attr($message_placeholder); ?>"></textarea>
       </div>
-      <button class="btn-primary" id="cf-submit" onclick="submitContactForm()">Send Message &rarr;</button>
+      <button class="btn-primary" id="cf-submit" onclick="submitContactForm()"><?php echo esc_html($submit_label); ?></button>
       <div class="form-success" id="form-success">
-        &#10003; Thank you! Your message has been received. We'll be in touch within 24 hours.
+        &#10003; <?php echo esc_html($success_message); ?>
       </div>
       <div class="form-error" id="form-error">
-        Something went wrong. Please try again or email us directly.
+        <?php echo esc_html($error_message); ?>
       </div>
     </div>
 
@@ -157,7 +194,7 @@ async function submitContactForm() {
   if (!valid) return;
 
   var btn = document.getElementById('cf-submit');
-  btn.textContent = 'Sending...';
+  btn.textContent = <?php echo wp_json_encode($submit_loading_label); ?>;
   btn.disabled = true;
   document.getElementById('form-error').style.display = 'none';
 
@@ -181,7 +218,7 @@ async function submitContactForm() {
     }
   } catch(e) {
     btn.disabled = false;
-    btn.textContent = 'Send Message →';
+    btn.textContent = <?php echo wp_json_encode($submit_label); ?>;
     document.getElementById('form-error').style.display = 'block';
   }
 }
