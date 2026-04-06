@@ -1,7 +1,7 @@
 <?php /* Template Name: About */ ?>
 <?php get_header(); ?>
 
-<div style="padding-top:70px">
+<div class="page-wrap">
 
   <div class="about-hero">
     <div class="section-label" style="color:var(--rust)">Our Story</div>

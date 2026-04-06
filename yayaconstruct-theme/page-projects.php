@@ -1,6 +1,6 @@
 <?php /* Template Name: Projects */ ?>
 <?php get_header(); ?>
-<div style="padding-top:70px">
+<div class="page-wrap">
   <div class="projects-hero">
     <div class="section-label" style="color:var(--rust)">Portfolio</div>
     <h1>OUR WORK<br>SPEAKS FOR ITSELF</h1>
