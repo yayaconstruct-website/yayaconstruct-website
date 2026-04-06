@@ -578,6 +578,23 @@ function yaya_get_about_page_field($post_id, $key, $fallback = '') {
     return $value !== '' ? $value : $fallback;
 }
 
+function yaya_is_about_editor_page($post) {
+    if (!$post instanceof WP_Post || $post->post_type !== 'page') {
+        return false;
+    }
+
+    $template = get_page_template_slug($post->ID);
+    if ($template === 'page-about.php') {
+        return true;
+    }
+
+    $aliases = ['about', 'about-us', 'our-story'];
+    $slug = sanitize_title($post->post_name);
+    $title = sanitize_title($post->post_title);
+
+    return in_array($slug, $aliases, true) || in_array($title, $aliases, true);
+}
+
 function yaya_add_about_meta_box() {
     add_meta_box(
         'yaya_about_details',
@@ -591,10 +608,7 @@ function yaya_add_about_meta_box() {
 add_action('add_meta_boxes', 'yaya_add_about_meta_box');
 
 function yaya_render_about_meta_box($post) {
-    $template = get_page_template_slug($post->ID);
-    $slug     = $post->post_name;
-
-    if ($template !== 'page-about.php' && !in_array($slug, ['about', 'about-us', 'our-story'], true)) {
+    if (!yaya_is_about_editor_page($post)) {
         echo '<p>This panel is used by the About page. Assign the About template to this page to use these fields.</p>';
         return;
     }
