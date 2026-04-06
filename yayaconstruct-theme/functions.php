@@ -741,3 +741,237 @@ function yaya_save_projects_meta_box($post_id) {
     }
 }
 add_action('save_post_page', 'yaya_save_projects_meta_box');
+
+/* ─────────────────────────────────────────
+   HOME PAGE EDITOR FIELDS
+───────────────────────────────────────── */
+function yaya_home_page_defaults() {
+    return [
+        'hero' => [
+            'tag'      => 'Est. in Excellence',
+            'line1'    => 'WE',
+            'line2'    => 'BUILD',
+            'line3'    => 'YOUR VISION',
+            'sub'      => 'From groundbreaking to grand opening — Yaya Construct delivers construction that lasts generations.',
+            'cta1'     => 'View Our Work',
+            'cta1_url' => home_url('/projects'),
+            'cta2'     => 'Get a Quote',
+            'cta2_url' => home_url('/contact'),
+        ],
+        'stats' => [
+            1 => ['num' => '150+', 'label' => 'Projects Completed'],
+            2 => ['num' => '12+',  'label' => 'Years of Experience'],
+            3 => ['num' => '98%',  'label' => 'Client Satisfaction'],
+            4 => ['num' => '40+',  'label' => 'Skilled Professionals'],
+        ],
+        'services' => [
+            'section_label' => 'What We Do',
+            'section_title' => 'OUR SERVICES',
+            1 => ['title' => 'General Construction', 'text' => 'Full-cycle construction management from planning to handover, delivered on time and within budget.'],
+            2 => ['title' => 'Commercial Buildings', 'text' => 'Office complexes, retail centers, warehouses, and industrial facilities built to the highest standards.'],
+            3 => ['title' => 'Residential Projects', 'text' => 'Custom homes, apartment buildings, and residential renovations crafted with care and precision.'],
+            4 => ['title' => 'Renovation & Refit',   'text' => 'Breathing new life into existing structures with expert renovation, retrofitting, and restoration work.'],
+            5 => ['title' => 'Design & Build',       'text' => 'Integrated design-build solutions combining architectural vision with construction expertise under one roof.'],
+            6 => ['title' => 'Project Management',   'text' => 'Professional oversight, scheduling, and coordination for complex multi-phase construction projects.'],
+        ],
+        'featured' => [
+            'label'         => 'Featured Work',
+            'button_text'   => 'Explore All Projects',
+            'button_url'    => home_url('/projects'),
+            'empty_title'   => 'BUILT WITH PURPOSE, CRAFTED WITH PRIDE',
+            'empty_text'    => 'Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.',
+        ],
+    ];
+}
+
+function yaya_get_home_page_field($post_id, $key, $fallback = '') {
+    $value = get_post_meta($post_id, $key, true);
+    return $value !== '' ? $value : $fallback;
+}
+
+function yaya_is_home_editor_page($post) {
+    if (!$post instanceof WP_Post || $post->post_type !== 'page') {
+        return false;
+    }
+
+    $front_page_id = (int) get_option('page_on_front');
+    return $post->ID === $front_page_id || $post->post_name === 'home';
+}
+
+function yaya_add_home_meta_box() {
+    add_meta_box(
+        'yaya_home_details',
+        'Home Page Details',
+        'yaya_render_home_meta_box',
+        'page',
+        'normal',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'yaya_add_home_meta_box');
+
+function yaya_render_home_meta_box($post) {
+    if (!yaya_is_home_editor_page($post)) {
+        echo '<p>This panel is used by the page assigned as the static homepage in WordPress Reading settings.</p>';
+        return;
+    }
+
+    $defaults = yaya_home_page_defaults();
+    wp_nonce_field('yaya_home_meta_box', 'yaya_home_meta_nonce');
+
+    echo '<p>Use these fields to manage homepage text from the page editor. Existing Customizer values remain as fallback if a field is left blank.</p>';
+    echo '<style>
+        .yaya-meta-grid{display:grid;gap:16px}
+        .yaya-meta-section{border:1px solid #dcdcde;padding:16px;background:#fff}
+        .yaya-meta-row{display:grid;gap:12px;grid-template-columns:1fr 2fr;margin-bottom:12px}
+        .yaya-meta-row:last-child{margin-bottom:0}
+        .yaya-meta-row label{font-weight:600}
+        .yaya-meta-row input,.yaya-meta-row textarea{width:100%}
+      </style>';
+
+    echo '<div class="yaya-meta-grid">';
+
+    echo '<div class="yaya-meta-section"><h3>Hero Section</h3>';
+    $hero_fields = [
+        'tag'      => 'Hero Tag',
+        'line1'    => 'Hero Heading Line 1',
+        'line2'    => 'Hero Heading Line 2',
+        'line3'    => 'Hero Heading Line 3',
+        'sub'      => 'Hero Subtext',
+        'cta1'     => 'Primary Button Text',
+        'cta1_url' => 'Primary Button URL',
+        'cta2'     => 'Secondary Button Text',
+        'cta2_url' => 'Secondary Button URL',
+    ];
+    foreach ($hero_fields as $key => $label) {
+        $value = yaya_get_home_page_field($post->ID, "_yaya_home_hero_{$key}", $defaults['hero'][$key]);
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_home_hero_' . $key . '">' . esc_html($label) . '</label>';
+        if (in_array($key, ['sub'], true)) {
+            echo '<textarea rows="3" id="yaya_home_hero_' . $key . '" name="yaya_home_hero_' . $key . '">' . esc_textarea($value) . '</textarea>';
+        } else {
+            $type = str_ends_with($key, '_url') ? 'url' : 'text';
+            echo '<input type="' . esc_attr($type) . '" id="yaya_home_hero_' . $key . '" name="yaya_home_hero_' . $key . '" value="' . esc_attr($value) . '">';
+        }
+        echo '</div>';
+    }
+    echo '</div>';
+
+    echo '<div class="yaya-meta-section"><h3>Stats Bar</h3>';
+    for ($i = 1; $i <= 4; $i++) {
+        $num = yaya_get_home_page_field($post->ID, "_yaya_home_stat_{$i}_num", $defaults['stats'][$i]['num']);
+        $label = yaya_get_home_page_field($post->ID, "_yaya_home_stat_{$i}_label", $defaults['stats'][$i]['label']);
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_home_stat_' . $i . '_num">Stat ' . $i . ' Number</label>';
+        echo '<input type="text" id="yaya_home_stat_' . $i . '_num" name="yaya_home_stat_' . $i . '_num" value="' . esc_attr($num) . '">';
+        echo '</div>';
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_home_stat_' . $i . '_label">Stat ' . $i . ' Label</label>';
+        echo '<input type="text" id="yaya_home_stat_' . $i . '_label" name="yaya_home_stat_' . $i . '_label" value="' . esc_attr($label) . '">';
+        echo '</div>';
+    }
+    echo '</div>';
+
+    echo '<div class="yaya-meta-section"><h3>Services Section</h3>';
+    $service_section_label = yaya_get_home_page_field($post->ID, '_yaya_home_services_section_label', $defaults['services']['section_label']);
+    $service_section_title = yaya_get_home_page_field($post->ID, '_yaya_home_services_section_title', $defaults['services']['section_title']);
+    echo '<div class="yaya-meta-row"><label for="yaya_home_services_section_label">Section Label</label><input type="text" id="yaya_home_services_section_label" name="yaya_home_services_section_label" value="' . esc_attr($service_section_label) . '"></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_home_services_section_title">Section Title</label><input type="text" id="yaya_home_services_section_title" name="yaya_home_services_section_title" value="' . esc_attr($service_section_title) . '"></div>';
+    for ($i = 1; $i <= 6; $i++) {
+        $title = yaya_get_home_page_field($post->ID, "_yaya_home_service_{$i}_title", $defaults['services'][$i]['title']);
+        $text = yaya_get_home_page_field($post->ID, "_yaya_home_service_{$i}_text", $defaults['services'][$i]['text']);
+        echo '<div class="yaya-meta-row"><label for="yaya_home_service_' . $i . '_title">Service ' . $i . ' Title</label><input type="text" id="yaya_home_service_' . $i . '_title" name="yaya_home_service_' . $i . '_title" value="' . esc_attr($title) . '"></div>';
+        echo '<div class="yaya-meta-row"><label for="yaya_home_service_' . $i . '_text">Service ' . $i . ' Description</label><textarea rows="3" id="yaya_home_service_' . $i . '_text" name="yaya_home_service_' . $i . '_text">' . esc_textarea($text) . '</textarea></div>';
+    }
+    echo '</div>';
+
+    echo '<div class="yaya-meta-section"><h3>Featured Project Section</h3>';
+    $featured_fields = [
+        'label'       => 'Section Label',
+        'button_text' => 'Button Text',
+        'button_url'  => 'Button URL',
+        'empty_title' => 'Fallback Title',
+        'empty_text'  => 'Fallback Text',
+    ];
+    foreach ($featured_fields as $key => $label) {
+        $value = yaya_get_home_page_field($post->ID, "_yaya_home_featured_{$key}", $defaults['featured'][$key]);
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_home_featured_' . $key . '">' . esc_html($label) . '</label>';
+        if (in_array($key, ['empty_text'], true)) {
+            echo '<textarea rows="3" id="yaya_home_featured_' . $key . '" name="yaya_home_featured_' . $key . '">' . esc_textarea($value) . '</textarea>';
+        } else {
+            $type = $key === 'button_url' ? 'url' : 'text';
+            echo '<input type="' . esc_attr($type) . '" id="yaya_home_featured_' . $key . '" name="yaya_home_featured_' . $key . '" value="' . esc_attr($value) . '">';
+        }
+        echo '</div>';
+    }
+    echo '</div>';
+
+    echo '</div>';
+}
+
+function yaya_save_home_meta_box($post_id) {
+    if (!isset($_POST['yaya_home_meta_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['yaya_home_meta_nonce'])), 'yaya_home_meta_box')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $hero_keys = ['tag', 'line1', 'line2', 'line3', 'sub', 'cta1', 'cta1_url', 'cta2', 'cta2_url'];
+    foreach ($hero_keys as $key) {
+        $field = "yaya_home_hero_{$key}";
+        if (isset($_POST[$field])) {
+            $value = wp_unslash($_POST[$field]);
+            $value = str_ends_with($key, '_url') ? esc_url_raw($value) : ($key === 'sub' ? sanitize_textarea_field($value) : sanitize_text_field($value));
+            update_post_meta($post_id, "_yaya_home_hero_{$key}", $value);
+        }
+    }
+
+    for ($i = 1; $i <= 4; $i++) {
+        if (isset($_POST["yaya_home_stat_{$i}_num"])) {
+            update_post_meta($post_id, "_yaya_home_stat_{$i}_num", sanitize_text_field(wp_unslash($_POST["yaya_home_stat_{$i}_num"])));
+        }
+        if (isset($_POST["yaya_home_stat_{$i}_label"])) {
+            update_post_meta($post_id, "_yaya_home_stat_{$i}_label", sanitize_text_field(wp_unslash($_POST["yaya_home_stat_{$i}_label"])));
+        }
+    }
+
+    if (isset($_POST['yaya_home_services_section_label'])) {
+        update_post_meta($post_id, '_yaya_home_services_section_label', sanitize_text_field(wp_unslash($_POST['yaya_home_services_section_label'])));
+    }
+    if (isset($_POST['yaya_home_services_section_title'])) {
+        update_post_meta($post_id, '_yaya_home_services_section_title', sanitize_text_field(wp_unslash($_POST['yaya_home_services_section_title'])));
+    }
+
+    for ($i = 1; $i <= 6; $i++) {
+        if (isset($_POST["yaya_home_service_{$i}_title"])) {
+            update_post_meta($post_id, "_yaya_home_service_{$i}_title", sanitize_text_field(wp_unslash($_POST["yaya_home_service_{$i}_title"])));
+        }
+        if (isset($_POST["yaya_home_service_{$i}_text"])) {
+            update_post_meta($post_id, "_yaya_home_service_{$i}_text", sanitize_textarea_field(wp_unslash($_POST["yaya_home_service_{$i}_text"])));
+        }
+    }
+
+    $featured_keys = ['label', 'button_text', 'button_url', 'empty_title', 'empty_text'];
+    foreach ($featured_keys as $key) {
+        $field = "yaya_home_featured_{$key}";
+        if (isset($_POST[$field])) {
+            $value = wp_unslash($_POST[$field]);
+            if ($key === 'button_url') {
+                $value = esc_url_raw($value);
+            } elseif ($key === 'empty_text') {
+                $value = sanitize_textarea_field($value);
+            } else {
+                $value = sanitize_text_field($value);
+            }
+            update_post_meta($post_id, "_yaya_home_featured_{$key}", $value);
+        }
+    }
+}
+add_action('save_post_page', 'yaya_save_home_meta_box');

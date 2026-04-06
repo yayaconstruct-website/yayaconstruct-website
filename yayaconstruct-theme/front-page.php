@@ -1,14 +1,23 @@
 <?php get_header(); ?>
 
 <?php
+$home_page_id = get_queried_object_id();
+if (!$home_page_id) {
+  $home_page_id = (int) get_option('page_on_front');
+}
+
+$home_defaults = function_exists('yaya_home_page_defaults') ? yaya_home_page_defaults() : [];
+
 // Hero values
-$hero_tag   = get_theme_mod('yaya_hero_tag',   'Est. in Excellence');
-$hero_line1 = get_theme_mod('yaya_hero_line1', 'WE');
-$hero_line2 = get_theme_mod('yaya_hero_line2', 'BUILD');
-$hero_line3 = get_theme_mod('yaya_hero_line3', 'YOUR VISION');
-$hero_sub   = get_theme_mod('yaya_hero_sub',   'From groundbreaking to grand opening — Yaya Construct delivers construction that lasts generations.');
-$hero_cta1  = get_theme_mod('yaya_hero_cta1',  'View Our Work');
-$hero_cta2  = get_theme_mod('yaya_hero_cta2',  'Get a Quote');
+$hero_tag   = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_tag', get_theme_mod('yaya_hero_tag',   $home_defaults['hero']['tag'] ?? 'Est. in Excellence')) : get_theme_mod('yaya_hero_tag',   'Est. in Excellence');
+$hero_line1 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line1', get_theme_mod('yaya_hero_line1', $home_defaults['hero']['line1'] ?? 'WE')) : get_theme_mod('yaya_hero_line1', 'WE');
+$hero_line2 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line2', get_theme_mod('yaya_hero_line2', $home_defaults['hero']['line2'] ?? 'BUILD')) : get_theme_mod('yaya_hero_line2', 'BUILD');
+$hero_line3 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line3', get_theme_mod('yaya_hero_line3', $home_defaults['hero']['line3'] ?? 'YOUR VISION')) : get_theme_mod('yaya_hero_line3', 'YOUR VISION');
+$hero_sub   = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_sub',   get_theme_mod('yaya_hero_sub',   $home_defaults['hero']['sub'] ?? '')) : get_theme_mod('yaya_hero_sub', '');
+$hero_cta1  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta1',  get_theme_mod('yaya_hero_cta1',  $home_defaults['hero']['cta1'] ?? 'View Our Work')) : get_theme_mod('yaya_hero_cta1', 'View Our Work');
+$hero_cta2  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta2',  get_theme_mod('yaya_hero_cta2',  $home_defaults['hero']['cta2'] ?? 'Get a Quote')) : get_theme_mod('yaya_hero_cta2', 'Get a Quote');
+$hero_cta1_url = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta1_url', $home_defaults['hero']['cta1_url'] ?? home_url('/projects')) : home_url('/projects');
+$hero_cta2_url = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta2_url', $home_defaults['hero']['cta2_url'] ?? home_url('/contact')) : home_url('/contact');
 $hero_img   = get_theme_mod('yaya_hero_image', 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80');
 
 // Stats
@@ -16,10 +25,18 @@ $stats = [];
 for ($i = 1; $i <= 4; $i++) {
   $defaults = [1 => ['150+','Projects Completed'], 2 => ['12+','Years of Experience'], 3 => ['98%','Client Satisfaction'], 4 => ['40+','Skilled Professionals']];
   $stats[] = [
-    'num'   => get_theme_mod("yaya_stat{$i}_num",   $defaults[$i][0]),
-    'label' => get_theme_mod("yaya_stat{$i}_label", $defaults[$i][1]),
+    'num'   => function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_stat_{$i}_num", get_theme_mod("yaya_stat{$i}_num",   $defaults[$i][0])) : get_theme_mod("yaya_stat{$i}_num",   $defaults[$i][0]),
+    'label' => function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_stat_{$i}_label", get_theme_mod("yaya_stat{$i}_label", $defaults[$i][1])) : get_theme_mod("yaya_stat{$i}_label", $defaults[$i][1]),
   ];
 }
+
+$services_section_label = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_services_section_label', $home_defaults['services']['section_label'] ?? 'What We Do') : 'What We Do';
+$services_section_title = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_services_section_title', $home_defaults['services']['section_title'] ?? 'OUR SERVICES') : 'OUR SERVICES';
+$featured_label = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_label', $home_defaults['featured']['label'] ?? 'Featured Work') : 'Featured Work';
+$featured_button_text = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_button_text', $home_defaults['featured']['button_text'] ?? 'Explore All Projects') : 'Explore All Projects';
+$featured_button_url = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_button_url', $home_defaults['featured']['button_url'] ?? home_url('/projects')) : home_url('/projects');
+$featured_empty_title = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_empty_title', $home_defaults['featured']['empty_title'] ?? 'BUILT WITH PURPOSE, CRAFTED WITH PRIDE') : 'BUILT WITH PURPOSE, CRAFTED WITH PRIDE';
+$featured_empty_text = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_empty_text', $home_defaults['featured']['empty_text'] ?? '') : '';
 ?>
 
 <!-- Hero -->
@@ -33,8 +50,8 @@ for ($i = 1; $i <= 4; $i++) {
   </h1>
   <p class="hero-sub"><?php echo esc_html($hero_sub); ?></p>
   <div class="hero-cta">
-    <a href="<?php echo home_url('/projects'); ?>" class="btn-primary"><?php echo esc_html($hero_cta1); ?></a>
-    <a href="<?php echo home_url('/contact'); ?>"  class="btn-outline"><?php echo esc_html($hero_cta2); ?></a>
+    <a href="<?php echo esc_url($hero_cta1_url); ?>" class="btn-primary"><?php echo esc_html($hero_cta1); ?></a>
+    <a href="<?php echo esc_url($hero_cta2_url); ?>"  class="btn-outline"><?php echo esc_html($hero_cta2); ?></a>
   </div>
   <div class="hero-scroll">
     <div class="scroll-line"></div>
@@ -73,12 +90,12 @@ $service_defaults = [
 ?>
 <!-- Services -->
 <section class="section">
-  <div class="section-label reveal">What We Do</div>
-  <div class="section-title reveal" style="transition-delay:0.1s">OUR SERVICES</div>
+  <div class="section-label reveal"><?php echo esc_html($services_section_label); ?></div>
+  <div class="section-title reveal" style="transition-delay:0.1s"><?php echo esc_html($services_section_title); ?></div>
   <div class="services-grid">
     <?php for ($i = 1; $i <= 6; $i++):
-      $svc_title = get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0]);
-      $svc_text  = get_theme_mod("yaya_service{$i}_text",  $service_defaults[$i][1]);
+      $svc_title = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_service_{$i}_title", get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0])) : get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0]);
+      $svc_text  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_service_{$i}_text",  get_theme_mod("yaya_service{$i}_text",  $service_defaults[$i][1])) : get_theme_mod("yaya_service{$i}_text",  $service_defaults[$i][1]);
       $delay     = round(($i - 1) * 0.08, 2);
     ?>
     <div class="service-card reveal" style="transition-delay:<?php echo $delay; ?>s">
@@ -108,7 +125,7 @@ if ($featured->have_posts()):
     <?php endif; ?>
   </div>
   <div class="home-project-content reveal" style="transition-delay:0.2s">
-    <div class="section-label">Featured Work</div>
+    <div class="section-label"><?php echo esc_html($featured_label); ?></div>
     <div class="section-title">
       <?php the_title(); ?>
       <?php if ($feat_loc): ?>
@@ -118,9 +135,9 @@ if ($featured->have_posts()):
     <?php if (get_the_content()): ?>
       <p><?php echo wp_kses_post(get_the_content()); ?></p>
     <?php else: ?>
-      <p>Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.</p>
+      <p><?php echo esc_html($featured_empty_text ?: 'Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.'); ?></p>
     <?php endif; ?>
-    <a href="<?php echo home_url('/projects'); ?>" class="btn-primary">Explore All Projects</a>
+    <a href="<?php echo esc_url($featured_button_url); ?>" class="btn-primary"><?php echo esc_html($featured_button_text); ?></a>
   </div>
 </div>
 <?php wp_reset_postdata(); else: ?>
@@ -129,10 +146,10 @@ if ($featured->have_posts()):
     <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="Featured project" loading="lazy" />
   </div>
   <div class="home-project-content reveal" style="transition-delay:0.2s">
-    <div class="section-label">Featured Work</div>
-    <div class="section-title">BUILT WITH PURPOSE, <em style="font-style:normal;color:var(--rust)">CRAFTED WITH PRIDE</em></div>
-    <p>Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.</p>
-    <a href="<?php echo home_url('/projects'); ?>" class="btn-primary">Explore All Projects</a>
+    <div class="section-label"><?php echo esc_html($featured_label); ?></div>
+    <div class="section-title"><?php echo nl2br(esc_html($featured_empty_title)); ?></div>
+    <p><?php echo esc_html($featured_empty_text ?: 'Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.'); ?></p>
+    <a href="<?php echo esc_url($featured_button_url); ?>" class="btn-primary"><?php echo esc_html($featured_button_text); ?></a>
   </div>
 </div>
 <?php endif; ?>
