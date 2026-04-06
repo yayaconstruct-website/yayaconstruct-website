@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          server-dir: yayaconstruct.com/
+          server-dir: public_html
           dangerous-clean-slate: true
           exclude: |
             **/.git*
