@@ -1172,20 +1172,38 @@ Version: 1.0
       align-items: center;
       text-decoration: none;
       flex-shrink: 0;
+      padding: 0.5rem 0.7rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+      backdrop-filter: blur(6px);
     }
 
     .nav-logo-img,
     .nav-logo .custom-logo {
-      height: 44px;
+      height: 60px;
       width: auto;
       display: block;
-      /* Inverts colours: dark logo → white, white bg → black (merges with nav) */
-      filter: invert(1);
+      filter: none;
     }
 
     .nav-logo .custom-logo-link {
-      display: block;
+      display: flex;
+      align-items: center;
       line-height: 0;
+    }
+
+    @media (max-width: 768px) {
+      .nav-logo {
+        padding: 0.38rem 0.5rem;
+        border-radius: 12px;
+      }
+
+      .nav-logo-img,
+      .nav-logo .custom-logo {
+        height: 52px;
+      }
     }
 
     /* ── SVG SERVICE ICONS ── */
