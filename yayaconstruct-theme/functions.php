@@ -1,6 +1,32 @@
 <?php
 
 /* ─────────────────────────────────────────
+   AUTO-CREATE REQUIRED PAGES
+───────────────────────────────────────── */
+function yaya_create_pages() {
+    $pages = [
+        [ 'title' => 'Home',     'slug' => 'home',     'template' => '' ],
+        [ 'title' => 'About Us', 'slug' => 'about',    'template' => 'page-about.php' ],
+        [ 'title' => 'Projects', 'slug' => 'projects', 'template' => 'page-projects.php' ],
+        [ 'title' => 'Contact',  'slug' => 'contact',  'template' => 'page-contact.php' ],
+    ];
+
+    foreach ($pages as $p) {
+        if (!get_page_by_path($p['slug'])) {
+            wp_insert_post([
+                'post_title'  => $p['title'],
+                'post_name'   => $p['slug'],
+                'post_status' => 'publish',
+                'post_type'   => 'page',
+                'meta_input'  => $p['template'] ? ['_wp_page_template' => $p['template']] : [],
+            ]);
+        }
+    }
+}
+add_action('after_switch_theme', 'yaya_create_pages');
+add_action('admin_init',         'yaya_create_pages');
+
+/* ─────────────────────────────────────────
    THEME SETUP
 ───────────────────────────────────────── */
 function yaya_setup() {
