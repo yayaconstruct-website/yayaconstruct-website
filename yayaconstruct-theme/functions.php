@@ -24,7 +24,6 @@ function yaya_create_pages() {
     }
 }
 add_action('after_switch_theme', 'yaya_create_pages');
-add_action('admin_init',         'yaya_create_pages');
 
 /* ─────────────────────────────────────────
    THEME SETUP
