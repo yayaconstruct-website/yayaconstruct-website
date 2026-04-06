@@ -66,6 +66,7 @@ function yaya_setup() {
     add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
     add_image_size('project-thumb', 800, 600, true);
+    add_post_type_support('page', 'excerpt');
     add_theme_support('custom-logo', [
         'height'      => 60,
         'width'       => 160,
@@ -347,3 +348,161 @@ function yaya_customizer($wp_customize) {
     }
 }
 add_action('customize_register', 'yaya_customizer');
+
+/* ─────────────────────────────────────────
+   ABOUT PAGE EDITOR FIELDS
+───────────────────────────────────────── */
+function yaya_about_page_defaults() {
+    return [
+        'values' => [
+            1 => [
+                'title' => 'Quality First',
+                'text'  => 'We never cut corners. Every joint, every pour, every finish is done right because your structure deserves nothing less.',
+            ],
+            2 => [
+                'title' => 'Integrity',
+                'text'  => 'Honest pricing, transparent timelines, and clear communication from day one to handover. No surprises.',
+            ],
+            3 => [
+                'title' => 'Innovation',
+                'text'  => 'We stay current with modern building techniques and materials to deliver solutions that are both durable and forward-thinking.',
+            ],
+            4 => [
+                'title' => 'Community',
+                'text'  => 'We build in communities we care about. Supporting local suppliers and creating opportunities for local talent is at our core.',
+            ],
+        ],
+        'team' => [
+            1 => [
+                'name'  => 'Yaya Diallo',
+                'role'  => 'Founder & CEO',
+                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
+            ],
+            2 => [
+                'name'  => 'Sarah Mensah',
+                'role'  => 'Head of Projects',
+                'photo' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
+            ],
+            3 => [
+                'name'  => 'Marc Koné',
+                'role'  => 'Lead Engineer',
+                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
+            ],
+        ],
+    ];
+}
+
+function yaya_get_about_page_field($post_id, $key, $fallback = '') {
+    $value = get_post_meta($post_id, $key, true);
+    return $value !== '' ? $value : $fallback;
+}
+
+function yaya_add_about_meta_box() {
+    add_meta_box(
+        'yaya_about_details',
+        'About Page Details',
+        'yaya_render_about_meta_box',
+        'page',
+        'normal',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'yaya_add_about_meta_box');
+
+function yaya_render_about_meta_box($post) {
+    $template = get_page_template_slug($post->ID);
+    $slug     = $post->post_name;
+
+    if ($template !== 'page-about.php' && !in_array($slug, ['about', 'about-us', 'our-story'], true)) {
+        echo '<p>This panel is used by the About page. Assign the About template to this page to use these fields.</p>';
+        return;
+    }
+
+    $defaults = yaya_about_page_defaults();
+    wp_nonce_field('yaya_about_meta_box', 'yaya_about_meta_nonce');
+
+    echo '<p>Use the regular page title, excerpt, and content editor for the hero heading, intro text, and main story. Use the fields below for Values and Team.</p>';
+    echo '<style>
+        .yaya-meta-grid{display:grid;gap:16px}
+        .yaya-meta-section{border:1px solid #dcdcde;padding:16px;background:#fff}
+        .yaya-meta-row{display:grid;gap:12px;grid-template-columns:1fr 2fr;margin-bottom:12px}
+        .yaya-meta-row:last-child{margin-bottom:0}
+        .yaya-meta-row label{font-weight:600}
+        .yaya-meta-row input,.yaya-meta-row textarea{width:100%}
+      </style>';
+
+    echo '<div class="yaya-meta-grid">';
+
+    echo '<div class="yaya-meta-section"><h3>Values Section</h3>';
+    for ($i = 1; $i <= 4; $i++) {
+        $title = yaya_get_about_page_field($post->ID, "_yaya_about_value_{$i}_title", $defaults['values'][$i]['title']);
+        $text  = yaya_get_about_page_field($post->ID, "_yaya_about_value_{$i}_text", $defaults['values'][$i]['text']);
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_about_value_' . $i . '_title">Value ' . $i . ' Title</label>';
+        echo '<input type="text" id="yaya_about_value_' . $i . '_title" name="yaya_about_value_' . $i . '_title" value="' . esc_attr($title) . '">';
+        echo '</div>';
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_about_value_' . $i . '_text">Value ' . $i . ' Description</label>';
+        echo '<textarea rows="3" id="yaya_about_value_' . $i . '_text" name="yaya_about_value_' . $i . '_text">' . esc_textarea($text) . '</textarea>';
+        echo '</div>';
+    }
+    echo '</div>';
+
+    echo '<div class="yaya-meta-section"><h3>Team Section</h3>';
+    for ($i = 1; $i <= 3; $i++) {
+        $name  = yaya_get_about_page_field($post->ID, "_yaya_about_team_{$i}_name", $defaults['team'][$i]['name']);
+        $role  = yaya_get_about_page_field($post->ID, "_yaya_about_team_{$i}_role", $defaults['team'][$i]['role']);
+        $photo = yaya_get_about_page_field($post->ID, "_yaya_about_team_{$i}_photo", $defaults['team'][$i]['photo']);
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_about_team_' . $i . '_name">Member ' . $i . ' Name</label>';
+        echo '<input type="text" id="yaya_about_team_' . $i . '_name" name="yaya_about_team_' . $i . '_name" value="' . esc_attr($name) . '">';
+        echo '</div>';
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_about_team_' . $i . '_role">Member ' . $i . ' Role</label>';
+        echo '<input type="text" id="yaya_about_team_' . $i . '_role" name="yaya_about_team_' . $i . '_role" value="' . esc_attr($role) . '">';
+        echo '</div>';
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_about_team_' . $i . '_photo">Member ' . $i . ' Photo URL</label>';
+        echo '<input type="url" id="yaya_about_team_' . $i . '_photo" name="yaya_about_team_' . $i . '_photo" value="' . esc_attr($photo) . '" placeholder="https://">';
+        echo '</div>';
+    }
+    echo '</div>';
+
+    echo '</div>';
+}
+
+function yaya_save_about_meta_box($post_id) {
+    if (!isset($_POST['yaya_about_meta_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['yaya_about_meta_nonce'])), 'yaya_about_meta_box')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    for ($i = 1; $i <= 4; $i++) {
+        if (isset($_POST["yaya_about_value_{$i}_title"])) {
+            update_post_meta($post_id, "_yaya_about_value_{$i}_title", sanitize_text_field(wp_unslash($_POST["yaya_about_value_{$i}_title"])));
+        }
+        if (isset($_POST["yaya_about_value_{$i}_text"])) {
+            update_post_meta($post_id, "_yaya_about_value_{$i}_text", sanitize_textarea_field(wp_unslash($_POST["yaya_about_value_{$i}_text"])));
+        }
+    }
+
+    for ($i = 1; $i <= 3; $i++) {
+        if (isset($_POST["yaya_about_team_{$i}_name"])) {
+            update_post_meta($post_id, "_yaya_about_team_{$i}_name", sanitize_text_field(wp_unslash($_POST["yaya_about_team_{$i}_name"])));
+        }
+        if (isset($_POST["yaya_about_team_{$i}_role"])) {
+            update_post_meta($post_id, "_yaya_about_team_{$i}_role", sanitize_text_field(wp_unslash($_POST["yaya_about_team_{$i}_role"])));
+        }
+        if (isset($_POST["yaya_about_team_{$i}_photo"])) {
+            update_post_meta($post_id, "_yaya_about_team_{$i}_photo", esc_url_raw(wp_unslash($_POST["yaya_about_team_{$i}_photo"])));
+        }
+    }
+}
+add_action('save_post_page', 'yaya_save_about_meta_box');
