@@ -45,15 +45,15 @@
 <nav id="main-nav">
 
   <!-- Logo -->
-  <a class="nav-logo" href="<?php echo home_url('/'); ?>">
-    <?php if (has_custom_logo()): ?>
-      <?php the_custom_logo(); ?>
-    <?php else: ?>
+  <?php if (has_custom_logo()): ?>
+    <div class="nav-logo"><?php the_custom_logo(); ?></div>
+  <?php else: ?>
+    <a class="nav-logo" href="<?php echo home_url('/'); ?>">
       <img src="<?php echo get_template_directory_uri(); ?>/images/logo.png"
            alt="<?php bloginfo('name'); ?>"
            class="nav-logo-img" />
-    <?php endif; ?>
-  </a>
+    </a>
+  <?php endif; ?>
 
   <!-- Desktop & mobile nav links -->
   <ul class="nav-links" id="nav-links">
