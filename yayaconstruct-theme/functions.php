@@ -26,6 +26,25 @@ function yaya_create_pages() {
 add_action('after_switch_theme', 'yaya_create_pages');
 
 /* ─────────────────────────────────────────
+   FORCE PAGE TEMPLATES BY SLUG
+───────────────────────────────────────── */
+function yaya_force_templates($template) {
+    $map = [
+        'projects' => 'page-projects.php',
+        'about'    => 'page-about.php',
+        'contact'  => 'page-contact.php',
+    ];
+    foreach ($map as $slug => $file) {
+        $path = get_template_directory() . '/' . $file;
+        if (is_page($slug) && file_exists($path)) {
+            return $path;
+        }
+    }
+    return $template;
+}
+add_filter('template_include', 'yaya_force_templates');
+
+/* ─────────────────────────────────────────
    THEME SETUP
 ───────────────────────────────────────── */
 function yaya_setup() {
@@ -50,7 +69,7 @@ function yaya_scripts() {
         'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap',
         [], null
     );
-    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.1');
+    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.2');
 }
 add_action('wp_enqueue_scripts', 'yaya_scripts');
 
