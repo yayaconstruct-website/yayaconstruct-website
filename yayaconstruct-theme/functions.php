@@ -506,3 +506,100 @@ function yaya_save_about_meta_box($post_id) {
     }
 }
 add_action('save_post_page', 'yaya_save_about_meta_box');
+
+/* ─────────────────────────────────────────
+   PROJECTS PAGE EDITOR FIELDS
+───────────────────────────────────────── */
+function yaya_projects_page_defaults() {
+    return [
+        'hero_label'   => 'Portfolio',
+        'filter_label' => 'All Projects',
+        'empty_state'  => 'Our portfolio is being updated. Check back soon.',
+    ];
+}
+
+function yaya_get_projects_page_field($post_id, $key, $fallback = '') {
+    $value = get_post_meta($post_id, $key, true);
+    return $value !== '' ? $value : $fallback;
+}
+
+function yaya_add_projects_meta_box() {
+    add_meta_box(
+        'yaya_projects_details',
+        'Projects Page Details',
+        'yaya_render_projects_meta_box',
+        'page',
+        'normal',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'yaya_add_projects_meta_box');
+
+function yaya_render_projects_meta_box($post) {
+    $template = get_page_template_slug($post->ID);
+    $slug     = $post->post_name;
+
+    if ($template !== 'page-projects.php' && !in_array($slug, ['projects', 'our-projects', 'portfolio'], true)) {
+        echo '<p>This panel is used by the Projects page. Assign the Projects template to this page to use these fields.</p>';
+        return;
+    }
+
+    $defaults = yaya_projects_page_defaults();
+    wp_nonce_field('yaya_projects_meta_box', 'yaya_projects_meta_nonce');
+
+    echo '<p>Use the regular page title, excerpt, and content editor for the hero heading, intro text, and optional content block above the project grid. Use the fields below for the remaining Projects page copy.</p>';
+    echo '<style>
+        .yaya-meta-grid{display:grid;gap:16px}
+        .yaya-meta-section{border:1px solid #dcdcde;padding:16px;background:#fff}
+        .yaya-meta-row{display:grid;gap:12px;grid-template-columns:1fr 2fr;margin-bottom:12px}
+        .yaya-meta-row:last-child{margin-bottom:0}
+        .yaya-meta-row label{font-weight:600}
+        .yaya-meta-row input,.yaya-meta-row textarea{width:100%}
+      </style>';
+
+    $hero_label = yaya_get_projects_page_field($post->ID, '_yaya_projects_hero_label', $defaults['hero_label']);
+    $filter_label = yaya_get_projects_page_field($post->ID, '_yaya_projects_filter_label', $defaults['filter_label']);
+    $empty_state = yaya_get_projects_page_field($post->ID, '_yaya_projects_empty_state', $defaults['empty_state']);
+
+    echo '<div class="yaya-meta-grid">';
+    echo '<div class="yaya-meta-section"><h3>Projects Page Copy</h3>';
+    echo '<div class="yaya-meta-row">';
+    echo '<label for="yaya_projects_hero_label">Hero Label</label>';
+    echo '<input type="text" id="yaya_projects_hero_label" name="yaya_projects_hero_label" value="' . esc_attr($hero_label) . '">';
+    echo '</div>';
+    echo '<div class="yaya-meta-row">';
+    echo '<label for="yaya_projects_filter_label">All Filter Label</label>';
+    echo '<input type="text" id="yaya_projects_filter_label" name="yaya_projects_filter_label" value="' . esc_attr($filter_label) . '">';
+    echo '</div>';
+    echo '<div class="yaya-meta-row">';
+    echo '<label for="yaya_projects_empty_state">Empty State Message</label>';
+    echo '<textarea rows="3" id="yaya_projects_empty_state" name="yaya_projects_empty_state">' . esc_textarea($empty_state) . '</textarea>';
+    echo '</div>';
+    echo '</div>';
+    echo '</div>';
+}
+
+function yaya_save_projects_meta_box($post_id) {
+    if (!isset($_POST['yaya_projects_meta_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['yaya_projects_meta_nonce'])), 'yaya_projects_meta_box')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if (isset($_POST['yaya_projects_hero_label'])) {
+        update_post_meta($post_id, '_yaya_projects_hero_label', sanitize_text_field(wp_unslash($_POST['yaya_projects_hero_label'])));
+    }
+    if (isset($_POST['yaya_projects_filter_label'])) {
+        update_post_meta($post_id, '_yaya_projects_filter_label', sanitize_text_field(wp_unslash($_POST['yaya_projects_filter_label'])));
+    }
+    if (isset($_POST['yaya_projects_empty_state'])) {
+        update_post_meta($post_id, '_yaya_projects_empty_state', sanitize_textarea_field(wp_unslash($_POST['yaya_projects_empty_state'])));
+    }
+}
+add_action('save_post_page', 'yaya_save_projects_meta_box');
