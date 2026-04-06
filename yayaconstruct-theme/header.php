@@ -3,6 +3,41 @@
 <head>
   <meta charset="<?php bloginfo('charset'); ?>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <?php
+  // Open Graph & Twitter Card
+  if ( is_singular() ) {
+    $og_title = get_the_title() . ' — ' . get_bloginfo( 'name' );
+    $og_desc  = has_excerpt() ? get_the_excerpt() : wp_trim_words( get_the_content(), 30, '…' );
+    $og_url   = get_permalink();
+    $og_img   = has_post_thumbnail() ? get_the_post_thumbnail_url( null, 'large' ) : '';
+    $og_type  = 'article';
+  } else {
+    $og_title = get_bloginfo( 'name' ) . ( get_bloginfo( 'description' ) ? ' — ' . get_bloginfo( 'description' ) : '' );
+    $og_desc  = get_bloginfo( 'description' );
+    $og_url   = home_url( '/' );
+    $og_img   = '';
+    $og_type  = 'website';
+  }
+  if ( ! $og_img && has_custom_logo() ) {
+    $logo_id = get_theme_mod( 'custom_logo' );
+    $logo    = wp_get_attachment_image_src( $logo_id, 'full' );
+    $og_img  = $logo ? $logo[0] : '';
+  }
+  ?>
+  <meta property="og:type"        content="<?php echo esc_attr( $og_type ); ?>">
+  <meta property="og:title"       content="<?php echo esc_attr( $og_title ); ?>">
+  <meta property="og:description" content="<?php echo esc_attr( $og_desc ); ?>">
+  <meta property="og:url"         content="<?php echo esc_url( $og_url ); ?>">
+  <meta property="og:site_name"   content="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+  <?php if ( $og_img ) : ?>
+  <meta property="og:image"       content="<?php echo esc_url( $og_img ); ?>">
+  <?php endif; ?>
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="<?php echo esc_attr( $og_title ); ?>">
+  <meta name="twitter:description" content="<?php echo esc_attr( $og_desc ); ?>">
+  <?php if ( $og_img ) : ?>
+  <meta name="twitter:image"       content="<?php echo esc_url( $og_img ); ?>">
+  <?php endif; ?>
   <?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>

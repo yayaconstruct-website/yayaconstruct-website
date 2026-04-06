@@ -867,6 +867,91 @@ Version: 1.0
       aspect-ratio: 16/6;
     }
 
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── PROJECT CARD FILTER TRANSITION ── */
+    .project-card {
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    a.project-card {
+      display: block;
+      text-decoration: none;
+    }
+
+    /* ── SINGLE PROJECT DETAIL ── */
+    .project-detail-hero {
+      position: relative;
+      height: 75vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: var(--black);
+      overflow: hidden;
+    }
+    .project-detail-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.25) 100%),
+        var(--project-bg, url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1600&q=80'));
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.04);
+      animation: slowZoom 12s ease-out forwards;
+    }
+    .project-detail-header {
+      position: relative;
+      padding: 4rem 3rem;
+    }
+    .project-detail-header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 8vw, 7.5rem);
+      color: var(--off-white);
+      line-height: 0.9;
+      margin-top: 0.5rem;
+    }
+    .project-detail-meta {
+      color: var(--sand);
+      font-size: 0.95rem;
+      font-weight: 300;
+      margin-top: 1rem;
+      letter-spacing: 1px;
+    }
+    .project-detail-body {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 5rem 3rem;
+    }
+    .project-detail-content {
+      font-size: 1rem;
+      font-weight: 300;
+      line-height: 1.9;
+      color: var(--concrete);
+    }
+    .project-detail-content p { margin-bottom: 1.2rem; }
+    .project-detail-back {
+      padding: 0 3rem 5rem;
+      text-align: center;
+    }
+    .project-detail-back .btn-outline {
+      display: inline-block;
+      text-decoration: none;
+    }
+    @media (max-width: 768px) {
+      .project-detail-header { padding: 2.5rem 1.5rem; }
+      .project-detail-body   { padding: 3rem 1.5rem; }
+      .project-detail-back   { padding: 0 1.5rem 3rem; }
+    }
+
     /* ── PAGE WRAP (replaces inline padding-top) ── */
     .page-wrap {
       padding-top: 70px;

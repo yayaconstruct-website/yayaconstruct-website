@@ -44,85 +44,49 @@ for ($i = 1; $i <= 4; $i++) {
 
 <!-- Stats -->
 <div class="stats-bar">
-  <?php foreach ($stats as $stat): ?>
-  <div class="stat-item">
+  <?php foreach ($stats as $k => $stat): ?>
+  <div class="stat-item reveal" style="transition-delay: <?php echo ($k * 0.1); ?>s">
     <div class="stat-num"><?php echo esc_html($stat['num']); ?></div>
     <div class="stat-label"><?php echo esc_html($stat['label']); ?></div>
   </div>
   <?php endforeach; ?>
 </div>
 
+<?php
+// Service icons (SVG, indexed 1–6)
+$service_icons = [
+  1 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M6 20V9"/><path d="M18 20V9"/><path d="M1 9l11-7 11 7"/><path d="M9 20v-6h6v6"/></svg>',
+  2 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
+  3 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9.5L12 3l7 6.5V21"/><path d="M9 21v-6h6v6"/><path d="M9 12h.01M15 12h.01"/></svg>',
+  4 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+  5 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>',
+  6 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg>',
+];
+$service_defaults = [
+  1 => ['General Construction', 'Full-cycle construction management from planning to handover, delivered on time and within budget.'],
+  2 => ['Commercial Buildings', 'Office complexes, retail centers, warehouses, and industrial facilities built to the highest standards.'],
+  3 => ['Residential Projects', 'Custom homes, apartment buildings, and residential renovations crafted with care and precision.'],
+  4 => ['Renovation & Refit',   'Breathing new life into existing structures with expert renovation, retrofitting, and restoration work.'],
+  5 => ['Design & Build',       'Integrated design-build solutions combining architectural vision with construction expertise under one roof.'],
+  6 => ['Project Management',   'Professional oversight, scheduling, and coordination for complex multi-phase construction projects.'],
+];
+?>
 <!-- Services -->
 <section class="section">
-  <div class="section-label">What We Do</div>
-  <div class="section-title">OUR SERVICES</div>
+  <div class="section-label reveal">What We Do</div>
+  <div class="section-title reveal" style="transition-delay:0.1s">OUR SERVICES</div>
   <div class="services-grid">
-
-    <div class="service-card">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 20h20"/><path d="M6 20V9"/><path d="M18 20V9"/>
-          <path d="M1 9l11-7 11 7"/><path d="M9 20v-6h6v6"/>
-        </svg>
-      </div>
-      <div class="service-title">General Construction</div>
-      <p class="service-text">Full-cycle construction management from planning to handover, delivered on time and within budget.</p>
+    <?php for ($i = 1; $i <= 6; $i++):
+      $svc_title = get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0]);
+      $svc_text  = get_theme_mod("yaya_service{$i}_text",  $service_defaults[$i][1]);
+      $delay     = round(($i - 1) * 0.08, 2);
+    ?>
+    <div class="service-card reveal" style="transition-delay:<?php echo $delay; ?>s">
+      <div class="service-icon"><?php echo $service_icons[$i]; ?></div>
+      <div class="service-title"><?php echo esc_html($svc_title); ?></div>
+      <p class="service-text"><?php echo esc_html($svc_text); ?></p>
     </div>
-
-    <div class="service-card">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
-        </svg>
-      </div>
-      <div class="service-title">Commercial Buildings</div>
-      <p class="service-text">Office complexes, retail centers, warehouses, and industrial facilities built to the highest standards.</p>
-    </div>
-
-    <div class="service-card">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 21h18M5 21V9.5L12 3l7 6.5V21"/><path d="M9 21v-6h6v6"/>
-          <path d="M9 12h.01M15 12h.01"/>
-        </svg>
-      </div>
-      <div class="service-title">Residential Projects</div>
-      <p class="service-text">Custom homes, apartment buildings, and residential renovations crafted with care and precision.</p>
-    </div>
-
-    <div class="service-card">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-        </svg>
-      </div>
-      <div class="service-title">Renovation &amp; Refit</div>
-      <p class="service-text">Breathing new life into existing structures with expert renovation, retrofitting, and restoration work.</p>
-    </div>
-
-    <div class="service-card">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
-          <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
-          <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
-        </svg>
-      </div>
-      <div class="service-title">Design &amp; Build</div>
-      <p class="service-text">Integrated design-build solutions combining architectural vision with construction expertise under one roof.</p>
-    </div>
-
-    <div class="service-card">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-          <path d="M9 12h6M9 16h4"/>
-        </svg>
-      </div>
-      <div class="service-title">Project Management</div>
-      <p class="service-text">Professional oversight, scheduling, and coordination for complex multi-phase construction projects.</p>
-    </div>
-
+    <?php endfor; ?>
   </div>
 </section>
 
@@ -136,14 +100,14 @@ if ($featured->have_posts()):
   $feat_year = get_post_meta(get_the_ID(), 'project_year', true);
 ?>
 <div class="home-project">
-  <div class="home-project-img">
+  <div class="home-project-img reveal">
     <?php if ($feat_img): ?>
       <img src="<?php echo esc_url($feat_img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
     <?php else: ?>
       <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="Featured project" loading="lazy" />
     <?php endif; ?>
   </div>
-  <div class="home-project-content">
+  <div class="home-project-content reveal" style="transition-delay:0.2s">
     <div class="section-label">Featured Work</div>
     <div class="section-title">
       <?php the_title(); ?>
@@ -161,10 +125,10 @@ if ($featured->have_posts()):
 </div>
 <?php wp_reset_postdata(); else: ?>
 <div class="home-project">
-  <div class="home-project-img">
+  <div class="home-project-img reveal">
     <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="Featured project" loading="lazy" />
   </div>
-  <div class="home-project-content">
+  <div class="home-project-content reveal" style="transition-delay:0.2s">
     <div class="section-label">Featured Work</div>
     <div class="section-title">BUILT WITH PURPOSE, <em style="font-style:normal;color:var(--rust)">CRAFTED WITH PRIDE</em></div>
     <p>Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.</p>

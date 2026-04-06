@@ -45,7 +45,7 @@ function yaya_register_cpt() {
         ],
         'public'       => true,
         'show_in_menu' => true,
-        'supports'     => ['title', 'thumbnail', 'custom-fields'],
+        'supports'     => ['title', 'editor', 'thumbnail', 'custom-fields'],
         'menu_icon'    => 'dashicons-building',
         'has_archive'  => false,
     ]);
@@ -208,6 +208,83 @@ function yaya_customizer($wp_customize) {
             'section' => 'yaya_contact_details',
             'type'    => 'text',
         ]);
+    }
+
+    /* ══════════════ SERVICES SECTION ══════════════ */
+    $wp_customize->add_section('yaya_services', [
+        'title' => 'Services',
+        'panel' => 'yaya_panel',
+    ]);
+
+    $service_defaults = [
+        1 => ['General Construction', 'Full-cycle construction management from planning to handover, delivered on time and within budget.'],
+        2 => ['Commercial Buildings', 'Office complexes, retail centers, warehouses, and industrial facilities built to the highest standards.'],
+        3 => ['Residential Projects', 'Custom homes, apartment buildings, and residential renovations crafted with care and precision.'],
+        4 => ['Renovation & Refit',   'Breathing new life into existing structures with expert renovation, retrofitting, and restoration work.'],
+        5 => ['Design & Build',       'Integrated design-build solutions combining architectural vision with construction expertise under one roof.'],
+        6 => ['Project Management',   'Professional oversight, scheduling, and coordination for complex multi-phase construction projects.'],
+    ];
+
+    for ($i = 1; $i <= 6; $i++) {
+        $wp_customize->add_setting("yaya_service{$i}_title", [
+            'default'           => $service_defaults[$i][0],
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
+        $wp_customize->add_control("yaya_service{$i}_title", [
+            'label'   => "Service $i — Title",
+            'section' => 'yaya_services',
+            'type'    => 'text',
+        ]);
+        $wp_customize->add_setting("yaya_service{$i}_text", [
+            'default'           => $service_defaults[$i][1],
+            'sanitize_callback' => 'sanitize_textarea_field',
+        ]);
+        $wp_customize->add_control("yaya_service{$i}_text", [
+            'label'   => "Service $i — Description",
+            'section' => 'yaya_services',
+            'type'    => 'textarea',
+        ]);
+    }
+
+    /* ══════════════ TEAM SECTION ══════════════ */
+    $wp_customize->add_section('yaya_team', [
+        'title' => 'Team Members',
+        'panel' => 'yaya_panel',
+    ]);
+
+    $team_defaults = [
+        1 => ['Yaya Diallo',  'Founder & CEO',    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'],
+        2 => ['Sarah Mensah', 'Head of Projects',  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80'],
+        3 => ['Marc Koné',    'Lead Engineer',     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80'],
+    ];
+
+    for ($i = 1; $i <= 3; $i++) {
+        $wp_customize->add_setting("yaya_team{$i}_name", [
+            'default'           => $team_defaults[$i][0],
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
+        $wp_customize->add_control("yaya_team{$i}_name", [
+            'label'   => "Member $i — Name",
+            'section' => 'yaya_team',
+            'type'    => 'text',
+        ]);
+        $wp_customize->add_setting("yaya_team{$i}_role", [
+            'default'           => $team_defaults[$i][1],
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
+        $wp_customize->add_control("yaya_team{$i}_role", [
+            'label'   => "Member $i — Role",
+            'section' => 'yaya_team',
+            'type'    => 'text',
+        ]);
+        $wp_customize->add_setting("yaya_team{$i}_photo", [
+            'default'           => $team_defaults[$i][2],
+            'sanitize_callback' => 'esc_url_raw',
+        ]);
+        $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, "yaya_team{$i}_photo", [
+            'label'   => "Member $i — Photo",
+            'section' => 'yaya_team',
+        ]));
     }
 }
 add_action('customize_register', 'yaya_customizer');
