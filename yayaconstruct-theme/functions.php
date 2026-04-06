@@ -130,6 +130,144 @@ function yaya_register_taxonomy() {
 add_action('init', 'yaya_register_taxonomy');
 
 /* ─────────────────────────────────────────
+   ONE-TIME PROJECT IMPORT: ZABITCI SOURCE
+───────────────────────────────────────── */
+function yaya_zabitci_projects_seed_data() {
+    return [
+        [
+            'title'      => 'Guzelbahce X',
+            'slug'       => 'guzelbahce-x',
+            'location'   => 'Guzelbahce, Izmir',
+            'year'       => '2018',
+            'category'   => 'Villa',
+            'source_url' => 'https://www.zabitci.com/proje-guzelbahce-x.html',
+            'content'    => implode("\n\n", [
+                'Guzelbahce X is presented as a villa project that combines the comfort of site living with the privacy of an independent home.',
+                'The source project page highlights 10 villas in a 4+1 concept, each with approximately 240 square meters of enclosed area, private gardens, and a layout designed to balance calm green surroundings with quick access to city life.',
+                'The project emphasizes generous spacing between villas, landscaped outdoor areas, strong family suitability, and proximity to schools, shopping, restaurants, and Izmir\'s wider coastal destinations.',
+            ]),
+        ],
+        [
+            'title'      => 'NO3 Mavisehir',
+            'slug'       => 'no3-mavisehir',
+            'location'   => 'Mavisehir, Izmir',
+            'year'       => '',
+            'category'   => 'Residential',
+            'source_url' => 'https://www.zabitci.com/projelerimiz.html',
+            'content'    => implode("\n\n", [
+                'NO3 Mavisehir is listed on the Zabıtçı projects page as a residential project shaped by modern architecture.',
+                'The source describes it as a stylish development created for buyers seeking an exclusive home in one of the city\'s most prestigious neighborhoods.',
+            ]),
+        ],
+        [
+            'title'      => 'NO17 Bayrakli',
+            'slug'       => 'no17-bayrakli',
+            'location'   => 'Bayrakli, Izmir',
+            'year'       => '2014',
+            'category'   => 'Residential',
+            'source_url' => 'https://www.zabitci.com/proje-no17.html',
+            'content'    => implode("\n\n", [
+                'NO17 Bayrakli is positioned in Izmir\'s developing new city center and is described by the source as a symbol of urban living in Bayrakli.',
+                'The project page presents it as a design-led residential development with a distinctive identity, focused on modern city life and premium detailing.',
+            ]),
+        ],
+        [
+            'title'      => 'Alacati Qu4ttro',
+            'slug'       => 'alacati-qu4ttro',
+            'location'   => 'Alacati, Cesme',
+            'year'       => '',
+            'category'   => 'Villa',
+            'source_url' => 'https://www.zabitci.com/projelerimiz.html',
+            'content'    => implode("\n\n", [
+                'Alacati Qu4ttro is featured on the Zabıtçı projects page as a project that reinterprets the distinctive spirit of Alacati through a modern architectural language.',
+                'The listing frames it as a lifestyle-focused residential development designed to turn aspiration into everyday living.',
+            ]),
+        ],
+        [
+            'title'      => 'Inkim Suites',
+            'slug'       => 'inkim-suites',
+            'location'   => 'Ilica, Cesme',
+            'year'       => '2021',
+            'category'   => 'Residence',
+            'source_url' => 'https://zabitci.com/proje-inkim-suites.html',
+            'content'    => implode("\n\n", [
+                'Inkim Suites is described as the transformation of the long-standing Inkim Hotel into a refreshed residence concept in the heart of Ilica, Cesme.',
+                'The source highlights Zabıtçı\'s renovation work, a central location close to beaches and amenities, and a residence program built around comfort, design, and year-round use.',
+            ]),
+        ],
+        [
+            'title'      => 'E&E Villa',
+            'slug'       => 'ee-villa',
+            'location'   => '',
+            'year'       => '',
+            'category'   => 'Villa',
+            'source_url' => 'https://www.zabitci.com/projelerimiz.html',
+            'content'    => implode("\n\n", [
+                'E&E Villa is listed on the source projects page as a villa development carrying the Zabıtçı signature.',
+                'The listing positions it as a project created for buyers who expect a high-end residential standard and a more exclusive home experience.',
+            ]),
+        ],
+    ];
+}
+
+function yaya_maybe_import_zabitci_projects() {
+    if (get_option('yaya_zabitci_projects_imported_v1')) {
+        return;
+    }
+
+    if (!post_type_exists('project') || !taxonomy_exists('project_category')) {
+        return;
+    }
+
+    $projects = yaya_zabitci_projects_seed_data();
+
+    foreach ($projects as $project) {
+        $existing = get_posts([
+            'post_type'      => 'project',
+            'name'           => $project['slug'],
+            'post_status'    => ['publish', 'draft', 'pending', 'private'],
+            'numberposts'    => 1,
+            'fields'         => 'ids',
+            'suppress_filters' => false,
+        ]);
+
+        if (!empty($existing)) {
+            continue;
+        }
+
+        $post_id = wp_insert_post([
+            'post_type'    => 'project',
+            'post_status'  => 'publish',
+            'post_title'   => $project['title'],
+            'post_name'    => $project['slug'],
+            'post_content' => $project['content'],
+        ], true);
+
+        if (is_wp_error($post_id)) {
+            continue;
+        }
+
+        if (!empty($project['location'])) {
+            update_post_meta($post_id, 'project_location', $project['location']);
+        }
+
+        if (!empty($project['year'])) {
+            update_post_meta($post_id, 'project_year', $project['year']);
+        }
+
+        update_post_meta($post_id, '_yaya_project_source', 'zabitci');
+        update_post_meta($post_id, '_yaya_project_source_url', esc_url_raw($project['source_url']));
+
+        if (!empty($project['category'])) {
+            wp_set_object_terms($post_id, $project['category'], 'project_category', false);
+        }
+    }
+
+    update_option('yaya_zabitci_projects_imported_v1', gmdate('c'));
+}
+add_action('admin_init', 'yaya_maybe_import_zabitci_projects');
+
+/* ─────────────────────────────────────────
    CONTACT FORM AJAX (with nonce)
 ───────────────────────────────────────── */
 function yaya_contact_form() {
