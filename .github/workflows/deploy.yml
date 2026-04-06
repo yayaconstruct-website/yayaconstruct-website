@@ -28,8 +28,7 @@ jobs:
             set net:timeout 30;
             set net:max-retries 3;
             open -u \"$FTP_USER,$FTP_PASS\" ftp://$FTP_SERVER;
-            mkdir -fp yayaconstruct.com/public_html;
-            put index.html -o yayaconstruct.com/public_html/index.html;
+            put index.html -o public_html/index.html;
             bye
           "
 
@@ -45,7 +44,7 @@ jobs:
             set net:timeout 30;
             set net:max-retries 3;
             open -u \"$FTP_USER,$FTP_PASS\" ftp://$FTP_SERVER;
-            mkdir -fp yayaconstruct.com/public_html/wp-content/themes/yayaconstruct-theme;
-            mirror --reverse --delete --parallel=5 yayaconstruct-theme/ yayaconstruct.com/public_html/wp-content/themes/yayaconstruct-theme/;
+            mkdir -fp public_html/wp-content/themes/yayaconstruct-theme;
+            mirror --reverse --delete --parallel=5 yayaconstruct-theme/ public_html/wp-content/themes/yayaconstruct-theme/;
             bye
           "
