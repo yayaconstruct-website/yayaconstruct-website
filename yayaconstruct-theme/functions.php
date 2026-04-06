@@ -29,17 +29,32 @@ add_action('after_switch_theme', 'yaya_create_pages');
    FORCE PAGE TEMPLATES BY SLUG
 ───────────────────────────────────────── */
 function yaya_force_templates($template) {
+    if (!is_page()) {
+        return $template;
+    }
+
+    $page = get_queried_object();
+    if (!$page instanceof WP_Post) {
+        return $template;
+    }
+
+    $page_slug  = $page->post_name;
+    $page_title = sanitize_title($page->post_title);
     $map = [
-        'projects' => 'page-projects.php',
-        'about'    => 'page-about.php',
-        'contact'  => 'page-contact.php',
+        'projects' => ['page-projects.php', ['projects', 'our-projects', 'portfolio']],
+        'about'    => ['page-about.php',    ['about', 'about-us', 'our-story']],
+        'contact'  => ['page-contact.php',  ['contact', 'contact-us', 'get-in-touch']],
     ];
-    foreach ($map as $slug => $file) {
+
+    foreach ($map as $config) {
+        [$file, $aliases] = $config;
         $path = get_template_directory() . '/' . $file;
-        if (is_page($slug) && file_exists($path)) {
+
+        if (file_exists($path) && (in_array($page_slug, $aliases, true) || in_array($page_title, $aliases, true))) {
             return $path;
         }
     }
+
     return $template;
 }
 add_filter('template_include', 'yaya_force_templates');
