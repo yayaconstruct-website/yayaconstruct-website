@@ -65,15 +65,24 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
         $location = get_post_meta(get_the_ID(), 'project_location', true);
         $year     = get_post_meta(get_the_ID(), 'project_year', true);
         $img      = get_the_post_thumbnail_url(get_the_ID(), 'large');
+        $card_classes = 'project-card';
+        if ($i === 4) {
+          $card_classes .= ' project-card--wide';
+        }
+        if (!$img) {
+          $card_classes .= ' project-card--no-image';
+        }
         $i++;
       ?>
       <a href="<?php the_permalink(); ?>"
-         class="project-card<?php if ($i === 5) echo ' project-card--wide'; ?>"
+         class="<?php echo esc_attr($card_classes); ?>"
          data-cat="<?php echo esc_attr($cat_slug); ?>">
         <?php if ($img): ?>
           <img src="<?php echo esc_url($img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
         <?php else: ?>
-          <div class="project-card-placeholder"></div>
+          <div class="project-card-placeholder">
+            <span>Project image coming soon</span>
+          </div>
         <?php endif; ?>
         <div class="project-overlay">
           <?php if ($cat_name): ?><div class="project-cat"><?php echo esc_html($cat_name); ?></div><?php endif; ?>

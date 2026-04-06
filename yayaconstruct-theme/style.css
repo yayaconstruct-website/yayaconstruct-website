@@ -607,6 +607,16 @@ Version: 1.0
 
     .project-card:hover .project-overlay { opacity: 1; }
 
+    .project-card--no-image {
+      background: linear-gradient(135deg, #d8d0c4 0%, #c9b99a 100%);
+      min-height: 320px;
+    }
+
+    .project-card--no-image .project-overlay {
+      opacity: 1;
+      background: linear-gradient(to top, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.18) 100%);
+    }
+
     .project-cat {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 0.72rem;
@@ -876,7 +886,29 @@ Version: 1.0
     .project-card-placeholder {
       width: 100%;
       height: 100%;
-      background: var(--light-gray);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(10,10,10,0.08) 100%),
+        repeating-linear-gradient(
+          135deg,
+          rgba(255,255,255,0.18),
+          rgba(255,255,255,0.18) 10px,
+          rgba(0,0,0,0.03) 10px,
+          rgba(0,0,0,0.03) 20px
+        );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .project-card-placeholder span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(10,10,10,0.6);
     }
 
     /* ── SCROLL REVEAL ── */
