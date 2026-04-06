@@ -71,12 +71,6 @@ Version: 1.0
     .nav-links a:hover { color: var(--rust); }
     .nav-links a.active { color: var(--off-white); }
 
-    /* ── PAGES ── */
-    .page {
-      display: none;
-      min-height: 100vh;
-    }
-    .page.active { display: block; }
 
     /* ── HOME ── */
     .hero {
