@@ -492,7 +492,20 @@ add_action('customize_register', 'yaya_customizer');
 ───────────────────────────────────────── */
 function yaya_about_page_defaults() {
     return [
+        'hero' => [
+            'label' => 'Our Story',
+        ],
+        'body' => [
+            'label'      => 'Who We Are',
+            'heading'    => 'MORE THAN JUST' . "\n" . 'A CONTRACTOR',
+            'cta_label'  => 'Work With Us',
+            'cta_url'    => home_url('/contact'),
+            'image_url'  => 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80',
+            'image_alt'  => 'Our team at work',
+        ],
         'values' => [
+            'section_label' => 'Our Values',
+            'section_title' => 'WHAT DRIVES US',
             1 => [
                 'title' => 'Quality First',
                 'text'  => 'We never cut corners. Every joint, every pour, every finish is done right because your structure deserves nothing less.',
@@ -511,6 +524,8 @@ function yaya_about_page_defaults() {
             ],
         ],
         'team' => [
+            'section_label' => 'The People Behind the Build',
+            'section_title' => 'OUR TEAM',
             1 => [
                 'name'  => 'Yaya Diallo',
                 'role'  => 'Founder & CEO',
@@ -571,7 +586,28 @@ function yaya_render_about_meta_box($post) {
 
     echo '<div class="yaya-meta-grid">';
 
+    echo '<div class="yaya-meta-section"><h3>Hero and Body</h3>';
+    $hero_label = yaya_get_about_page_field($post->ID, '_yaya_about_hero_label', $defaults['hero']['label']);
+    $body_label = yaya_get_about_page_field($post->ID, '_yaya_about_body_label', $defaults['body']['label']);
+    $body_heading = yaya_get_about_page_field($post->ID, '_yaya_about_body_heading', $defaults['body']['heading']);
+    $cta_label = yaya_get_about_page_field($post->ID, '_yaya_about_cta_label', $defaults['body']['cta_label']);
+    $cta_url = yaya_get_about_page_field($post->ID, '_yaya_about_cta_url', $defaults['body']['cta_url']);
+    $image_url = yaya_get_about_page_field($post->ID, '_yaya_about_image_url', $defaults['body']['image_url']);
+    $image_alt = yaya_get_about_page_field($post->ID, '_yaya_about_image_alt', $defaults['body']['image_alt']);
+    echo '<div class="yaya-meta-row"><label for="yaya_about_hero_label">Hero Label</label><input type="text" id="yaya_about_hero_label" name="yaya_about_hero_label" value="' . esc_attr($hero_label) . '"></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_about_body_label">Body Section Label</label><input type="text" id="yaya_about_body_label" name="yaya_about_body_label" value="' . esc_attr($body_label) . '"></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_about_body_heading">Body Heading</label><textarea rows="3" id="yaya_about_body_heading" name="yaya_about_body_heading">' . esc_textarea($body_heading) . '</textarea></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_about_cta_label">CTA Button Text</label><input type="text" id="yaya_about_cta_label" name="yaya_about_cta_label" value="' . esc_attr($cta_label) . '"></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_about_cta_url">CTA Button URL</label><input type="url" id="yaya_about_cta_url" name="yaya_about_cta_url" value="' . esc_attr($cta_url) . '"></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_about_image_url">About Image URL</label><input type="url" id="yaya_about_image_url" name="yaya_about_image_url" value="' . esc_attr($image_url) . '" placeholder="https://"></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_about_image_alt">About Image Alt Text</label><input type="text" id="yaya_about_image_alt" name="yaya_about_image_alt" value="' . esc_attr($image_alt) . '"></div>';
+    echo '</div>';
+
     echo '<div class="yaya-meta-section"><h3>Values Section</h3>';
+    $values_section_label = yaya_get_about_page_field($post->ID, '_yaya_about_values_section_label', $defaults['values']['section_label']);
+    $values_section_title = yaya_get_about_page_field($post->ID, '_yaya_about_values_section_title', $defaults['values']['section_title']);
+    echo '<div class="yaya-meta-row"><label for="yaya_about_values_section_label">Section Label</label><input type="text" id="yaya_about_values_section_label" name="yaya_about_values_section_label" value="' . esc_attr($values_section_label) . '"></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_about_values_section_title">Section Title</label><input type="text" id="yaya_about_values_section_title" name="yaya_about_values_section_title" value="' . esc_attr($values_section_title) . '"></div>';
     for ($i = 1; $i <= 4; $i++) {
         $title = yaya_get_about_page_field($post->ID, "_yaya_about_value_{$i}_title", $defaults['values'][$i]['title']);
         $text  = yaya_get_about_page_field($post->ID, "_yaya_about_value_{$i}_text", $defaults['values'][$i]['text']);
@@ -587,6 +623,10 @@ function yaya_render_about_meta_box($post) {
     echo '</div>';
 
     echo '<div class="yaya-meta-section"><h3>Team Section</h3>';
+    $team_section_label = yaya_get_about_page_field($post->ID, '_yaya_about_team_section_label', $defaults['team']['section_label']);
+    $team_section_title = yaya_get_about_page_field($post->ID, '_yaya_about_team_section_title', $defaults['team']['section_title']);
+    echo '<div class="yaya-meta-row"><label for="yaya_about_team_section_label">Section Label</label><input type="text" id="yaya_about_team_section_label" name="yaya_about_team_section_label" value="' . esc_attr($team_section_label) . '"></div>';
+    echo '<div class="yaya-meta-row"><label for="yaya_about_team_section_title">Section Title</label><input type="text" id="yaya_about_team_section_title" name="yaya_about_team_section_title" value="' . esc_attr($team_section_title) . '"></div>';
     for ($i = 1; $i <= 3; $i++) {
         $name  = yaya_get_about_page_field($post->ID, "_yaya_about_team_{$i}_name", $defaults['team'][$i]['name']);
         $role  = yaya_get_about_page_field($post->ID, "_yaya_about_team_{$i}_role", $defaults['team'][$i]['role']);
@@ -620,6 +660,34 @@ function yaya_save_about_meta_box($post_id) {
 
     if (!current_user_can('edit_post', $post_id)) {
         return;
+    }
+
+    $text_fields = [
+        'yaya_about_hero_label' => '_yaya_about_hero_label',
+        'yaya_about_body_label' => '_yaya_about_body_label',
+        'yaya_about_body_heading' => '_yaya_about_body_heading',
+        'yaya_about_cta_label' => '_yaya_about_cta_label',
+        'yaya_about_image_alt' => '_yaya_about_image_alt',
+        'yaya_about_values_section_label' => '_yaya_about_values_section_label',
+        'yaya_about_values_section_title' => '_yaya_about_values_section_title',
+        'yaya_about_team_section_label' => '_yaya_about_team_section_label',
+        'yaya_about_team_section_title' => '_yaya_about_team_section_title',
+    ];
+
+    foreach ($text_fields as $field => $meta_key) {
+        if (isset($_POST[$field])) {
+            $value = wp_unslash($_POST[$field]);
+            $value = $field === 'yaya_about_body_heading' ? sanitize_textarea_field($value) : sanitize_text_field($value);
+            update_post_meta($post_id, $meta_key, $value);
+        }
+    }
+
+    if (isset($_POST['yaya_about_cta_url'])) {
+        update_post_meta($post_id, '_yaya_about_cta_url', esc_url_raw(wp_unslash($_POST['yaya_about_cta_url'])));
+    }
+
+    if (isset($_POST['yaya_about_image_url'])) {
+        update_post_meta($post_id, '_yaya_about_image_url', esc_url_raw(wp_unslash($_POST['yaya_about_image_url'])));
     }
 
     for ($i = 1; $i <= 4; $i++) {

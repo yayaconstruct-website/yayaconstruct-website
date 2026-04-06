@@ -3,25 +3,34 @@
 
 <?php
 $about_intro = has_excerpt() ? get_the_excerpt() : 'A construction company rooted in excellence, community, and dedication to quality work.';
-$about_cta_url = get_theme_mod('yaya_about_cta_url', home_url('/contact'));
-$about_cta_label = get_theme_mod('yaya_about_cta_label', 'Work With Us');
 $about_title = nl2br(esc_html(get_the_title()));
 $about_content = get_post_field('post_content', get_the_ID());
 $about_defaults = function_exists('yaya_about_page_defaults') ? yaya_about_page_defaults() : ['values' => [], 'team' => []];
+$about_hero_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_hero_label', $about_defaults['hero']['label'] ?? 'Our Story') : 'Our Story';
+$about_body_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_body_label', $about_defaults['body']['label'] ?? 'Who We Are') : 'Who We Are';
+$about_body_heading = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_body_heading', $about_defaults['body']['heading'] ?? "MORE THAN JUST\nA CONTRACTOR") : "MORE THAN JUST\nA CONTRACTOR";
+$about_cta_url = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_cta_url', $about_defaults['body']['cta_url'] ?? home_url('/contact')) : home_url('/contact');
+$about_cta_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_cta_label', $about_defaults['body']['cta_label'] ?? 'Work With Us') : 'Work With Us';
+$about_image_url = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_image_url', $about_defaults['body']['image_url'] ?? 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80') : 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80';
+$about_image_alt = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_image_alt', $about_defaults['body']['image_alt'] ?? 'Our team at work') : 'Our team at work';
+$about_values_section_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_values_section_label', $about_defaults['values']['section_label'] ?? 'Our Values') : 'Our Values';
+$about_values_section_title = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_values_section_title', $about_defaults['values']['section_title'] ?? 'WHAT DRIVES US') : 'WHAT DRIVES US';
+$about_team_section_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_team_section_label', $about_defaults['team']['section_label'] ?? 'The People Behind the Build') : 'The People Behind the Build';
+$about_team_section_title = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_team_section_title', $about_defaults['team']['section_title'] ?? 'OUR TEAM') : 'OUR TEAM';
 ?>
 
 <div class="page-wrap">
 
   <div class="about-hero">
-    <div class="section-label" style="color:var(--rust)">Our Story</div>
+    <div class="section-label" style="color:var(--rust)"><?php echo esc_html($about_hero_label); ?></div>
     <h1><?php echo wp_kses($about_title, ['br' => []]); ?></h1>
     <p><?php echo esc_html($about_intro); ?></p>
   </div>
 
   <div class="about-body">
     <div class="about-text reveal">
-      <div class="section-label">Who We Are</div>
-      <h2>MORE THAN JUST<br>A CONTRACTOR</h2>
+      <div class="section-label"><?php echo esc_html($about_body_label); ?></div>
+      <h2><?php echo wp_kses(nl2br(esc_html($about_body_heading)), ['br' => []]); ?></h2>
       <div class="about-editor-content">
         <?php
         if (trim((string) $about_content) !== '') {
@@ -38,16 +47,16 @@ $about_defaults = function_exists('yaya_about_page_defaults') ? yaya_about_page_
       <a href="<?php echo esc_url($about_cta_url); ?>" class="btn-primary" style="margin-top:1rem;display:inline-block"><?php echo esc_html($about_cta_label); ?></a>
     </div>
     <div class="about-img reveal" style="transition-delay:0.2s">
-      <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80" alt="Our team at work" />
+      <img src="<?php echo esc_url($about_image_url); ?>" alt="<?php echo esc_attr($about_image_alt); ?>" />
     </div>
   </div>
 
   <div class="values-section">
     <div class="section-label" style="color:var(--rust);margin-bottom:0.5rem">
       <span style="display:inline-block;width:30px;height:1px;background:var(--rust);vertical-align:middle;margin-right:0.8rem"></span>
-      Our Values
+      <?php echo esc_html($about_values_section_label); ?>
     </div>
-    <div class="section-title">WHAT DRIVES US</div>
+    <div class="section-title"><?php echo esc_html($about_values_section_title); ?></div>
     <div class="values-grid">
       <?php for ($i = 1; $i <= 4; $i++):
         $title = function_exists('yaya_get_about_page_field')
@@ -67,8 +76,8 @@ $about_defaults = function_exists('yaya_about_page_defaults') ? yaya_about_page_
   </div>
 
   <section class="team-section">
-    <div class="section-label">The People Behind the Build</div>
-    <div class="section-title">OUR TEAM</div>
+    <div class="section-label"><?php echo esc_html($about_team_section_label); ?></div>
+    <div class="section-title"><?php echo esc_html($about_team_section_title); ?></div>
     <div class="team-grid">
       <?php for ($i = 1; $i <= 3; $i++):
         $team_name_fallback = get_theme_mod("yaya_team{$i}_name", $about_defaults['team'][$i]['name']);
