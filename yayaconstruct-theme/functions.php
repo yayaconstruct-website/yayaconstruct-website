@@ -85,7 +85,7 @@ function yaya_scripts() {
         'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap',
         [], null
     );
-    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.5');
+    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.6');
 }
 add_action('wp_enqueue_scripts', 'yaya_scripts');
 
@@ -652,14 +652,29 @@ function yaya_contact_form() {
         $mail_error = $wp_error->get_error_message();
     };
     add_action('wp_mail_failed', $capture);
-    $sent = wp_mail($to, $subject, $body, $headers);
+    try {
+        // A throw inside wp_mail (a mail plugin, a PHPMailer misconfiguration)
+        // would otherwise abort the request with an HTML error page, and the
+        // form — expecting JSON — could only report a generic failure.
+        $sent = wp_mail($to, $subject, $body, $headers);
+    } catch (\Throwable $e) {
+        $sent = false;
+        $mail_error = $e->getMessage();
+    }
     remove_action('wp_mail_failed', $capture);
 
     if (!$sent) {
-        error_log('[yaya contact] delivery to ' . $to . ' failed: ' . ($mail_error ?: 'unknown error'));
+        $mail_error = $mail_error ?: 'unknown error';
+        error_log('[yaya contact] delivery to ' . $to . ' failed: ' . $mail_error);
+
+        // Administrators get the real reason; visitors get the plain copy.
+        $detail = current_user_can('manage_options')
+            ? ' (' . $mail_error . ')'
+            : '';
+
         wp_send_json([
             'success' => false,
-            'error'   => 'The message could not be sent. Please email us directly.',
+            'error'   => 'The message could not be sent. Please email us directly.' . $detail,
         ]);
     }
 
