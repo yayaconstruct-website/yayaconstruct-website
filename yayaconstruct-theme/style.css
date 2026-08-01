@@ -360,6 +360,21 @@ Version: 1.0
 
     .home-project-img:hover img { transform: scale(1.04); }
 
+    /* The featured project links through to its own page. */
+    .home-project-img a {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .home-project-link {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.25s;
+    }
+
+    .home-project-link:hover { color: var(--rust); }
+
     .home-project-content .section-label { color: var(--rust); }
     .home-project-content .section-label::before { background: var(--rust); }
 

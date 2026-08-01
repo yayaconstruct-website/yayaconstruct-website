@@ -109,34 +109,58 @@ $service_defaults = [
 
 <!-- Featured Project -->
 <?php
-$featured = new WP_Query(['post_type' => 'project', 'posts_per_page' => 1, 'orderby' => 'date', 'order' => 'DESC']);
+// "Coming soon" placeholders are skipped — the homepage showcase should be
+// finished work, not an empty card.
+$featured = new WP_Query([
+  'post_type'      => 'project',
+  'posts_per_page' => 1,
+  'orderby'        => 'date',
+  'order'          => 'DESC',
+  'meta_query'     => [
+    'relation' => 'OR',
+    ['key' => '_yaya_project_coming_soon', 'compare' => 'NOT EXISTS'],
+    ['key' => '_yaya_project_coming_soon', 'value' => '1', 'compare' => '!='],
+  ],
+]);
 if ($featured->have_posts()):
   $featured->the_post();
-  $feat_img = get_the_post_thumbnail_url(get_the_ID(), 'large');
-  $feat_loc = get_post_meta(get_the_ID(), 'project_location', true);
+  // Same resolution as the project cards: featured image, then the project's
+  // own gallery, so the homepage stops falling back to a stock photo.
+  $feat_img = function_exists('yaya_project_card_image')
+    ? yaya_project_card_image(get_the_ID(), 'large')
+    : get_the_post_thumbnail_url(get_the_ID(), 'large');
+  $feat_loc  = get_post_meta(get_the_ID(), 'project_location', true);
   $feat_year = get_post_meta(get_the_ID(), 'project_year', true);
+  $feat_link = get_permalink();
+  // The whole project body used to be printed here, inside a <p>. Use the
+  // excerpt instead — manual if set, auto-generated otherwise — and bound it.
+  $feat_text = trim(get_the_excerpt());
+  if ($feat_text !== '') {
+    $feat_text = wp_trim_words($feat_text, 45, '…');
+  }
+  if ($feat_text === '') {
+    $feat_text = $featured_empty_text ?: 'Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.';
+  }
 ?>
 <div class="home-project">
   <div class="home-project-img reveal">
-    <?php if ($feat_img): ?>
-      <img src="<?php echo esc_url($feat_img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
-    <?php else: ?>
-      <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="Featured project" loading="lazy" />
-    <?php endif; ?>
+    <a href="<?php echo esc_url($feat_link); ?>">
+      <?php if ($feat_img): ?>
+        <img src="<?php echo esc_url($feat_img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
+      <?php else: ?>
+        <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="Featured project" loading="lazy" />
+      <?php endif; ?>
+    </a>
   </div>
   <div class="home-project-content reveal" style="transition-delay:0.2s">
     <div class="section-label"><?php echo esc_html($featured_label); ?></div>
     <div class="section-title">
-      <?php the_title(); ?>
+      <a class="home-project-link" href="<?php echo esc_url($feat_link); ?>"><?php the_title(); ?></a>
       <?php if ($feat_loc): ?>
         <span style="display:block;font-size:1rem;color:var(--rust);margin-top:0.5rem;letter-spacing:2px"><?php echo esc_html($feat_loc); ?><?php if ($feat_year): ?>, <?php echo esc_html($feat_year); ?><?php endif; ?></span>
       <?php endif; ?>
     </div>
-    <?php if (get_the_content()): ?>
-      <p><?php echo wp_kses_post(get_the_content()); ?></p>
-    <?php else: ?>
-      <p><?php echo esc_html($featured_empty_text ?: 'Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.'); ?></p>
-    <?php endif; ?>
+    <p><?php echo esc_html($feat_text); ?></p>
     <a href="<?php echo esc_url($featured_button_url); ?>" class="btn-primary"><?php echo esc_html($featured_button_text); ?></a>
   </div>
 </div>
