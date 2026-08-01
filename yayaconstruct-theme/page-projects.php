@@ -70,7 +70,9 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
     $groups[$slug]['items'][] = [
       'title'       => get_the_title(),
       'permalink'   => get_permalink(),
-      'image'       => get_the_post_thumbnail_url(get_the_ID(), 'large'),
+      'image'       => function_exists('yaya_project_card_image')
+                        ? yaya_project_card_image(get_the_ID(), 'large')
+                        : get_the_post_thumbnail_url(get_the_ID(), 'large'),
       'location'    => get_post_meta(get_the_ID(), 'project_location', true),
       'year'        => get_post_meta(get_the_ID(), 'project_year', true),
       'coming_soon' => (bool) get_post_meta(get_the_ID(), '_yaya_project_coming_soon', true),

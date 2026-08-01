@@ -150,6 +150,77 @@ function yaya_seed_project_categories() {
 add_action('init', 'yaya_seed_project_categories', 20);
 
 /* ─────────────────────────────────────────
+   PROJECT CARD IMAGE
+   Featured image first, then the project's own gallery, then anything in its
+   content — so a project shows a card image however its photos were added.
+───────────────────────────────────────── */
+function yaya_project_card_image($post_id, $size = 'large') {
+    static $cache = [];
+
+    $post_id = (int) $post_id;
+    if (!$post_id) {
+        return '';
+    }
+
+    $key = $post_id . '|' . (is_array($size) ? implode('x', $size) : $size);
+    if (isset($cache[$key])) {
+        return $cache[$key];
+    }
+
+    // 1. Featured image always wins, so a project can override its cover.
+    $url = get_the_post_thumbnail_url($post_id, $size);
+
+    // 2. Otherwise the first image of the Project Gallery meta box — the way
+    //    photos are normally added to a project in this theme.
+    if (!$url) {
+        $gallery_ids = get_post_meta($post_id, '_yaya_project_gallery', true);
+        $gallery_ids = $gallery_ids
+            ? array_values(array_filter(array_map('absint', explode(',', $gallery_ids))))
+            : [];
+        if ($gallery_ids) {
+            $url = wp_get_attachment_image_url($gallery_ids[0], $size);
+        }
+    }
+
+    $content = $url ? '' : (string) get_post_field('post_content', $post_id);
+
+    // 3. First image in the content. Editor-inserted images carry a
+    //    wp-image-<ID> class, which lets us ask for the right size instead of
+    //    reusing whatever size happens to be embedded.
+    if (!$url && $content !== '' && preg_match('/<img\b[^>]*>/i', $content, $tag)) {
+        if (preg_match('/wp-image-(\d+)/i', $tag[0], $m)) {
+            $url = wp_get_attachment_image_url((int) $m[1], $size);
+        }
+        // Leading whitespace required so lazy-loader attributes such as
+        // data-src (often a placeholder) are not mistaken for the real src.
+        if (!$url && preg_match('/\ssrc=["\']([^"\']+)["\']/i', $tag[0], $m)) {
+            $url = $m[1];
+        }
+    }
+
+    // 4. Gallery shortcodes reference attachments by ID and render no <img>.
+    if (!$url && $content !== '' && preg_match('/\[gallery[^\]]*ids=["\']([0-9,\s]+)["\']/i', $content, $m)) {
+        $ids = array_values(array_filter(array_map('intval', explode(',', $m[1]))));
+        if ($ids) {
+            $url = wp_get_attachment_image_url($ids[0], $size);
+        }
+    }
+
+    // 5. Last resort: the first image uploaded to this project.
+    if (!$url) {
+        $attached = get_attached_media('image', $post_id);
+        if ($attached) {
+            $first = reset($attached);
+            $url = wp_get_attachment_image_url($first->ID, $size);
+        }
+    }
+
+    $cache[$key] = $url ? $url : '';
+
+    return $cache[$key];
+}
+
+/* ─────────────────────────────────────────
    ONE-TIME PROJECT IMPORT: ZABITCI SOURCE
 ───────────────────────────────────────── */
 function yaya_zabitci_projects_seed_data() {
