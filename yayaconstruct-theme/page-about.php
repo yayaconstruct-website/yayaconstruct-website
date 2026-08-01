@@ -13,8 +13,6 @@ $about_cta_url = function_exists('yaya_get_about_page_field') ? yaya_get_about_p
 $about_cta_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_cta_label', $about_defaults['body']['cta_label'] ?? 'Work With Us') : 'Work With Us';
 $about_values_section_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_values_section_label', $about_defaults['values']['section_label'] ?? 'Our Values') : 'Our Values';
 $about_values_section_title = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_values_section_title', $about_defaults['values']['section_title'] ?? 'WHAT DRIVES US') : 'WHAT DRIVES US';
-$about_team_section_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_team_section_label', $about_defaults['team']['section_label'] ?? 'The People Behind the Build') : 'The People Behind the Build';
-$about_team_section_title = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_team_section_title', $about_defaults['team']['section_title'] ?? 'OUR TEAM') : 'OUR TEAM';
 ?>
 
 <div class="page-wrap">
@@ -69,36 +67,6 @@ $about_team_section_title = function_exists('yaya_get_about_page_field') ? yaya_
       <?php endfor; ?>
     </div>
   </div>
-
-  <section class="team-section">
-    <div class="section-label"><?php echo esc_html($about_team_section_label); ?></div>
-    <div class="section-title"><?php echo esc_html($about_team_section_title); ?></div>
-    <div class="team-grid">
-      <?php for ($i = 1; $i <= 3; $i++):
-        $team_name_fallback = get_theme_mod("yaya_team{$i}_name", $about_defaults['team'][$i]['name']);
-        $team_role_fallback = get_theme_mod("yaya_team{$i}_role", $about_defaults['team'][$i]['role']);
-        $team_photo_fallback = get_theme_mod("yaya_team{$i}_photo", $about_defaults['team'][$i]['photo']);
-        $name = function_exists('yaya_get_about_page_field')
-          ? yaya_get_about_page_field(get_the_ID(), "_yaya_about_team_{$i}_name", $team_name_fallback)
-          : $team_name_fallback;
-        $role = function_exists('yaya_get_about_page_field')
-          ? yaya_get_about_page_field(get_the_ID(), "_yaya_about_team_{$i}_role", $team_role_fallback)
-          : $team_role_fallback;
-        $photo = function_exists('yaya_get_about_page_field')
-          ? yaya_get_about_page_field(get_the_ID(), "_yaya_about_team_{$i}_photo", $team_photo_fallback)
-          : $team_photo_fallback;
-        $delay = round(($i - 1) * 0.12, 2);
-      ?>
-      <div class="team-card reveal" style="transition-delay:<?php echo $delay; ?>s">
-        <div class="team-avatar">
-          <img src="<?php echo esc_url($photo); ?>" alt="<?php echo esc_attr($name); ?>" loading="lazy" />
-        </div>
-        <div class="team-name"><?php echo esc_html($name); ?></div>
-        <div class="team-role"><?php echo esc_html($role); ?></div>
-      </div>
-      <?php endfor; ?>
-    </div>
-  </section>
 
 </div>
 

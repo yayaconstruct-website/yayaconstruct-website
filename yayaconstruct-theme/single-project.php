@@ -2,11 +2,14 @@
 
 <?php while ( have_posts() ) : the_post(); ?>
 <?php
-  $location  = get_post_meta( get_the_ID(), 'project_location', true );
-  $year      = get_post_meta( get_the_ID(), 'project_year',     true );
-  $cats      = get_the_terms( get_the_ID(), 'project_category' );
-  $cat_name  = $cats ? $cats[0]->name : '';
-  $img       = get_the_post_thumbnail_url( get_the_ID(), 'large' );
+  $location     = get_post_meta( get_the_ID(), 'project_location', true );
+  $year         = get_post_meta( get_the_ID(), 'project_year',     true );
+  $cats         = get_the_terms( get_the_ID(), 'project_category' );
+  $cat_name     = $cats ? $cats[0]->name : '';
+  $img          = get_the_post_thumbnail_url( get_the_ID(), 'large' );
+  $coming_soon  = (bool) get_post_meta( get_the_ID(), '_yaya_project_coming_soon', true );
+  $gallery_ids  = get_post_meta( get_the_ID(), '_yaya_project_gallery', true );
+  $gallery_ids  = $gallery_ids ? array_filter( array_map( 'absint', explode( ',', $gallery_ids ) ) ) : [];
 ?>
 
 <!-- Hero -->
@@ -24,6 +27,9 @@
         <?php echo esc_html( $year ); ?>
       </p>
     <?php endif; ?>
+    <?php if ( $coming_soon ) : ?>
+      <div class="project-coming-soon-badge">Coming Soon</div>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -32,6 +38,23 @@
 <div class="project-detail-body">
   <div class="project-detail-content">
     <?php the_content(); ?>
+  </div>
+</div>
+<?php endif; ?>
+
+<!-- Gallery -->
+<?php if ( ! $coming_soon && ! empty( $gallery_ids ) ) : ?>
+<div class="project-gallery">
+  <div class="project-gallery-grid">
+    <?php foreach ( $gallery_ids as $attachment_id ) :
+      $full  = wp_get_attachment_image_url( $attachment_id, 'large' );
+      $thumb = wp_get_attachment_image_url( $attachment_id, 'medium' );
+      if ( ! $full ) continue;
+    ?>
+      <a class="project-gallery-item" href="<?php echo esc_url( $full ); ?>" target="_blank" rel="noopener">
+        <img src="<?php echo esc_url( $thumb ?: $full ); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
+      </a>
+    <?php endforeach; ?>
   </div>
 </div>
 <?php endif; ?>

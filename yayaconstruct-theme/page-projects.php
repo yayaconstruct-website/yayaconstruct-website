@@ -32,6 +32,16 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
 
   <?php
   $cats = get_terms(['taxonomy' => 'project_category', 'hide_empty' => true]);
+  if ($cats && !is_wp_error($cats)) {
+    $city_order = function_exists('yaya_project_city_order') ? yaya_project_city_order() : ['Brussels', 'Amsterdam', 'Izmir'];
+    usort($cats, function ($a, $b) use ($city_order) {
+      $pos_a = array_search($a->name, $city_order, true);
+      $pos_b = array_search($b->name, $city_order, true);
+      $pos_a = $pos_a === false ? count($city_order) : $pos_a;
+      $pos_b = $pos_b === false ? count($city_order) : $pos_b;
+      return $pos_a <=> $pos_b;
+    });
+  }
   $projects = new WP_Query(['post_type' => 'project', 'posts_per_page' => -1, 'orderby' => 'date', 'order' => 'DESC']);
   ?>
 
@@ -65,12 +75,16 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
         $location = get_post_meta(get_the_ID(), 'project_location', true);
         $year     = get_post_meta(get_the_ID(), 'project_year', true);
         $img      = get_the_post_thumbnail_url(get_the_ID(), 'large');
+        $coming_soon = (bool) get_post_meta(get_the_ID(), '_yaya_project_coming_soon', true);
         $card_classes = 'project-card';
         if ($i === 4) {
           $card_classes .= ' project-card--wide';
         }
         if (!$img) {
           $card_classes .= ' project-card--no-image';
+        }
+        if ($coming_soon) {
+          $card_classes .= ' project-card--coming-soon';
         }
         $i++;
       ?>
@@ -81,7 +95,7 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
           <img src="<?php echo esc_url($img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
         <?php else: ?>
           <div class="project-card-placeholder">
-            <span>Project image coming soon</span>
+            <span><?php echo $coming_soon ? 'Coming soon' : 'Project image coming soon'; ?></span>
           </div>
         <?php endif; ?>
         <div class="project-overlay">

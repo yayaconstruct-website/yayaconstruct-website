@@ -130,6 +130,26 @@ function yaya_register_taxonomy() {
 add_action('init', 'yaya_register_taxonomy');
 
 /* ─────────────────────────────────────────
+   PROJECT CATEGORIES: CITY ORDER
+───────────────────────────────────────── */
+function yaya_project_city_order() {
+    return ['Brussels', 'Amsterdam', 'Izmir'];
+}
+
+function yaya_seed_project_categories() {
+    if (!taxonomy_exists('project_category')) {
+        return;
+    }
+
+    foreach (yaya_project_city_order() as $city) {
+        if (!term_exists($city, 'project_category')) {
+            wp_insert_term($city, 'project_category');
+        }
+    }
+}
+add_action('init', 'yaya_seed_project_categories', 20);
+
+/* ─────────────────────────────────────────
    ONE-TIME PROJECT IMPORT: ZABITCI SOURCE
 ───────────────────────────────────────── */
 function yaya_zabitci_projects_seed_data() {
@@ -139,7 +159,7 @@ function yaya_zabitci_projects_seed_data() {
             'slug'       => 'guzelbahce-x',
             'location'   => 'Guzelbahce, Izmir',
             'year'       => '2018',
-            'category'   => 'Villa',
+            'category'   => 'Izmir',
             'source_url' => 'https://www.zabitci.com/proje-guzelbahce-x.html',
             'content'    => implode("\n\n", [
                 'Guzelbahce X is presented as a villa project that combines the comfort of site living with the privacy of an independent home.',
@@ -148,63 +168,15 @@ function yaya_zabitci_projects_seed_data() {
             ]),
         ],
         [
-            'title'      => 'NO3 Mavisehir',
-            'slug'       => 'no3-mavisehir',
-            'location'   => 'Mavisehir, Izmir',
-            'year'       => '',
-            'category'   => 'Residential',
-            'source_url' => 'https://www.zabitci.com/projelerimiz.html',
-            'content'    => implode("\n\n", [
-                'NO3 Mavisehir is listed on the Zabıtçı projects page as a residential project shaped by modern architecture.',
-                'The source describes it as a stylish development created for buyers seeking an exclusive home in one of the city\'s most prestigious neighborhoods.',
-            ]),
-        ],
-        [
-            'title'      => 'NO17 Bayrakli',
-            'slug'       => 'no17-bayrakli',
-            'location'   => 'Bayrakli, Izmir',
-            'year'       => '2014',
-            'category'   => 'Residential',
-            'source_url' => 'https://www.zabitci.com/proje-no17.html',
-            'content'    => implode("\n\n", [
-                'NO17 Bayrakli is positioned in Izmir\'s developing new city center and is described by the source as a symbol of urban living in Bayrakli.',
-                'The project page presents it as a design-led residential development with a distinctive identity, focused on modern city life and premium detailing.',
-            ]),
-        ],
-        [
-            'title'      => 'Alacati Qu4ttro',
-            'slug'       => 'alacati-qu4ttro',
-            'location'   => 'Alacati, Cesme',
-            'year'       => '',
-            'category'   => 'Villa',
-            'source_url' => 'https://www.zabitci.com/projelerimiz.html',
-            'content'    => implode("\n\n", [
-                'Alacati Qu4ttro is featured on the Zabıtçı projects page as a project that reinterprets the distinctive spirit of Alacati through a modern architectural language.',
-                'The listing frames it as a lifestyle-focused residential development designed to turn aspiration into everyday living.',
-            ]),
-        ],
-        [
             'title'      => 'Inkim Suites',
             'slug'       => 'inkim-suites',
             'location'   => 'Ilica, Cesme',
             'year'       => '2021',
-            'category'   => 'Residence',
+            'category'   => 'Izmir',
             'source_url' => 'https://zabitci.com/proje-inkim-suites.html',
             'content'    => implode("\n\n", [
                 'Inkim Suites is described as the transformation of the long-standing Inkim Hotel into a refreshed residence concept in the heart of Ilica, Cesme.',
                 'The source highlights Zabıtçı\'s renovation work, a central location close to beaches and amenities, and a residence program built around comfort, design, and year-round use.',
-            ]),
-        ],
-        [
-            'title'      => 'E&E Villa',
-            'slug'       => 'ee-villa',
-            'location'   => '',
-            'year'       => '',
-            'category'   => 'Villa',
-            'source_url' => 'https://www.zabitci.com/projelerimiz.html',
-            'content'    => implode("\n\n", [
-                'E&E Villa is listed on the source projects page as a villa development carrying the Zabıtçı signature.',
-                'The listing positions it as a project created for buyers who expect a high-end residential standard and a more exclusive home experience.',
             ]),
         ],
     ];
@@ -266,6 +238,241 @@ function yaya_maybe_import_zabitci_projects() {
     update_option('yaya_zabitci_projects_imported_v1', gmdate('c'));
 }
 add_action('admin_init', 'yaya_maybe_import_zabitci_projects');
+
+/* ─────────────────────────────────────────
+   ONE-TIME MIGRATION: CITY CATEGORIES (BRUSSELS / AMSTERDAM / IZMIR)
+───────────────────────────────────────── */
+function yaya_maybe_migrate_project_city_categories() {
+    if (get_option('yaya_project_city_categories_migrated_v1')) {
+        return;
+    }
+
+    if (!post_type_exists('project') || !taxonomy_exists('project_category')) {
+        return;
+    }
+
+    $removed_slugs = ['no3-mavisehir', 'no17-bayrakli', 'alacati-qu4ttro'];
+    foreach ($removed_slugs as $slug) {
+        $existing = get_posts([
+            'post_type'   => 'project',
+            'name'        => $slug,
+            'post_status' => ['publish', 'draft', 'pending', 'private'],
+            'numberposts' => 1,
+            'fields'      => 'ids',
+        ]);
+        foreach ($existing as $post_id) {
+            wp_delete_post($post_id, true);
+        }
+    }
+
+    $remaining = get_posts([
+        'post_type'      => 'project',
+        'post_status'    => ['publish', 'draft', 'pending', 'private'],
+        'numberposts'    => -1,
+        'fields'         => 'ids',
+    ]);
+    foreach ($remaining as $post_id) {
+        wp_set_object_terms($post_id, 'Izmir', 'project_category', false);
+    }
+
+    update_option('yaya_project_city_categories_migrated_v1', gmdate('c'));
+}
+add_action('admin_init', 'yaya_maybe_migrate_project_city_categories', 20);
+
+/* ─────────────────────────────────────────
+   ONE-TIME MIGRATION: CITY PROJECT LINEUP
+───────────────────────────────────────── */
+function yaya_maybe_finalize_city_project_lineup() {
+    if (get_option('yaya_city_project_lineup_finalized_v1')) {
+        return;
+    }
+
+    if (!post_type_exists('project') || !taxonomy_exists('project_category')) {
+        return;
+    }
+
+    // Final Izmir lineup is INKIM Suites, Guzelbahce X, and Z-Suites (placeholder) — drop E&E Villa.
+    $existing = get_posts([
+        'post_type'   => 'project',
+        'name'        => 'ee-villa',
+        'post_status' => ['publish', 'draft', 'pending', 'private'],
+        'numberposts' => 1,
+        'fields'      => 'ids',
+    ]);
+    foreach ($existing as $post_id) {
+        wp_delete_post($post_id, true);
+    }
+
+    $z_suites = get_posts([
+        'post_type'   => 'project',
+        'name'        => 'z-suites',
+        'post_status' => ['publish', 'draft', 'pending', 'private'],
+        'numberposts' => 1,
+        'fields'      => 'ids',
+    ]);
+
+    if (empty($z_suites)) {
+        $post_id = wp_insert_post([
+            'post_type'    => 'project',
+            'post_status'  => 'publish',
+            'post_title'   => 'Z-Suites',
+            'post_name'    => 'z-suites',
+            'post_content' => 'Details for Z-Suites are coming soon.',
+        ], true);
+
+        if (!is_wp_error($post_id)) {
+            update_post_meta($post_id, '_yaya_project_coming_soon', 1);
+            wp_set_object_terms($post_id, 'Izmir', 'project_category', false);
+        }
+    }
+
+    // One placeholder project each for Brussels and Amsterdam, to be filled in later.
+    $city_placeholders = [
+        ['title' => 'Brussels',  'slug' => 'brussels',  'category' => 'Brussels'],
+        ['title' => 'Amsterdam', 'slug' => 'amsterdam', 'category' => 'Amsterdam'],
+    ];
+
+    foreach ($city_placeholders as $placeholder) {
+        $existing_placeholder = get_posts([
+            'post_type'   => 'project',
+            'name'        => $placeholder['slug'],
+            'post_status' => ['publish', 'draft', 'pending', 'private'],
+            'numberposts' => 1,
+            'fields'      => 'ids',
+        ]);
+
+        if (!empty($existing_placeholder)) {
+            continue;
+        }
+
+        $post_id = wp_insert_post([
+            'post_type'    => 'project',
+            'post_status'  => 'publish',
+            'post_title'   => $placeholder['title'],
+            'post_name'    => $placeholder['slug'],
+        ], true);
+
+        if (!is_wp_error($post_id)) {
+            wp_set_object_terms($post_id, $placeholder['category'], 'project_category', false);
+        }
+    }
+
+    update_option('yaya_city_project_lineup_finalized_v1', gmdate('c'));
+}
+add_action('admin_init', 'yaya_maybe_finalize_city_project_lineup', 20);
+
+/* ─────────────────────────────────────────
+   PROJECT META BOX: PHOTO GALLERY & COMING SOON
+───────────────────────────────────────── */
+function yaya_add_project_gallery_meta_box() {
+    add_meta_box(
+        'yaya_project_gallery',
+        'Project Gallery',
+        'yaya_render_project_gallery_meta_box',
+        'project',
+        'normal',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'yaya_add_project_gallery_meta_box');
+
+function yaya_render_project_gallery_meta_box($post) {
+    wp_enqueue_media();
+    wp_nonce_field('yaya_project_gallery_meta_box', 'yaya_project_gallery_nonce');
+
+    $gallery_ids  = get_post_meta($post->ID, '_yaya_project_gallery', true);
+    $gallery_ids  = $gallery_ids ? array_filter(array_map('absint', explode(',', $gallery_ids))) : [];
+    $coming_soon  = (bool) get_post_meta($post->ID, '_yaya_project_coming_soon', true);
+    ?>
+    <p>
+      <label>
+        <input type="checkbox" id="yaya_project_coming_soon" name="yaya_project_coming_soon" value="1" <?php checked($coming_soon); ?> />
+        Mark this project as "Coming Soon" (hides photos, shows a coming-soon badge instead)
+      </label>
+    </p>
+    <p>
+      <button type="button" class="button" id="yaya-project-gallery-add">Add Images to Gallery</button>
+    </p>
+    <input type="hidden" id="yaya_project_gallery_ids" name="yaya_project_gallery_ids" value="<?php echo esc_attr(implode(',', $gallery_ids)); ?>" />
+    <ul id="yaya-project-gallery-preview" style="display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:14px 0 0;padding:0;">
+      <?php foreach ($gallery_ids as $attachment_id):
+        $thumb = wp_get_attachment_image_url($attachment_id, 'thumbnail');
+        if (!$thumb) continue;
+      ?>
+      <li data-id="<?php echo esc_attr($attachment_id); ?>" style="position:relative;width:100px;height:100px;">
+        <img src="<?php echo esc_url($thumb); ?>" style="width:100%;height:100%;object-fit:cover;display:block;" />
+        <button type="button" class="yaya-gallery-remove" style="position:absolute;top:2px;right:2px;background:#c0392b;color:#fff;border:0;border-radius:50%;width:20px;height:20px;line-height:1;cursor:pointer;">&times;</button>
+      </li>
+      <?php endforeach; ?>
+    </ul>
+    <script>
+    (function($){
+      var frame;
+      var $ids = $('#yaya_project_gallery_ids');
+      var $list = $('#yaya-project-gallery-preview');
+
+      $('#yaya-project-gallery-add').on('click', function(e){
+        e.preventDefault();
+        if (frame) { frame.open(); return; }
+        frame = wp.media({
+          title: 'Select Gallery Images',
+          button: { text: 'Add to Gallery' },
+          multiple: true
+        });
+        frame.on('select', function(){
+          var selection = frame.state().get('selection');
+          selection.each(function(attachment){
+            attachment = attachment.toJSON();
+            var current = $ids.val() ? $ids.val().split(',') : [];
+            if (current.indexOf(String(attachment.id)) !== -1) return;
+            current.push(attachment.id);
+            $ids.val(current.join(','));
+            var thumb = (attachment.sizes && attachment.sizes.thumbnail) ? attachment.sizes.thumbnail.url : attachment.url;
+            $list.append(
+              '<li data-id="' + attachment.id + '" style="position:relative;width:100px;height:100px;">' +
+                '<img src="' + thumb + '" style="width:100%;height:100%;object-fit:cover;display:block;" />' +
+                '<button type="button" class="yaya-gallery-remove" style="position:absolute;top:2px;right:2px;background:#c0392b;color:#fff;border:0;border-radius:50%;width:20px;height:20px;line-height:1;cursor:pointer;">&times;</button>' +
+              '</li>'
+            );
+          });
+        });
+        frame.open();
+      });
+
+      $list.on('click', '.yaya-gallery-remove', function(){
+        var $li = $(this).closest('li');
+        var id = String($li.data('id'));
+        var current = $ids.val() ? $ids.val().split(',') : [];
+        current = current.filter(function(v){ return v !== id; });
+        $ids.val(current.join(','));
+        $li.remove();
+      });
+    })(jQuery);
+    </script>
+    <?php
+}
+
+function yaya_save_project_gallery_meta_box($post_id) {
+    if (!isset($_POST['yaya_project_gallery_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['yaya_project_gallery_nonce'])), 'yaya_project_gallery_meta_box')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if (isset($_POST['yaya_project_gallery_ids'])) {
+        $ids = array_filter(array_map('absint', explode(',', wp_unslash($_POST['yaya_project_gallery_ids']))));
+        update_post_meta($post_id, '_yaya_project_gallery', implode(',', $ids));
+    }
+
+    update_post_meta($post_id, '_yaya_project_coming_soon', isset($_POST['yaya_project_coming_soon']) ? 1 : 0);
+}
+add_action('save_post_project', 'yaya_save_project_gallery_meta_box');
 
 /* ─────────────────────────────────────────
    CONTACT FORM AJAX (with nonce)
@@ -472,46 +679,6 @@ function yaya_customizer($wp_customize) {
         ]);
     }
 
-    /* ══════════════ TEAM SECTION ══════════════ */
-    $wp_customize->add_section('yaya_team', [
-        'title' => 'Team Members',
-        'panel' => 'yaya_panel',
-    ]);
-
-    $team_defaults = [
-        1 => ['Yaya Diallo',  'Founder & CEO',    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'],
-        2 => ['Sarah Mensah', 'Head of Projects',  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80'],
-        3 => ['Marc Koné',    'Lead Engineer',     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80'],
-    ];
-
-    for ($i = 1; $i <= 3; $i++) {
-        $wp_customize->add_setting("yaya_team{$i}_name", [
-            'default'           => $team_defaults[$i][0],
-            'sanitize_callback' => 'sanitize_text_field',
-        ]);
-        $wp_customize->add_control("yaya_team{$i}_name", [
-            'label'   => "Member $i — Name",
-            'section' => 'yaya_team',
-            'type'    => 'text',
-        ]);
-        $wp_customize->add_setting("yaya_team{$i}_role", [
-            'default'           => $team_defaults[$i][1],
-            'sanitize_callback' => 'sanitize_text_field',
-        ]);
-        $wp_customize->add_control("yaya_team{$i}_role", [
-            'label'   => "Member $i — Role",
-            'section' => 'yaya_team',
-            'type'    => 'text',
-        ]);
-        $wp_customize->add_setting("yaya_team{$i}_photo", [
-            'default'           => $team_defaults[$i][2],
-            'sanitize_callback' => 'esc_url_raw',
-        ]);
-        $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, "yaya_team{$i}_photo", [
-            'label'   => "Member $i — Photo",
-            'section' => 'yaya_team',
-        ]));
-    }
 }
 add_action('customize_register', 'yaya_customizer');
 
@@ -547,25 +714,6 @@ function yaya_about_page_defaults() {
             4 => [
                 'title' => 'Community',
                 'text'  => 'We build in communities we care about. Supporting local suppliers and creating opportunities for local talent is at our core.',
-            ],
-        ],
-        'team' => [
-            'section_label' => 'The People Behind the Build',
-            'section_title' => 'OUR TEAM',
-            1 => [
-                'name'  => 'Yaya Diallo',
-                'role'  => 'Founder & CEO',
-                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
-            ],
-            2 => [
-                'name'  => 'Sarah Mensah',
-                'role'  => 'Head of Projects',
-                'photo' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
-            ],
-            3 => [
-                'name'  => 'Marc Koné',
-                'role'  => 'Lead Engineer',
-                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
             ],
         ],
     ];
@@ -658,30 +806,6 @@ function yaya_render_about_meta_box($post) {
     }
     echo '</div>';
 
-    echo '<div class="yaya-meta-section"><h3>Team Section</h3>';
-    $team_section_label = yaya_get_about_page_field($post->ID, '_yaya_about_team_section_label', $defaults['team']['section_label']);
-    $team_section_title = yaya_get_about_page_field($post->ID, '_yaya_about_team_section_title', $defaults['team']['section_title']);
-    echo '<div class="yaya-meta-row"><label for="yaya_about_team_section_label">Section Label</label><input type="text" id="yaya_about_team_section_label" name="yaya_about_team_section_label" value="' . esc_attr($team_section_label) . '"></div>';
-    echo '<div class="yaya-meta-row"><label for="yaya_about_team_section_title">Section Title</label><input type="text" id="yaya_about_team_section_title" name="yaya_about_team_section_title" value="' . esc_attr($team_section_title) . '"></div>';
-    for ($i = 1; $i <= 3; $i++) {
-        $name  = yaya_get_about_page_field($post->ID, "_yaya_about_team_{$i}_name", $defaults['team'][$i]['name']);
-        $role  = yaya_get_about_page_field($post->ID, "_yaya_about_team_{$i}_role", $defaults['team'][$i]['role']);
-        $photo = yaya_get_about_page_field($post->ID, "_yaya_about_team_{$i}_photo", $defaults['team'][$i]['photo']);
-        echo '<div class="yaya-meta-row">';
-        echo '<label for="yaya_about_team_' . $i . '_name">Member ' . $i . ' Name</label>';
-        echo '<input type="text" id="yaya_about_team_' . $i . '_name" name="yaya_about_team_' . $i . '_name" value="' . esc_attr($name) . '">';
-        echo '</div>';
-        echo '<div class="yaya-meta-row">';
-        echo '<label for="yaya_about_team_' . $i . '_role">Member ' . $i . ' Role</label>';
-        echo '<input type="text" id="yaya_about_team_' . $i . '_role" name="yaya_about_team_' . $i . '_role" value="' . esc_attr($role) . '">';
-        echo '</div>';
-        echo '<div class="yaya-meta-row">';
-        echo '<label for="yaya_about_team_' . $i . '_photo">Member ' . $i . ' Photo URL</label>';
-        echo '<input type="url" id="yaya_about_team_' . $i . '_photo" name="yaya_about_team_' . $i . '_photo" value="' . esc_attr($photo) . '" placeholder="https://">';
-        echo '</div>';
-    }
-    echo '</div>';
-
     echo '</div>';
 }
 
@@ -705,8 +829,6 @@ function yaya_save_about_meta_box($post_id) {
         'yaya_about_cta_label' => '_yaya_about_cta_label',
         'yaya_about_values_section_label' => '_yaya_about_values_section_label',
         'yaya_about_values_section_title' => '_yaya_about_values_section_title',
-        'yaya_about_team_section_label' => '_yaya_about_team_section_label',
-        'yaya_about_team_section_title' => '_yaya_about_team_section_title',
     ];
 
     foreach ($text_fields as $field => $meta_key) {
@@ -730,17 +852,6 @@ function yaya_save_about_meta_box($post_id) {
         }
     }
 
-    for ($i = 1; $i <= 3; $i++) {
-        if (isset($_POST["yaya_about_team_{$i}_name"])) {
-            update_post_meta($post_id, "_yaya_about_team_{$i}_name", sanitize_text_field(wp_unslash($_POST["yaya_about_team_{$i}_name"])));
-        }
-        if (isset($_POST["yaya_about_team_{$i}_role"])) {
-            update_post_meta($post_id, "_yaya_about_team_{$i}_role", sanitize_text_field(wp_unslash($_POST["yaya_about_team_{$i}_role"])));
-        }
-        if (isset($_POST["yaya_about_team_{$i}_photo"])) {
-            update_post_meta($post_id, "_yaya_about_team_{$i}_photo", esc_url_raw(wp_unslash($_POST["yaya_about_team_{$i}_photo"])));
-        }
-    }
 }
 add_action('save_post_page', 'yaya_save_about_meta_box');
 
