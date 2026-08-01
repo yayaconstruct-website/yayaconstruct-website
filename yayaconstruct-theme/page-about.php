@@ -18,7 +18,7 @@ $about_values_section_title = function_exists('yaya_get_about_page_field') ? yay
 <div class="page-wrap">
 
   <div class="about-hero">
-    <div class="section-label" style="color:var(--rust)"><?php echo esc_html($about_hero_label); ?></div>
+    <div class="section-label" style="color:var(--aegean)"><?php echo esc_html($about_hero_label); ?></div>
     <h1><?php echo wp_kses($about_title, ['br' => []]); ?></h1>
     <p><?php echo esc_html($about_intro); ?></p>
   </div>
@@ -45,8 +45,8 @@ $about_values_section_title = function_exists('yaya_get_about_page_field') ? yay
   </div>
 
   <div class="values-section">
-    <div class="section-label" style="color:var(--rust);margin-bottom:0.5rem">
-      <span style="display:inline-block;width:30px;height:1px;background:var(--rust);vertical-align:middle;margin-right:0.8rem"></span>
+    <div class="section-label" style="color:var(--aegean);margin-bottom:0.5rem">
+      <span style="display:inline-block;width:30px;height:1px;background:var(--aegean);vertical-align:middle;margin-right:0.8rem"></span>
       <?php echo esc_html($about_values_section_label); ?>
     </div>
     <div class="section-title"><?php echo esc_html($about_values_section_title); ?></div>

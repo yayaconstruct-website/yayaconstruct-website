@@ -8,7 +8,7 @@ if (have_posts()) :
     <main class="page-wrap">
       <article <?php post_class('default-page-content'); ?>>
         <header class="default-page-header">
-          <div class="section-label" style="color:var(--rust)">Page</div>
+          <div class="section-label" style="color:var(--aegean)">Page</div>
           <h1><?php the_title(); ?></h1>
         </header>
 

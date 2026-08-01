@@ -80,12 +80,15 @@ add_action('after_setup_theme', 'yaya_setup');
    ENQUEUE STYLES & SCRIPTS
 ───────────────────────────────────────── */
 function yaya_scripts() {
+    // Archivo is served as a variable font carrying both a width and a weight
+    // axis, so the expanded display cut is font-stretch rather than a second
+    // file. Fragment Mono is the data layer. Three faces became two requests.
     wp_enqueue_style(
         'google-fonts',
-        'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap',
+        'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=Fragment+Mono&display=swap',
         [], null
     );
-    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.7');
+    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '2.0');
 }
 add_action('wp_enqueue_scripts', 'yaya_scripts');
 

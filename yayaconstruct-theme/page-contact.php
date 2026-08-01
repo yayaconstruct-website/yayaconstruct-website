@@ -54,7 +54,7 @@ $project_type_options = array_values(array_filter(array_map('trim', preg_split('
 <div class="page-wrap">
 
   <div class="contact-hero">
-    <div class="section-label" style="color:var(--rust)"><?php echo esc_html($contact_hero_label); ?></div>
+    <div class="section-label" style="color:var(--aegean)"><?php echo esc_html($contact_hero_label); ?></div>
     <h1><?php echo wp_kses(nl2br(esc_html($contact_hero_heading)), ['br' => []]); ?></h1>
   </div>
 
@@ -188,7 +188,7 @@ async function submitContactForm() {
   var valid = true;
   fields.forEach(function(id) {
     var el = document.getElementById(id);
-    if (!el.value.trim()) { el.style.borderColor = 'var(--rust)'; valid = false; }
+    if (!el.value.trim()) { el.style.borderColor = 'var(--aegean)'; valid = false; }
     else { el.style.borderColor = ''; }
   });
   if (!valid) return;

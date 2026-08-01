@@ -6,7 +6,7 @@
       <article <?php post_class('default-page-content'); ?>>
         <?php if (!is_front_page()) : ?>
           <header class="default-page-header">
-            <div class="section-label" style="color:var(--rust)">Page</div>
+            <div class="section-label" style="color:var(--aegean)">Page</div>
             <h1><?php the_title(); ?></h1>
           </header>
         <?php endif; ?>
@@ -19,7 +19,7 @@
   <?php else : ?>
     <article class="default-page-content">
       <header class="default-page-header">
-        <div class="section-label" style="color:var(--rust)">Not Found</div>
+        <div class="section-label" style="color:var(--aegean)">Not Found</div>
         <h1>Content unavailable</h1>
       </header>
       <div class="default-page-body">

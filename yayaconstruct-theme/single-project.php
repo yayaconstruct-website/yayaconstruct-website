@@ -17,7 +17,7 @@
   <div class="project-detail-bg"></div>
   <div class="project-detail-header">
     <?php if ( $cat_name ) : ?>
-      <div class="section-label" style="color:var(--rust)"><?php echo esc_html( $cat_name ); ?></div>
+      <div class="section-label" style="color:var(--aegean)"><?php echo esc_html( $cat_name ); ?></div>
     <?php endif; ?>
     <h1><?php the_title(); ?></h1>
     <?php if ( $location || $year ) : ?>

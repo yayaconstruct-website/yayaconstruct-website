@@ -23,7 +23,7 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
 <div class="page-wrap">
 
   <div class="projects-hero">
-    <div class="section-label reveal" style="color:var(--rust)"><?php echo esc_html($projects_hero_label); ?></div>
+    <div class="section-label reveal" style="color:var(--aegean)"><?php echo esc_html($projects_hero_label); ?></div>
     <h1 class="reveal" style="transition-delay:0.15s"><?php echo wp_kses($projects_title, ['br' => []]); ?></h1>
     <?php if ($projects_intro) : ?>
       <p class="reveal" style="transition-delay:0.25s"><?php echo esc_html($projects_intro); ?></p>

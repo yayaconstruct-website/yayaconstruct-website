@@ -5,20 +5,96 @@ Version: 1.0
 */
 
     :root {
-      --black: #0a0a0a;
-      --off-white: #f0ebe3;
-      --sand: #c9b99a;
-      --rust: #c0532a;
-      --rust-dark: #8f3b1c;
-      --concrete: #6b6560;
-      /* --concrete on --black is only 3.5:1, below the 4.5:1 AA floor for body
-         text. Anything muted sitting on a dark panel uses this instead (6.5:1). */
-      --concrete-on-dark: #9a938c;
-      --light-gray: #e8e3db;
+      /* ── TWO LATITUDES ──
+         The practice builds in the Aegean and in the Low Countries, so the
+         palette is drawn from those materials rather than the warm-cream-and-
+         terracotta default it replaced: limewash plaster, wet slate, zinc
+         roofing, and one desaturated sea blue carrying every accent. */
+      --slate: #1B1E1F;        /* ink, and the dark grounds */
+      --slate-deep: #131617;   /* the deepest band, for contrast against slate */
+      --limewash: #E9E7E2;     /* the light ground — cool, faint green bias */
+      --mist: #A8ADAB;         /* muted text on dark  — 7.4:1 on slate */
+      --aegean: #1F5567;       /* the single accent    — 6.6:1 on limewash */
+      --aegean-deep: #123C4A;  /* accent, pressed      */
+      --aegean-light: #74AEC0; /* the accent on dark   — 6.9:1 on slate */
+      /* Filled surfaces — buttons, chips, flags. These deliberately do NOT
+         follow the dark-ground rebinding below: the pairing that matters is
+         the fill against its own label, not against the band behind it. */
+      --accent-fill: #1F5567;
+      --accent-fill-deep: #123C4A;
+      --zinc: #5D6362;         /* muted text on light  — 4.9:1 on limewash */
+      --zinc-on-dark: #A8ADAB; /* muted text on dark   — kept AA-safe */
+      --dust: #DEDCD6;         /* sunk panels, hairlines on light */
+
+      /* Hairlines, so a rule is one decision rather than nine rgba() literals. */
+      --rule-on-light: rgba(27,30,31,0.16);
+      --rule-on-dark:  rgba(233,231,226,0.16);
+
+      /* ── TYPE ──
+         Three roles. Display and body are one superfamily so the page holds
+         together; the mono is the data layer — locations, years, scopes — and
+         is what makes the work read as a catalogue rather than a brochure.
+         Fallbacks are real stacks: if a webfont fails the page degrades
+         rather than silently swapping in Times. */
+      --font-display: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-body:    'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-mono:    'Fragment Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+      /* ── MEASURE ──
+         Every band was edge-to-edge. Content now sits in a bounded column with
+         real outer margins; backgrounds still run full-bleed. */
+      --page-max: 1360px;
+      --gutter: clamp(1.25rem, 5vw, 5rem);
+      --measure: 68ch;
+
       /* Height of the fixed nav. Everything that has to clear it reads this,
          and footer.php syncs it to the nav's measured height on load/resize.
          Default: 60px logo + 0.5rem padding + 1px border + 1.2rem nav padding. */
       --nav-h: 116px;
+    }
+
+    /* Full-bleed background, bounded content. Used by every top-level band so
+       the outer margin is defined once. */
+    .hero,
+    .stats-bar,
+    .section,
+    .home-project,
+    .about-hero,
+    .about-text,
+    .values-section,
+    .projects-hero,
+    .filter-bar,
+    .project-groups,
+    .contact-hero,
+    .contact-info,
+    .contact-form-wrap,
+    .project-detail-header,
+    footer {
+      padding-inline: max(var(--gutter), calc((100% - var(--page-max)) / 2));
+    }
+
+    /* ── DARK GROUNDS ──
+       --aegean is mixed for limewash; on slate it drops to 2.1:1. Rather than
+       fork every rule, the dark bands rebind the tokens themselves, so every
+       var(--aegean) underneath resolves to the legible variant — including the
+       inline style="color:var(--aegean)" attributes still sitting in the
+       templates, which a stylesheet rule could not have reached. */
+    nav,
+    .hero,
+    .stats-bar,
+    .home-project,
+    .about-hero,
+    .values-section,
+    .projects-hero,
+    .filter-bar,
+    .contact-hero,
+    .contact-info,
+    .project-detail-hero,
+    .project-overlay,
+    .project-card--coming-soon .project-card-placeholder,
+    footer {
+      --aegean: var(--aegean-light);
+      --zinc: var(--zinc-on-dark);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,7 +105,7 @@ Version: 1.0
        Nothing outside the contact form defined a focus style, so tabbing
        through the site gave no indication of where you were. */
     :focus-visible {
-      outline: 2px solid var(--rust);
+      outline: 2px solid var(--aegean);
       outline-offset: 3px;
     }
 
@@ -41,7 +117,7 @@ Version: 1.0
     .values-section :focus-visible,
     .contact-info :focus-visible,
     footer :focus-visible {
-      outline-color: var(--off-white);
+      outline-color: var(--limewash);
     }
 
     /* ── SKIP LINK ──
@@ -52,13 +128,13 @@ Version: 1.0
       left: 0;
       z-index: 300;
       transform: translateY(-120%);
-      background: var(--rust);
-      color: var(--off-white);
+      background: var(--accent-fill);
+      color: var(--limewash);
       padding: 0.9rem 1.5rem;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 2px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       text-decoration: none;
       transition: transform 0.2s ease;
@@ -67,10 +143,25 @@ Version: 1.0
     .skip-link:focus { transform: translateY(0); }
 
     body {
-      font-family: 'Barlow', sans-serif;
-      background: var(--off-white);
-      color: var(--black);
+      font-family: var(--font-body);
+      font-size: 1.0625rem;   /* 17px — was the browser default 16 with most
+                                 copy set at 0.9rem, so ~14.4px on the page */
+      line-height: 1.65;
+      background: var(--limewash);
+      color: var(--slate);
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Running text never exceeds a comfortable measure, whatever the band is
+       doing. Full-bleed sections were producing 140-character lines. */
+    .service-text,
+    .about-text p,
+    .value-card p,
+    .home-project-content p:not(.section-label),
+    .project-detail-content,
+    .hero-sub {
+      max-width: var(--measure);
     }
 
     /* ── NAV ── */
@@ -82,21 +173,23 @@ Version: 1.0
       justify-content: space-between;
       align-items: center;
       padding: 1.2rem 3rem;
-      background: rgba(10,10,10,0.92);
+      background: rgba(27,30,31,0.92);
       backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(201,185,154,0.15);
+      border-bottom: 1px solid rgba(168,173,171,0.15);
       transition: padding 0.3s;
     }
 
     .logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.9rem;
-      color: var(--off-white);
-      letter-spacing: 3px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: 1.6rem;
+      color: var(--limewash);
+      letter-spacing: -0.01em;
       text-decoration: none;
     }
 
-    .logo span { color: var(--rust); }
+    .logo span { color: var(--aegean); }
 
     .nav-links {
       display: flex;
@@ -105,19 +198,19 @@ Version: 1.0
     }
 
     .nav-links a {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 2px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--sand);
+      color: var(--mist);
       text-decoration: none;
       transition: color 0.25s;
       cursor: pointer;
     }
 
-    .nav-links a:hover { color: var(--rust); }
-    .nav-links a.active { color: var(--off-white); }
+    .nav-links a:hover { color: var(--aegean); }
+    .nav-links a.active { color: var(--limewash); }
 
 
     /* ── HOME ── */
@@ -133,38 +226,31 @@ Version: 1.0
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: calc(var(--nav-h) + 2rem) 3rem 5rem;
+      padding-block: calc(var(--nav-h) + 2rem) 5rem;
       overflow: hidden;
-      background: var(--black);
+      background: var(--slate);
     }
 
     .hero-bg {
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(160deg, rgba(10,10,10,0.0) 0%, rgba(10,10,10,0.85) 60%),
+        linear-gradient(160deg, rgba(27,30,31,0.0) 0%, rgba(27,30,31,0.85) 60%),
         url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80') center/cover no-repeat;
-      transform: scale(1.05);
-      animation: slowZoom 12s ease-out forwards;
-    }
-
-    @keyframes slowZoom {
-      from { transform: scale(1.08); }
-      to   { transform: scale(1.0); }
     }
 
     .hero-tag {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.78rem;
-      letter-spacing: 4px;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--rust);
+      color: var(--aegean);
       margin-bottom: 1rem;
       position: relative;
       display: flex;
       align-items: center;
       gap: 1rem;
-      animation: fadeUp 1s 0.2s both;
+      animation: heroIn 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     .hero-tag::before {
@@ -172,33 +258,36 @@ Version: 1.0
       display: block;
       width: 40px;
       height: 1px;
-      background: var(--rust);
+      background: var(--aegean);
     }
 
     .hero h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(4rem, 10vw, 9rem);
-      line-height: 0.9;
-      color: var(--off-white);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(2.75rem, 6.4vw, 5.5rem);
+      line-height: 0.98;
+      letter-spacing: -0.035em;
+      color: var(--limewash);
       position: relative;
-      animation: fadeUp 1s 0.4s both;
+      animation: heroIn 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     .hero h1 em,
     .hero h1 .hero-accent {
       font-style: normal;
-      color: var(--rust);
+      color: var(--aegean);
     }
 
     .hero-sub {
-      margin-top: 1.5rem;
-      font-size: 1rem;
-      font-weight: 300;
-      color: var(--sand);
+      margin-top: 1.75rem;
+      font-size: 1.125rem;
+      font-weight: 400;
+      color: var(--mist);
       max-width: 420px;
       line-height: 1.7;
       position: relative;
-      animation: fadeUp 1s 0.6s both;
+      animation: heroIn 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     .hero-cta {
@@ -206,7 +295,7 @@ Version: 1.0
       display: flex;
       gap: 1rem;
       position: relative;
-      animation: fadeUp 1s 0.8s both;
+      animation: heroIn 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     /* Both buttons are rendered as <a> in every template, so they inherited the
@@ -219,10 +308,10 @@ Version: 1.0
       /* 44px is the minimum comfortable touch target. */
       min-height: 44px;
       padding: 0.9rem 2.2rem;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 2px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       text-align: center;
       text-decoration: none;
@@ -230,27 +319,27 @@ Version: 1.0
     }
 
     .btn-primary {
-      background: var(--rust);
-      color: var(--off-white);
+      background: var(--accent-fill);
+      color: var(--limewash);
       border: none;
       transition: background 0.25s, transform 0.2s;
     }
 
     .btn-primary:hover {
-      background: var(--rust-dark);
+      background: var(--accent-fill-deep);
       transform: translateY(-2px);
     }
 
     .btn-outline {
       background: transparent;
-      color: var(--off-white);
-      border: 1px solid rgba(240,235,227,0.4);
+      color: var(--limewash);
+      border: 1px solid rgba(233,231,226,0.4);
       transition: border-color 0.25s, color 0.25s, transform 0.2s;
     }
 
     .btn-outline:hover {
-      border-color: var(--rust);
-      color: var(--rust);
+      border-color: var(--aegean);
+      color: var(--aegean);
       transform: translateY(-2px);
     }
 
@@ -262,70 +351,68 @@ Version: 1.0
       flex-direction: column;
       align-items: center;
       gap: 0.5rem;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.7rem;
-      letter-spacing: 3px;
+      letter-spacing: 0.13em;
       text-transform: uppercase;
-      color: var(--concrete-on-dark);
-      animation: fadeUp 1s 1s both;
+      color: var(--zinc-on-dark);
+      animation: heroIn 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     .scroll-line {
       width: 1px;
       height: 50px;
-      background: linear-gradient(to bottom, var(--rust), transparent);
-      animation: lineGrow 2s 1.2s ease infinite;
-    }
-
-    @keyframes lineGrow {
-      0%   { transform: scaleY(0); transform-origin: top; }
-      50%  { transform: scaleY(1); transform-origin: top; }
-      100% { transform: scaleY(1); transform-origin: top; opacity: 0; }
+      background: linear-gradient(to bottom, var(--aegean), transparent);
     }
 
     /* Stats bar */
     .stats-bar {
-      background: var(--black);
+      background: var(--slate);
       display: flex;
-      border-top: 1px solid rgba(201,185,154,0.1);
+      border-top: 1px solid rgba(168,173,171,0.1);
     }
 
     .stat-item {
       flex: 1;
-      padding: 2.5rem 3rem;
-      border-right: 1px solid rgba(201,185,154,0.1);
+      padding-block: 2.5rem;
+      border-right: 1px solid rgba(168,173,171,0.1);
       text-align: center;
     }
 
     .stat-item:last-child { border-right: none; }
 
     .stat-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 3.2rem;
-      color: var(--rust);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: 2.6rem;
+      color: var(--aegean);
       line-height: 1;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
     }
 
     .stat-label {
-      font-size: 0.78rem;
-      font-weight: 500;
-      letter-spacing: 2px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--concrete-on-dark);
+      color: var(--zinc-on-dark);
       margin-top: 0.3rem;
     }
 
     /* Services section */
     .section {
-      padding: 6rem 3rem;
+      padding-block: clamp(4.5rem, 8vw, 7rem);
     }
 
     .section-label {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
-      letter-spacing: 4px;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--rust);
+      color: var(--aegean);
       margin-bottom: 0.8rem;
       display: flex;
       align-items: center;
@@ -337,31 +424,34 @@ Version: 1.0
       display: block;
       width: 30px;
       height: 1px;
-      background: var(--rust);
+      background: var(--aegean);
     }
 
     .section-title {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
       /* Set explicitly: these are <h2> now, and browsers would otherwise
          synthesise a faux-bold for a single-weight display face. */
       font-weight: 400;
-      font-size: clamp(2.5rem, 5vw, 4rem);
-      line-height: 1;
+      font-size: clamp(1.9rem, 3.6vw, 3rem);
+      line-height: 1.04;
+      letter-spacing: -0.03em;
       margin-bottom: 3rem;
-      color: var(--black);
+      color: var(--slate);
     }
 
     .services-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 0;
-      border: 1px solid var(--light-gray);
+      border: 1px solid var(--dust);
     }
 
     .service-card {
       padding: 3rem 2.5rem;
-      border-right: 1px solid var(--light-gray);
-      border-bottom: 1px solid var(--light-gray);
+      border-right: 1px solid var(--dust);
+      border-bottom: 1px solid var(--dust);
       transition: background 0.3s;
       cursor: default;
     }
@@ -369,10 +459,10 @@ Version: 1.0
     .service-card:nth-child(3n) { border-right: none; }
     .service-card:nth-last-child(-n+3) { border-bottom: none; }
 
-    .service-card:hover { background: var(--black); }
-    .service-card:hover .service-title { color: var(--off-white); }
-    .service-card:hover .service-text { color: var(--concrete-on-dark); }
-    .service-card:hover .service-icon { color: var(--rust); }
+    .service-card:hover { background: var(--slate); }
+    .service-card:hover .service-title { color: var(--limewash); }
+    .service-card:hover .service-text { color: var(--zinc-on-dark); }
+    .service-card:hover .service-icon { color: var(--aegean); }
 
     .service-icon {
       font-size: 2.2rem;
@@ -381,30 +471,31 @@ Version: 1.0
     }
 
     .service-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.2rem;
+      font-family: var(--font-display);
+      font-stretch: 105%;
+      font-size: 1.15rem;
       font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      letter-spacing: -0.015em;
       margin-bottom: 0.8rem;
       transition: color 0.3s;
     }
 
     .service-text {
-      font-size: 0.9rem;
-      font-weight: 300;
+      font-size: 1rem;
+      font-weight: 400;
       line-height: 1.7;
-      color: var(--concrete);
+      color: var(--zinc);
       transition: color 0.3s;
     }
 
     /* Featured project on home */
     .home-project {
-      background: var(--black);
-      padding: 5rem 3rem;
+      background: var(--slate);
+      padding-block: clamp(4rem, 7vw, 6rem);
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
+      /* 1:1 reads as a template; weight the image side. */
+      grid-template-columns: 1.18fr 1fr;
+      gap: clamp(2.5rem, 5vw, 5rem);
       align-items: center;
     }
 
@@ -435,30 +526,30 @@ Version: 1.0
       transition: color 0.25s;
     }
 
-    .home-project-link:hover { color: var(--rust); }
+    .home-project-link:hover { color: var(--aegean); }
 
-    .home-project-content .section-label { color: var(--rust); }
-    .home-project-content .section-label::before { background: var(--rust); }
+    .home-project-content .section-label { color: var(--aegean); }
+    .home-project-content .section-label::before { background: var(--aegean); }
 
-    .home-project-content .section-title { color: var(--off-white); }
+    .home-project-content .section-title { color: var(--limewash); }
 
     /* Location/year line under the featured project title. */
     .home-project-meta {
       display: block;
       margin-top: 0.5rem;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      color: var(--rust);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: var(--aegean);
     }
 
     /* The section label is a <p> now, so the body-copy rule has to skip it. */
     .home-project-content p:not(.section-label) {
-      font-size: 0.95rem;
-      font-weight: 300;
-      line-height: 1.8;
-      color: var(--sand);
+      font-size: 1.0625rem;
+      font-weight: 400;
+      line-height: 1.75;
+      color: var(--mist);
       margin-bottom: 2rem;
     }
 
@@ -466,24 +557,27 @@ Version: 1.0
     .about-hero {
       height: 50vh;
       background:
-        linear-gradient(to bottom, rgba(10,10,10,0.6) 0%, rgba(10,10,10,0.9) 100%),
+        linear-gradient(to bottom, rgba(27,30,31,0.6) 0%, rgba(27,30,31,0.9) 100%),
         url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=80') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: 4rem 3rem;
+      padding-block: 4rem;
     }
 
     .about-hero h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3rem, 6vw, 6rem);
-      color: var(--off-white);
-      line-height: 0.9;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(2.2rem, 4.4vw, 3.75rem);
+      color: var(--limewash);
+      line-height: 1;
+      letter-spacing: -0.03em;
     }
 
     .about-hero p {
-      color: var(--sand);
-      font-weight: 300;
+      color: var(--mist);
+      font-weight: 400;
       margin-top: 1rem;
       font-size: 1rem;
       max-width: 500px;
@@ -496,29 +590,32 @@ Version: 1.0
     }
 
     .about-text {
-      padding: 5rem 3rem;
+      padding-block: 5rem;
     }
 
     .about-text h2 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.8rem;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(1.75rem, 3vw, 2.3rem);
+      letter-spacing: -0.028em;
       margin-bottom: 1.5rem;
     }
 
     .about-text p {
-      font-size: 0.95rem;
-      font-weight: 300;
-      line-height: 1.9;
-      color: var(--concrete);
+      font-size: 1.0625rem;
+      font-weight: 400;
+      line-height: 1.8;
+      color: var(--zinc);
       margin-bottom: 1.2rem;
     }
 
     .values-section {
-      background: var(--black);
-      padding: 5rem 3rem;
+      background: var(--slate);
+      padding-block: 5rem;
     }
 
-    .values-section .section-title { color: var(--off-white); }
+    .values-section .section-title { color: var(--limewash); }
 
     .values-grid {
       display: grid;
@@ -528,25 +625,25 @@ Version: 1.0
     }
 
     .value-card {
-      border-left: 2px solid var(--rust);
+      border-left: 2px solid var(--aegean);
       padding-left: 1.5rem;
     }
 
     .value-card h3 {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.1rem;
+      font-family: var(--font-display);
+      font-stretch: 105%;
+      font-size: 1.05rem;
       font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--off-white);
+      letter-spacing: -0.015em;
+      color: var(--limewash);
       margin-bottom: 0.6rem;
     }
 
     .value-card p {
-      font-size: 0.88rem;
-      font-weight: 300;
+      font-size: 0.98rem;
+      font-weight: 400;
       line-height: 1.7;
-      color: var(--concrete-on-dark);
+      color: var(--zinc-on-dark);
     }
 
 
@@ -554,18 +651,21 @@ Version: 1.0
     .projects-hero {
       min-height: 50vh;
       background:
-        linear-gradient(to bottom, rgba(10,10,10,0.5) 0%, rgba(10,10,10,0.92) 100%),
+        linear-gradient(to bottom, rgba(27,30,31,0.5) 0%, rgba(27,30,31,0.92) 100%),
         url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1400&q=80') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: 4rem 3rem;
+      padding-block: 4rem;
     }
 
     .projects-hero h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3rem, 6vw, 6rem);
-      color: var(--off-white);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(2.2rem, 4.4vw, 3.75rem);
+      letter-spacing: -0.03em;
+      color: var(--limewash);
     }
 
     /* Category filter — sticks under the nav while scrolling the groups */
@@ -573,12 +673,12 @@ Version: 1.0
       position: sticky;
       top: var(--nav-h);
       z-index: 60;
-      background: rgba(10,10,10,0.96);
+      background: rgba(27,30,31,0.96);
       backdrop-filter: blur(8px);
-      padding: 1rem 3rem;
+      padding-block: 1rem;
       display: flex;
       gap: 0.7rem;
-      border-bottom: 1px solid rgba(201,185,154,0.12);
+      border-bottom: 1px solid rgba(168,173,171,0.12);
       overflow-x: auto;
     }
 
@@ -587,12 +687,12 @@ Version: 1.0
       align-items: center;
       gap: 0.55rem;
       background: transparent;
-      border: 1px solid rgba(201,185,154,0.2);
-      color: var(--sand);
+      border: 1px solid rgba(168,173,171,0.2);
+      color: var(--mist);
       padding: 0.5rem 1.2rem;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.78rem;
-      letter-spacing: 2px;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
       white-space: nowrap;
@@ -601,14 +701,14 @@ Version: 1.0
 
     .filter-count {
       font-size: 0.68rem;
-      letter-spacing: 1px;
+      letter-spacing: 0.06em;
       opacity: 0.6;
     }
 
     .filter-btn:hover, .filter-btn.active {
-      background: var(--rust);
-      border-color: var(--rust);
-      color: var(--off-white);
+      background: var(--accent-fill);
+      border-color: var(--accent-fill);
+      color: var(--limewash);
     }
 
     /* ── PROJECT GROUPS (one block per category) ── */
@@ -616,7 +716,7 @@ Version: 1.0
       display: flex;
       flex-direction: column;
       gap: 5rem;
-      padding: 4.5rem 3rem 6rem;
+      padding-block: 4.5rem 6rem;
     }
 
     .project-group {
@@ -632,7 +732,7 @@ Version: 1.0
       gap: 1.5rem;
       padding-bottom: 1.1rem;
       margin-bottom: 2rem;
-      border-bottom: 1px solid var(--light-gray);
+      border-bottom: 1px solid var(--dust);
     }
 
     .project-group-heading {
@@ -643,28 +743,30 @@ Version: 1.0
     }
 
     .project-group-index {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 3px;
-      color: var(--rust);
+      font-weight: 400;
+      letter-spacing: 0.13em;
+      color: var(--aegean);
     }
 
     .project-group-title {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
       font-weight: 400;
-      font-size: clamp(2rem, 4vw, 3.2rem);
-      line-height: 1;
-      letter-spacing: 1px;
-      color: var(--black);
+      font-size: clamp(1.7rem, 3vw, 2.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.028em;
+      color: var(--slate);
     }
 
     .project-group-count {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
-      letter-spacing: 3px;
+      letter-spacing: 0.13em;
       text-transform: uppercase;
-      color: var(--concrete);
+      color: var(--zinc);
       white-space: nowrap;
     }
 
@@ -691,7 +793,7 @@ Version: 1.0
       display: block;
       aspect-ratio: 4/3;
       overflow: hidden;
-      background: var(--black);
+      background: var(--slate);
       text-decoration: none;
     }
 
@@ -722,7 +824,7 @@ Version: 1.0
     .project-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.3) 45%, rgba(10,10,10,0) 78%);
+      background: linear-gradient(to top, rgba(27,30,31,0.92) 0%, rgba(27,30,31,0.3) 45%, rgba(27,30,31,0) 78%);
       transition: background 0.4s ease;
       display: flex;
       flex-direction: column;
@@ -732,31 +834,33 @@ Version: 1.0
     }
 
     .project-card:hover .project-overlay {
-      background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.5) 55%, rgba(10,10,10,0.12) 100%);
+      background: linear-gradient(to top, rgba(27,30,31,0.95) 0%, rgba(27,30,31,0.5) 55%, rgba(27,30,31,0.12) 100%);
     }
 
     .project-card--no-image {
-      background: linear-gradient(135deg, #d8d0c4 0%, #c9b99a 100%);
+      background: linear-gradient(135deg, #C8C6C0 0%, #A8ADAB 100%);
     }
 
     .project-flag {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.66rem;
-      font-weight: 600;
-      letter-spacing: 2px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--off-white);
-      background: var(--rust);
+      color: var(--limewash);
+      background: var(--accent-fill);
       padding: 0.25rem 0.6rem;
       margin-bottom: 0.7rem;
     }
 
     .project-name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.7rem;
-      color: var(--off-white);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: 1.45rem;
+      color: var(--limewash);
       line-height: 1.05;
-      letter-spacing: 0.5px;
+      letter-spacing: -0.02em;
     }
 
     .project-card--feature .project-name {
@@ -765,8 +869,8 @@ Version: 1.0
 
     .project-loc {
       font-size: 0.82rem;
-      color: var(--sand);
-      font-weight: 300;
+      color: var(--mist);
+      font-weight: 400;
       margin-top: 0.35rem;
     }
 
@@ -777,7 +881,7 @@ Version: 1.0
 
     @media (max-width: 1100px) {
       .project-groups {
-        padding: 3.5rem 2rem 5rem;
+        padding-block: 3.5rem 5rem;
         gap: 4rem;
       }
 
@@ -801,13 +905,13 @@ Version: 1.0
       }
 
       .service-card { padding: 2.5rem 2rem; }
-      .service-card:nth-child(3n) { border-right: 1px solid var(--light-gray); }
+      .service-card:nth-child(3n) { border-right: 1px solid var(--dust); }
       .service-card:nth-child(2n) { border-right: none; }
-      .service-card:nth-last-child(-n+3) { border-bottom: 1px solid var(--light-gray); }
+      .service-card:nth-last-child(-n+3) { border-bottom: 1px solid var(--dust); }
       .service-card:nth-last-child(-n+2) { border-bottom: none; }
 
-      .section       { padding: 5rem 2rem; }
-      .home-project  { gap: 3rem; padding: 4rem 2rem; }
+      .section       { padding-block: 4.5rem; }
+      .home-project  { gap: 3rem; padding-block: 4rem; }
       .stat-item     { padding: 2.5rem 1.5rem; }
     }
 
@@ -815,18 +919,21 @@ Version: 1.0
     .contact-hero {
       min-height: 40vh;
       background:
-        linear-gradient(to bottom, rgba(10,10,10,0.4) 0%, rgba(10,10,10,0.95) 100%),
+        linear-gradient(to bottom, rgba(27,30,31,0.4) 0%, rgba(27,30,31,0.95) 100%),
         url('https://images.unsplash.com/photo-1481026469463-66327c86e544?w=1400&q=80') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: 3.5rem 3rem;
+      padding-block: 3.5rem;
     }
 
     .contact-hero h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3rem, 6vw, 6rem);
-      color: var(--off-white);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(2.2rem, 4.4vw, 3.75rem);
+      letter-spacing: -0.03em;
+      color: var(--limewash);
     }
 
     .contact-body {
@@ -836,17 +943,20 @@ Version: 1.0
     }
 
     .contact-info {
-      background: var(--black);
-      padding: 4rem 3rem;
+      background: var(--slate);
+      padding-block: 4rem;
     }
 
-    .contact-info .section-label { color: var(--rust); }
-    .contact-info .section-label::before { background: var(--rust); }
+    .contact-info .section-label { color: var(--aegean); }
+    .contact-info .section-label::before { background: var(--aegean); }
 
     .contact-info h2 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.5rem;
-      color: var(--off-white);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(1.7rem, 2.8vw, 2.1rem);
+      letter-spacing: -0.028em;
+      color: var(--limewash);
       margin-bottom: 2.5rem;
     }
 
@@ -869,18 +979,18 @@ Version: 1.0
     }
 
     .contact-item-label {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
-      letter-spacing: 2px;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--rust);
+      color: var(--aegean);
       margin-bottom: 0.2rem;
     }
 
     .contact-item-value {
-      font-size: 0.92rem;
-      font-weight: 300;
-      color: var(--sand);
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--mist);
       line-height: 1.6;
     }
 
@@ -893,30 +1003,33 @@ Version: 1.0
     .social-link {
       width: 40px;
       height: 40px;
-      border: 1px solid rgba(201,185,154,0.2);
+      border: 1px solid rgba(168,173,171,0.2);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--sand);
+      color: var(--mist);
       text-decoration: none;
       font-size: 0.9rem;
       transition: all 0.2s;
     }
 
     .social-link:hover {
-      border-color: var(--rust);
-      background: var(--rust);
-      color: var(--off-white);
+      border-color: var(--aegean);
+      background: var(--accent-fill);
+      color: var(--limewash);
     }
 
     .contact-form {
       padding: 4rem 3rem;
-      background: var(--off-white);
+      background: var(--limewash);
     }
 
     .contact-form h2 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.5rem;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(1.7rem, 2.8vw, 2.1rem);
+      letter-spacing: -0.028em;
       margin-bottom: 2rem;
     }
 
@@ -932,11 +1045,11 @@ Version: 1.0
 
     .form-group label {
       display: block;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
-      letter-spacing: 2px;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--concrete);
+      color: var(--zinc);
       margin-bottom: 0.5rem;
     }
 
@@ -945,12 +1058,12 @@ Version: 1.0
     .form-group textarea {
       width: 100%;
       padding: 0.9rem 1rem;
-      border: 1px solid var(--light-gray);
+      border: 1px solid var(--dust);
       background: white;
-      font-family: 'Barlow', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.9rem;
-      font-weight: 300;
-      color: var(--black);
+      font-weight: 400;
+      color: var(--slate);
       outline: none;
       transition: border-color 0.2s;
       appearance: none;
@@ -959,7 +1072,7 @@ Version: 1.0
     .form-group input:focus,
     .form-group select:focus,
     .form-group textarea:focus {
-      border-color: var(--rust);
+      border-color: var(--aegean);
     }
 
     .form-group textarea {
@@ -979,30 +1092,37 @@ Version: 1.0
 
     /* ── FOOTER ── */
     footer {
-      background: var(--black);
+      background: var(--slate);
       padding: 3rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-top: 1px solid rgba(201,185,154,0.1);
+      border-top: 1px solid rgba(168,173,171,0.1);
     }
 
     .footer-logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.5rem;
-      color: var(--off-white);
-      letter-spacing: 3px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: 1.3rem;
+      color: var(--limewash);
+      letter-spacing: -0.01em;
     }
 
-    .footer-logo span { color: var(--rust); }
+    .footer-logo span { color: var(--aegean); }
 
     .footer-copy {
       font-size: 0.78rem;
-      color: var(--concrete);
+      color: var(--zinc);
       text-align: right;
     }
 
     /* Utilities */
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(24px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -1017,15 +1137,15 @@ Version: 1.0
       :root { --nav-h: 98px; }
       nav { padding: 1rem 1.5rem; }
       .nav-links { gap: 1.2rem; }
-      .nav-links a { font-size: 0.75rem; letter-spacing: 1px; }
-      .hero { padding: calc(var(--nav-h) + 1rem) 1.5rem 4rem; }
+      .nav-links a { font-size: 0.75rem; letter-spacing: 0.06em; }
+      .hero { padding-block: calc(var(--nav-h) + 1rem) 4rem; }
       .stats-bar { flex-wrap: wrap; }
-      .stat-item { min-width: 50%; border-bottom: 1px solid rgba(201,185,154,0.1); }
-      .section { padding: 4rem 1.5rem; }
+      .stat-item { min-width: 50%; border-bottom: 1px solid rgba(168,173,171,0.1); }
+      .section { padding-block: 4rem; }
       .services-grid { grid-template-columns: 1fr; }
       .service-card { border-right: none; }
       /* Was 3rem of side padding on a 375px screen. */
-      .home-project { grid-template-columns: 1fr; padding: 4rem 1.5rem; gap: 2.5rem; }
+      .home-project { grid-template-columns: 1fr; padding-block: 3.5rem; gap: 2.5rem; }
       .about-body { grid-template-columns: 1fr; }
       .values-grid { grid-template-columns: 1fr 1fr; }
       .contact-body { grid-template-columns: 1fr; }
@@ -1040,13 +1160,13 @@ Version: 1.0
         height: auto;
         /* Top padding no longer has to compensate for the nav — .page-wrap
            clears it now — so this is breathing room only. */
-        padding: 2rem 1.25rem 1.5rem;
+        padding-block: 2rem 1.5rem;
         background-position: center;
       }
 
       .projects-hero .section-label {
         font-size: 0.72rem;
-        letter-spacing: 3px;
+        letter-spacing: 0.13em;
       }
 
       .projects-hero h1 {
@@ -1060,11 +1180,11 @@ Version: 1.0
         max-width: 28rem;
         font-size: 0.92rem;
         line-height: 1.6;
-        color: var(--sand);
+        color: var(--mist);
       }
 
       .filter-bar {
-        padding: 0.9rem 0.9rem 1rem;
+        padding-block: 0.9rem 1rem;
         gap: 0.6rem;
         overflow-x: auto;
         scroll-snap-type: x proximity;
@@ -1081,11 +1201,11 @@ Version: 1.0
         min-height: 42px;
         padding: 0.65rem 1rem;
         font-size: 0.72rem;
-        letter-spacing: 1.4px;
+        letter-spacing: 0.08em;
       }
 
       .project-groups {
-        padding: 2.5rem 1rem 4rem;
+        padding-block: 2.5rem 4rem;
         gap: 3rem;
       }
 
@@ -1107,7 +1227,7 @@ Version: 1.0
 
       .project-group-count {
         font-size: 0.7rem;
-        letter-spacing: 2px;
+        letter-spacing: 0.1em;
       }
 
       .project-group-grid {
@@ -1132,7 +1252,7 @@ Version: 1.0
 
       .project-overlay {
         padding: 1.1rem;
-        background: linear-gradient(to top, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.2) 100%);
+        background: linear-gradient(to top, rgba(27,30,31,0.9) 0%, rgba(27,30,31,0.2) 100%);
       }
 
       .project-card:hover img {
@@ -1160,15 +1280,15 @@ Version: 1.0
 
     @media (max-width: 420px) {
       .projects-hero {
-        padding: 1.75rem 1rem 1.25rem;
+        padding-block: 1.75rem 1.25rem;
       }
 
       .filter-bar {
-        padding: 0.8rem 0.8rem 0.95rem;
+        padding-block: 0.8rem 0.95rem;
       }
 
       .project-groups {
-        padding: 2rem 0.8rem 3.5rem;
+        padding-block: 2rem 3.5rem;
       }
 
       .project-card,
@@ -1190,10 +1310,10 @@ Version: 1.0
     .projects-empty {
       padding: 8rem 3rem;
       text-align: center;
-      color: var(--concrete);
+      color: var(--zinc);
       font-size: 1rem;
-      font-weight: 300;
-      letter-spacing: 1px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
     }
 
     /* Placeholder for cards without an image */
@@ -1201,7 +1321,7 @@ Version: 1.0
       width: 100%;
       height: 100%;
       background:
-        linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(10,10,10,0.08) 100%),
+        linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(27,30,31,0.08) 100%),
         repeating-linear-gradient(
           135deg,
           rgba(255,255,255,0.18),
@@ -1217,33 +1337,24 @@ Version: 1.0
     }
 
     .project-card-placeholder span {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 2px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(10,10,10,0.6);
+      color: rgba(27,30,31,0.6);
     }
 
     /* ── SCROLL REVEAL ── */
     .reveal {
       opacity: 0;
-      transform: translateY(28px);
-      transition: opacity 0.65s ease, transform 0.65s ease;
+      transform: translateY(14px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      transition-delay: 0s !important;
     }
     .reveal.visible {
       opacity: 1;
       transform: translateY(0);
-    }
-
-    /* ── PROJECT CARD ENTRANCE (after filtering) ── */
-    .project-group:not(.is-hidden) .project-card {
-      animation: cardIn 0.4s ease both;
-    }
-
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
     }
 
     /* ── REDUCED MOTION ──
@@ -1253,10 +1364,6 @@ Version: 1.0
        .visible, so this neutralises the transition rather than the class. */
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-
-      .project-group:not(.is-hidden) .project-card {
-        animation: none;
-      }
 
       .reveal,
       .reveal.visible {
@@ -1299,37 +1406,38 @@ Version: 1.0
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      background: var(--black);
+      background: var(--slate);
       overflow: hidden;
     }
     .project-detail-bg {
       position: absolute;
       inset: 0;
       background-image:
-        linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.25) 100%),
+        linear-gradient(to top, rgba(27,30,31,0.95) 0%, rgba(27,30,31,0.25) 100%),
         var(--project-bg, url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1600&q=80'));
       background-size: cover;
       background-position: center;
-      transform: scale(1.04);
-      animation: slowZoom 12s ease-out forwards;
     }
     .project-detail-header {
       position: relative;
-      padding: 4rem 3rem;
+      padding-block: 4rem;
     }
     .project-detail-header h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3rem, 8vw, 7.5rem);
-      color: var(--off-white);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(2.2rem, 5vw, 4.5rem);
+      letter-spacing: -0.035em;
+      color: var(--limewash);
       line-height: 0.9;
       margin-top: 0.5rem;
     }
     .project-detail-meta {
-      color: var(--sand);
+      color: var(--mist);
       font-size: 0.95rem;
-      font-weight: 300;
+      font-weight: 400;
       margin-top: 1rem;
-      letter-spacing: 1px;
+      letter-spacing: 0.06em;
     }
     .project-detail-body {
       max-width: 800px;
@@ -1337,10 +1445,10 @@ Version: 1.0
       padding: 5rem 3rem;
     }
     .project-detail-content {
-      font-size: 1rem;
-      font-weight: 300;
-      line-height: 1.9;
-      color: var(--concrete);
+      font-size: 1.0625rem;
+      font-weight: 400;
+      line-height: 1.8;
+      color: var(--zinc);
     }
     .project-detail-content p { margin-bottom: 1.2rem; }
     .project-detail-back {
@@ -1352,7 +1460,7 @@ Version: 1.0
       text-decoration: none;
     }
     @media (max-width: 768px) {
-      .project-detail-header { padding: 2.5rem 1.5rem; }
+      .project-detail-header { padding-block: 2.5rem; }
       .project-detail-body   { padding: 3rem 1.5rem; }
       .project-detail-back   { padding: 0 1.5rem 3rem; }
     }
@@ -1372,7 +1480,7 @@ Version: 1.0
       display: block;
       aspect-ratio: 4/3;
       overflow: hidden;
-      background: var(--light-gray);
+      background: var(--dust);
     }
     .project-gallery-item img {
       width: 100%;
@@ -1393,23 +1501,24 @@ Version: 1.0
       display: inline-block;
       margin-top: 1.2rem;
       padding: 0.4rem 1rem;
-      border: 1px solid var(--rust);
-      color: var(--rust);
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 1.5px;
+      border: 1px solid var(--aegean);
+      color: var(--aegean);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
     }
     .project-card--coming-soon .project-card-placeholder {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--black);
-      color: var(--sand);
+      background: var(--slate);
+      color: var(--mist);
     }
 
     .project-card--coming-soon .project-card-placeholder span {
-      color: var(--sand);
+      color: var(--mist);
     }
 
     /* ── PAGE WRAP ──
@@ -1430,17 +1539,19 @@ Version: 1.0
     }
 
     .default-page-header h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(2.8rem, 7vw, 5rem);
-      line-height: 0.95;
-      letter-spacing: 1px;
-      color: var(--black);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      color: var(--slate);
     }
 
     .default-page-body {
       font-size: 1.05rem;
       line-height: 1.85;
-      color: var(--concrete);
+      color: var(--zinc);
     }
 
     .default-page-body > * + * {
@@ -1448,7 +1559,7 @@ Version: 1.0
     }
 
     .default-page-body a {
-      color: var(--rust-dark);
+      color: var(--aegean-deep);
     }
 
     /* ── LOGO ── */
@@ -1495,17 +1606,17 @@ Version: 1.0
     .service-icon svg {
       width: 2.2rem;
       height: 2.2rem;
-      color: var(--concrete);
+      color: var(--zinc);
       transition: color 0.3s;
     }
 
     .service-card:hover .service-icon svg {
-      color: var(--rust);
+      color: var(--aegean);
     }
 
     /* ── CONTACT ICON SVGs ── */
     .contact-icon svg {
-      color: var(--rust);
+      color: var(--aegean);
     }
 
     /* ── CONTACT FORM ERROR STATE ── */
@@ -1522,7 +1633,7 @@ Version: 1.0
     /* ── HERO DYNAMIC BACKGROUND ── */
     .hero-bg {
       background-image:
-        linear-gradient(160deg, rgba(10,10,10,0.0) 0%, rgba(10,10,10,0.85) 60%),
+        linear-gradient(160deg, rgba(27,30,31,0.0) 0%, rgba(27,30,31,0.85) 60%),
         var(--hero-bg, url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80'));
       background-size: cover;
       background-position: center;
@@ -1546,7 +1657,7 @@ Version: 1.0
       display: block;
       width: 24px;
       height: 2px;
-      background: var(--off-white);
+      background: var(--limewash);
       border-radius: 2px;
       transition: transform 0.3s ease, opacity 0.3s ease;
       transform-origin: center;
@@ -1581,7 +1692,7 @@ Version: 1.0
         /* 100vh ignores the mobile browser chrome, which cut the panel off. */
         height: 100vh;
         height: 100dvh;
-        background: rgba(10,10,10,0.98);
+        background: rgba(27,30,31,0.98);
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -1589,13 +1700,13 @@ Version: 1.0
         list-style: none;
         z-index: 150;
         transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        border-left: 1px solid rgba(201,185,154,0.1);
+        border-left: 1px solid rgba(168,173,171,0.1);
       }
 
       .nav-links.open { right: 0; }
 
       .nav-links a {
         font-size: 1rem;
-        letter-spacing: 3px;
+        letter-spacing: 0.13em;
       }
     }
