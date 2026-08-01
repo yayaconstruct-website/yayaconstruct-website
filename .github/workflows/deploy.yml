@@ -16,22 +16,8 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      - name: Deploy coming soon page
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USER:   ${{ secrets.FTP_USERNAME }}
-          FTP_PASS:   ${{ secrets.FTP_PASSWORD }}
-        run: |
-          lftp -c "
-            set ftp:ssl-allow no;
-            set ftp:passive-mode yes;
-            set net:timeout 30;
-            set net:max-retries 3;
-            open -u \"$FTP_USER,$FTP_PASS\" ftp://$FTP_SERVER;
-            put index.html -o public_html/index.html;
-            bye
-          "
-
+      # The theme goes first: it is the live site. The static coming-soon page
+      # below is legacy and must never be able to block a theme deploy again.
       - name: Deploy WordPress theme
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
@@ -46,5 +32,22 @@ jobs:
             open -u \"$FTP_USER,$FTP_PASS\" ftp://$FTP_SERVER;
             mkdir -fp public_html/wp-content/themes/yayaconstruct-theme;
             mirror --reverse --delete --parallel=5 yayaconstruct-theme/ public_html/wp-content/themes/yayaconstruct-theme/;
+            bye
+          "
+
+      - name: Deploy coming soon page
+        continue-on-error: true
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER:   ${{ secrets.FTP_USERNAME }}
+          FTP_PASS:   ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -c "
+            set ftp:ssl-allow no;
+            set ftp:passive-mode yes;
+            set net:timeout 30;
+            set net:max-retries 3;
+            open -u \"$FTP_USER,$FTP_PASS\" ftp://$FTP_SERVER;
+            put index.html -o public_html/index.html;
             bye
           "
