@@ -168,7 +168,11 @@ Version: 1.0
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
-      z-index: 100;
+      /* Must outrank .nav-overlay (140). nav's backdrop-filter makes it a
+         stacking context, which traps the mobile menu panel inside it however
+         high the panel's own z-index goes — so at z-index 100 the overlay
+         painted its blur and its 50% black straight over the open menu. */
+      z-index: 200;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -293,6 +297,7 @@ Version: 1.0
     .hero-cta {
       margin-top: 2.5rem;
       display: flex;
+      flex-wrap: wrap;
       gap: 1rem;
       position: relative;
       animation: heroIn 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1138,6 +1143,18 @@ Version: 1.0
       nav { padding: 1rem 1.5rem; }
       .nav-links { gap: 1.2rem; }
       .nav-links a { font-size: 0.75rem; letter-spacing: 0.06em; }
+      /* Fragment Mono is much wider than the condensed face it replaced, so
+         the two hero CTAs no longer fit side by side at 375px and their
+         labels broke across lines inside the buttons. */
+      .btn-primary,
+      .btn-outline {
+        padding: 0.85rem 1.35rem;
+        font-size: 0.76rem;
+        letter-spacing: 0.07em;
+      }
+
+      /* Decorative, and at this width it sits on top of the CTAs. */
+      .hero-scroll { display: none; }
       .hero { padding-block: calc(var(--nav-h) + 1rem) 4rem; }
       .stats-bar { flex-wrap: wrap; }
       .stat-item { min-width: 50%; border-bottom: 1px solid rgba(168,173,171,0.1); }
@@ -1562,26 +1579,36 @@ Version: 1.0
       color: var(--aegean-deep);
     }
 
-    /* ── LOGO ── */
+    /* ── LOGO ──
+       The source asset is a dark mark on a near-white square with no alpha, so
+       it sat on the nav as a white sticker in a rounded, shadowed tile — the
+       tile existed to make that white block look deliberate. images/logo-mark.png
+       is the same mark rebuilt with real transparency and recoloured to
+       limewash, cropped to the wordmark, so it can sit straight on the bar with
+       no container at all. logo.png stays as-is for Open Graph and structured
+       data, where the dark-on-white version is what belongs on a white card. */
     .nav-logo {
       display: flex;
       align-items: center;
       text-decoration: none;
       flex-shrink: 0;
-      padding: 0.5rem 0.7rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
-      backdrop-filter: blur(6px);
     }
 
     .nav-logo-img,
     .nav-logo .custom-logo {
-      height: 60px;
+      height: 46px;
       width: auto;
       display: block;
+      /* A custom logo set in the Customizer is still the dark-on-white file,
+         so it keeps the tile treatment it needs to stay legible. */
       filter: none;
+    }
+
+    /* Only the Customizer path needs a plate behind it. */
+    .nav-logo .custom-logo {
+      padding: 0.45rem 0.6rem;
+      background: rgba(233,231,226,0.9);
+      border-radius: 10px;
     }
 
     .nav-logo .custom-logo-link {
@@ -1591,14 +1618,9 @@ Version: 1.0
     }
 
     @media (max-width: 768px) {
-      .nav-logo {
-        padding: 0.38rem 0.5rem;
-        border-radius: 12px;
-      }
-
       .nav-logo-img,
       .nav-logo .custom-logo {
-        height: 52px;
+        height: 38px;
       }
     }
 
@@ -1692,7 +1714,8 @@ Version: 1.0
         /* 100vh ignores the mobile browser chrome, which cut the panel off. */
         height: 100vh;
         height: 100dvh;
-        background: rgba(27,30,31,0.98);
+        /* Fully opaque: at 0.98 the hero headline ghosted through the panel. */
+        background: var(--slate);
         flex-direction: column;
         justify-content: center;
         align-items: center;

@@ -88,10 +88,11 @@
     <div class="nav-logo"><?php the_custom_logo(); ?></div>
   <?php else: ?>
     <a class="nav-logo" href="<?php echo home_url('/'); ?>">
-      <?php // Intrinsic size is declared so the nav does not reflow once it loads. ?>
-      <img src="<?php echo get_template_directory_uri(); ?>/images/logo.png"
+      <?php // Transparent, limewash-on-nothing variant so the mark sits on the
+            // bar itself. Intrinsic size declared so the nav does not reflow. ?>
+      <img src="<?php echo get_template_directory_uri(); ?>/images/logo-mark.png"
            alt="<?php bloginfo('name'); ?>"
-           width="256" height="256"
+           width="189" height="107"
            fetchpriority="high" decoding="async"
            class="nav-logo-img" />
     </a>
