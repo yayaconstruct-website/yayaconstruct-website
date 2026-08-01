@@ -15,7 +15,24 @@
     $og_desc  = has_excerpt() ? get_the_excerpt() : wp_trim_words( get_the_content(), 30, '…' );
     $og_url   = get_permalink();
     $og_img   = has_post_thumbnail() ? get_the_post_thumbnail_url( null, 'large' ) : '';
-    $og_type  = 'article';
+    // A static front page is singular too, so the home page was being tagged
+    // as an article and shared with an empty description — all of its copy
+    // lives in post meta, not post content.
+    $og_type  = is_front_page() ? 'website' : 'article';
+
+    if ( is_front_page() ) {
+      $og_title = get_bloginfo( 'name' ) . ( get_bloginfo( 'description' ) ? ' — ' . get_bloginfo( 'description' ) : '' );
+      $og_url   = home_url( '/' );
+
+      if ( ! trim( $og_desc ) && function_exists( 'yaya_get_home_page_field' ) ) {
+        $home_defaults = function_exists( 'yaya_home_page_defaults' ) ? yaya_home_page_defaults() : [];
+        $og_desc = yaya_get_home_page_field(
+          get_queried_object_id(),
+          '_yaya_home_hero_sub',
+          get_theme_mod( 'yaya_hero_sub', $home_defaults['hero']['sub'] ?? '' )
+        );
+      }
+    }
   } else {
     $og_title = get_bloginfo( 'name' ) . ( get_bloginfo( 'description' ) ? ' — ' . get_bloginfo( 'description' ) : '' );
     $og_desc  = get_bloginfo( 'description' );
@@ -28,10 +45,15 @@
     $logo    = wp_get_attachment_image_src( $logo_id, 'full' );
     $og_img  = $logo ? $logo[0] : '';
   }
+  // Last resort so no page ships an empty description.
+  if ( ! trim( (string) $og_desc ) ) {
+    $og_desc = get_bloginfo( 'description' );
+  }
+  $og_desc = trim( wp_strip_all_tags( (string) $og_desc ) );
   ?>
   <?php // Search engines had no description to work with — only Open Graph tags. ?>
   <?php if ( $og_desc ) : ?>
-  <meta name="description"        content="<?php echo esc_attr( wp_strip_all_tags( $og_desc ) ); ?>">
+  <meta name="description"        content="<?php echo esc_attr( $og_desc ); ?>">
   <?php endif; ?>
   <meta property="og:type"        content="<?php echo esc_attr( $og_type ); ?>">
   <meta property="og:title"       content="<?php echo esc_attr( $og_title ); ?>">

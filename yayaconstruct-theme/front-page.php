@@ -190,7 +190,7 @@ $yaya_schema = [
   '@type'       => 'GeneralContractor',
   'name'        => get_bloginfo('name'),
   'url'         => home_url('/'),
-  'description' => wp_strip_all_tags(get_bloginfo('description')),
+  'description' => wp_strip_all_tags($hero_sub ?: get_bloginfo('description')),
 ];
 if (has_custom_logo()) {
   $yaya_logo_src = wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full');
