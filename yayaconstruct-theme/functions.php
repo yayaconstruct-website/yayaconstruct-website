@@ -265,14 +265,18 @@ function yaya_maybe_migrate_project_city_categories() {
         }
     }
 
-    $remaining = get_posts([
-        'post_type'      => 'project',
-        'post_status'    => ['publish', 'draft', 'pending', 'private'],
-        'numberposts'    => -1,
-        'fields'         => 'ids',
-    ]);
-    foreach ($remaining as $post_id) {
-        wp_set_object_terms($post_id, 'Izmir', 'project_category', false);
+    $izmir_slugs = ['guzelbahce-x', 'inkim-suites', 'ee-villa'];
+    foreach ($izmir_slugs as $slug) {
+        $existing = get_posts([
+            'post_type'   => 'project',
+            'name'        => $slug,
+            'post_status' => ['publish', 'draft', 'pending', 'private'],
+            'numberposts' => 1,
+            'fields'      => 'ids',
+        ]);
+        foreach ($existing as $post_id) {
+            wp_set_object_terms($post_id, 'Izmir', 'project_category', false);
+        }
     }
 
     update_option('yaya_project_city_categories_migrated_v1', gmdate('c'));
@@ -360,6 +364,44 @@ function yaya_maybe_finalize_city_project_lineup() {
     update_option('yaya_city_project_lineup_finalized_v1', gmdate('c'));
 }
 add_action('admin_init', 'yaya_maybe_finalize_city_project_lineup', 20);
+
+/* ─────────────────────────────────────────
+   ONE-TIME FIX: ENFORCE CORRECT CITY CATEGORY PER PROJECT
+───────────────────────────────────────── */
+function yaya_maybe_fix_project_city_categories() {
+    if (get_option('yaya_project_city_categories_fixed_v1')) {
+        return;
+    }
+
+    if (!post_type_exists('project') || !taxonomy_exists('project_category')) {
+        return;
+    }
+
+    $expected = [
+        'brussels'     => 'Brussels',
+        'amsterdam'    => 'Amsterdam',
+        'guzelbahce-x' => 'Izmir',
+        'inkim-suites' => 'Izmir',
+        'ee-villa'     => 'Izmir',
+        'z-suites'     => 'Izmir',
+    ];
+
+    foreach ($expected as $slug => $category) {
+        $existing = get_posts([
+            'post_type'   => 'project',
+            'name'        => $slug,
+            'post_status' => ['publish', 'draft', 'pending', 'private'],
+            'numberposts' => 1,
+            'fields'      => 'ids',
+        ]);
+        foreach ($existing as $post_id) {
+            wp_set_object_terms($post_id, $category, 'project_category', false);
+        }
+    }
+
+    update_option('yaya_project_city_categories_fixed_v1', gmdate('c'));
+}
+add_action('admin_init', 'yaya_maybe_fix_project_city_categories', 21);
 
 /* ─────────────────────────────────────────
    PROJECT META BOX: PHOTO GALLERY & COMING SOON
