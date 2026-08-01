@@ -85,6 +85,19 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
   $groups = array_filter($groups, function ($group) {
     return !empty($group['items']);
   });
+
+  // "Coming soon" placeholders (e.g. Z-Suites) always sit at the end of
+  // their group instead of wherever their post date happens to sort them.
+  foreach ($groups as &$group) {
+    $regular = array_values(array_filter($group['items'], function ($item) {
+      return empty($item['coming_soon']);
+    }));
+    $coming_soon = array_values(array_filter($group['items'], function ($item) {
+      return !empty($item['coming_soon']);
+    }));
+    $group['items'] = array_merge($regular, $coming_soon);
+  }
+  unset($group);
   ?>
 
   <?php if (trim((string) $projects_content) !== '') : ?>
