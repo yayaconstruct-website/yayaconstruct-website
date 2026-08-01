@@ -207,21 +207,30 @@ async function submitContactForm() {
   formData.append('type',    document.getElementById('cf-type').value);
   formData.append('message', document.getElementById('cf-message').value);
 
+  // Show what actually went wrong when the server explains itself, rather
+  // than the same generic line for an expired nonce and a failed send alike.
+  function showError(serverMessage) {
+    var box = document.getElementById('form-error');
+    box.textContent = serverMessage || <?php echo wp_json_encode($error_message); ?>;
+    box.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = <?php echo wp_json_encode($submit_label); ?>;
+  }
+
   try {
     var res  = await fetch('<?php echo admin_url('admin-ajax.php'); ?>', { method: 'POST', body: formData });
     var data = await res.json();
     if (data.success) {
       btn.style.display = 'none';
       document.getElementById('form-success').style.display = 'block';
-    } else {
-      throw new Error(data.error || 'send failed');
+      return;
     }
+    console.error('Contact form:', data.error || 'send failed');
+    showError(data.error);
   } catch(e) {
-    // Surfaced in the console so a failed send can be diagnosed.
-    console.error('Contact form:', e.message);
-    btn.disabled = false;
-    btn.textContent = <?php echo wp_json_encode($submit_label); ?>;
-    document.getElementById('form-error').style.display = 'block';
+    // Network failure or a non-JSON response: keep the configured copy.
+    console.error('Contact form:', e);
+    showError('');
   }
 }
 </script>
