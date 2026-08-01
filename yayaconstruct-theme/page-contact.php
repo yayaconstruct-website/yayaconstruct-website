@@ -214,9 +214,11 @@ async function submitContactForm() {
       btn.style.display = 'none';
       document.getElementById('form-success').style.display = 'block';
     } else {
-      throw new Error('send failed');
+      throw new Error(data.error || 'send failed');
     }
   } catch(e) {
+    // Surfaced in the console so a failed send can be diagnosed.
+    console.error('Contact form:', e.message);
     btn.disabled = false;
     btn.textContent = <?php echo wp_json_encode($submit_label); ?>;
     document.getElementById('form-error').style.display = 'block';

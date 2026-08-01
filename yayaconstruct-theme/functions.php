@@ -588,61 +588,114 @@ function yaya_save_project_gallery_meta_box($post_id) {
 add_action('save_post_project', 'yaya_save_project_gallery_meta_box');
 
 /* ─────────────────────────────────────────
-   CONTACT FORM AJAX (with nonce)
+   CONTACT FORM
 ───────────────────────────────────────── */
+
+/**
+ * Where contact submissions are delivered.
+ *
+ * The Customizer's "Contact Email" is the single source of truth; if it is
+ * blank or invalid we fall back to info@yayaconstruct.com. The contact page's
+ * own email field is display copy only — it used to override this silently,
+ * so editing the address shown on the page quietly redirected the mail.
+ */
+function yaya_contact_recipient() {
+    $to = get_theme_mod('yaya_contact_email', 'info@yayaconstruct.com');
+    $to = apply_filters('yaya_contact_recipient', $to);
+
+    return is_email($to) ? $to : 'info@yayaconstruct.com';
+}
+
+/**
+ * Strip anything that could break out of an address header.
+ */
+function yaya_contact_header_name($name) {
+    return trim(preg_replace('/[\r\n<>,;"]+/', ' ', $name));
+}
+
 function yaya_contact_form() {
-    check_ajax_referer('yaya_contact_nonce', 'nonce');
+    if (!check_ajax_referer('yaya_contact_nonce', 'nonce', false)) {
+        // Usually a cached page serving a nonce that has since expired.
+        wp_send_json([
+            'success' => false,
+            'error'   => 'Your session expired. Please reload the page and try again.',
+        ]);
+    }
+
     $name    = sanitize_text_field($_POST['name']    ?? '');
     $email   = sanitize_email($_POST['email']        ?? '');
     $phone   = sanitize_text_field($_POST['phone']   ?? '');
     $type    = sanitize_text_field($_POST['type']    ?? '');
     $message = sanitize_textarea_field($_POST['message'] ?? '');
 
-    if (empty($name) || empty($email) || empty($message)) {
-        wp_send_json(['success' => false, 'error' => 'Missing required fields']);
+    if (empty($name) || !is_email($email) || empty($message)) {
+        wp_send_json(['success' => false, 'error' => 'Missing or invalid required fields']);
     }
 
-    $to = get_theme_mod('yaya_contact_email', 'info@yayaconstruct.com');
-    $contact_page = get_posts([
-        'post_type'   => 'page',
-        'post_status' => 'publish',
-        'numberposts' => 1,
-        'meta_query'  => [
-            [
-                'key'   => '_wp_page_template',
-                'value' => 'page-contact.php',
-            ],
-        ],
-    ]);
+    $to      = yaya_contact_recipient();
+    $subject = 'New Message from ' . $name . ' – Yaya Construct';
+    $body    = "Name: $name\nEmail: $email\nPhone: $phone\nProject Type: $type\n\nMessage:\n$message";
 
-    if (empty($contact_page)) {
-        $contact_page = get_posts([
-            'post_type'   => 'page',
-            'post_status' => 'publish',
-            'name'        => 'contact',
-            'numberposts' => 1,
+    // A From address on this domain that is a real mailbox. Without it
+    // WordPress sends as wordpress@<domain>, which receiving servers commonly
+    // reject or drop silently because that mailbox does not exist — the usual
+    // reason a form reports success but nothing ever arrives.
+    $headers = [
+        'Content-Type: text/plain; charset=UTF-8',
+        'From: Yaya Construct Website <' . $to . '>',
+        'Reply-To: ' . yaya_contact_header_name($name) . ' <' . $email . '>',
+    ];
+
+    // Capture why PHPMailer failed instead of returning a bare false.
+    $mail_error = '';
+    $capture = function ($wp_error) use (&$mail_error) {
+        $mail_error = $wp_error->get_error_message();
+    };
+    add_action('wp_mail_failed', $capture);
+    $sent = wp_mail($to, $subject, $body, $headers);
+    remove_action('wp_mail_failed', $capture);
+
+    if (!$sent) {
+        error_log('[yaya contact] delivery to ' . $to . ' failed: ' . ($mail_error ?: 'unknown error'));
+        wp_send_json([
+            'success' => false,
+            'error'   => 'The message could not be sent. Please email us directly.',
         ]);
     }
 
-    if (!empty($contact_page)) {
-        $page_email = get_post_meta($contact_page[0]->ID, '_yaya_contact_info_email', true);
-        if (!empty($page_email) && is_email($page_email)) {
-            $to = $page_email;
-        }
-    }
-
-    $subject = 'New Message from ' . $name . ' – Yaya Construct';
-    $body    = "Name: $name\nEmail: $email\nPhone: $phone\nProject Type: $type\n\nMessage:\n$message";
-    $headers = [
-        'Content-Type: text/plain; charset=UTF-8',
-        "Reply-To: $name <$email>",
-    ];
-
-    $sent = wp_mail($to, $subject, $body, $headers);
-    wp_send_json(['success' => $sent]);
+    wp_send_json(['success' => true]);
 }
 add_action('wp_ajax_nopriv_yaya_contact', 'yaya_contact_form');
 add_action('wp_ajax_yaya_contact',        'yaya_contact_form');
+
+/**
+ * Optional authenticated SMTP delivery.
+ *
+ * PHP's mail() from shared hosting is frequently spam-filed or rejected,
+ * especially when the mailbox is hosted elsewhere (Google Workspace, Outlook).
+ * Define these in wp-config.php to send over SMTP instead — credentials stay
+ * out of the repository:
+ *
+ *   define('YAYA_SMTP_HOST',   'mail.yayaconstruct.com');
+ *   define('YAYA_SMTP_USER',   'info@yayaconstruct.com');
+ *   define('YAYA_SMTP_PASS',   '...');
+ *   define('YAYA_SMTP_PORT',   587);      // optional, defaults to 587
+ *   define('YAYA_SMTP_SECURE', 'tls');    // optional, 'tls' or 'ssl'
+ */
+function yaya_configure_smtp($phpmailer) {
+    if (!defined('YAYA_SMTP_HOST') || !defined('YAYA_SMTP_USER') || !defined('YAYA_SMTP_PASS')) {
+        return;
+    }
+
+    $phpmailer->isSMTP();
+    $phpmailer->Host       = YAYA_SMTP_HOST;
+    $phpmailer->SMTPAuth   = true;
+    $phpmailer->Username   = YAYA_SMTP_USER;
+    $phpmailer->Password   = YAYA_SMTP_PASS;
+    $phpmailer->Port       = defined('YAYA_SMTP_PORT') ? (int) YAYA_SMTP_PORT : 587;
+    $phpmailer->SMTPSecure = defined('YAYA_SMTP_SECURE') ? YAYA_SMTP_SECURE : 'tls';
+}
+add_action('phpmailer_init', 'yaya_configure_smtp');
 
 /* ─────────────────────────────────────────
    WORDPRESS CUSTOMIZER
