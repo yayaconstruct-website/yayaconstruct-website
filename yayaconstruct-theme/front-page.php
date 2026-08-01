@@ -42,10 +42,11 @@ $featured_empty_text = function_exists('yaya_get_home_page_field') && $home_page
 <!-- Hero -->
 <section class="hero" style="--hero-bg: url('<?php echo esc_url($hero_img); ?>')">
   <div class="hero-bg"></div>
-  <div class="hero-tag"><?php echo esc_html($hero_tag); ?></div>
+  <p class="hero-tag"><?php echo esc_html($hero_tag); ?></p>
   <h1>
     <?php echo esc_html($hero_line1); ?><br>
-    <em><?php echo esc_html($hero_line2); ?></em><br>
+    <?php // <em> means emphasis; this is purely the brand colour accent. ?>
+    <span class="hero-accent"><?php echo esc_html($hero_line2); ?></span><br>
     <?php echo esc_html($hero_line3); ?>
   </h1>
   <p class="hero-sub"><?php echo esc_html($hero_sub); ?></p>
@@ -53,7 +54,7 @@ $featured_empty_text = function_exists('yaya_get_home_page_field') && $home_page
     <a href="<?php echo esc_url($hero_cta1_url); ?>" class="btn-primary"><?php echo esc_html($hero_cta1); ?></a>
     <a href="<?php echo esc_url($hero_cta2_url); ?>"  class="btn-outline"><?php echo esc_html($hero_cta2); ?></a>
   </div>
-  <div class="hero-scroll">
+  <div class="hero-scroll" aria-hidden="true">
     <div class="scroll-line"></div>
     Scroll
   </div>
@@ -89,9 +90,10 @@ $service_defaults = [
 ];
 ?>
 <!-- Services -->
-<section class="section">
-  <div class="section-label reveal"><?php echo esc_html($services_section_label); ?></div>
-  <div class="section-title reveal" style="transition-delay:0.1s"><?php echo esc_html($services_section_title); ?></div>
+<section class="section" aria-labelledby="services-title">
+  <p class="section-label reveal"><?php echo esc_html($services_section_label); ?></p>
+  <?php // Was a <div>: the page had a single <h1> and no other headings at all. ?>
+  <h2 id="services-title" class="section-title reveal" style="transition-delay:0.1s"><?php echo esc_html($services_section_title); ?></h2>
   <div class="services-grid">
     <?php for ($i = 1; $i <= 6; $i++):
       $svc_title = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_service_{$i}_title", get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0])) : get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0]);
@@ -99,8 +101,8 @@ $service_defaults = [
       $delay     = round(($i - 1) * 0.08, 2);
     ?>
     <div class="service-card reveal" style="transition-delay:<?php echo $delay; ?>s">
-      <div class="service-icon"><?php echo $service_icons[$i]; ?></div>
-      <div class="service-title"><?php echo esc_html($svc_title); ?></div>
+      <div class="service-icon" aria-hidden="true"><?php echo $service_icons[$i]; ?></div>
+      <h3 class="service-title"><?php echo esc_html($svc_title); ?></h3>
       <p class="service-text"><?php echo esc_html($svc_text); ?></p>
     </div>
     <?php endfor; ?>
@@ -142,40 +144,63 @@ if ($featured->have_posts()):
     $feat_text = $featured_empty_text ?: 'Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.';
   }
 ?>
-<div class="home-project">
+<section class="home-project" aria-labelledby="featured-title">
   <div class="home-project-img reveal">
-    <a href="<?php echo esc_url($feat_link); ?>">
+    <?php // Decorative here: the heading link right beside it already names the
+          // project, so an alt would make screen readers announce it twice. ?>
+    <a href="<?php echo esc_url($feat_link); ?>" tabindex="-1" aria-hidden="true">
       <?php if ($feat_img): ?>
-        <img src="<?php echo esc_url($feat_img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
+        <img src="<?php echo esc_url($feat_img); ?>" alt="" loading="lazy" decoding="async" />
       <?php else: ?>
-        <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="Featured project" loading="lazy" />
+        <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="" loading="lazy" decoding="async" />
       <?php endif; ?>
     </a>
   </div>
   <div class="home-project-content reveal" style="transition-delay:0.2s">
-    <div class="section-label"><?php echo esc_html($featured_label); ?></div>
-    <div class="section-title">
+    <p class="section-label"><?php echo esc_html($featured_label); ?></p>
+    <h2 id="featured-title" class="section-title">
       <a class="home-project-link" href="<?php echo esc_url($feat_link); ?>"><?php the_title(); ?></a>
       <?php if ($feat_loc): ?>
-        <span style="display:block;font-size:1rem;color:var(--rust);margin-top:0.5rem;letter-spacing:2px"><?php echo esc_html($feat_loc); ?><?php if ($feat_year): ?>, <?php echo esc_html($feat_year); ?><?php endif; ?></span>
+        <span class="home-project-meta"><?php echo esc_html($feat_loc); ?><?php if ($feat_year): ?>, <?php echo esc_html($feat_year); ?><?php endif; ?></span>
       <?php endif; ?>
-    </div>
+    </h2>
     <p><?php echo esc_html($feat_text); ?></p>
     <a href="<?php echo esc_url($featured_button_url); ?>" class="btn-primary"><?php echo esc_html($featured_button_text); ?></a>
   </div>
-</div>
+</section>
 <?php wp_reset_postdata(); else: ?>
-<div class="home-project">
+<section class="home-project" aria-labelledby="featured-title">
   <div class="home-project-img reveal">
-    <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="Featured project" loading="lazy" />
+    <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="home-project-content reveal" style="transition-delay:0.2s">
-    <div class="section-label"><?php echo esc_html($featured_label); ?></div>
-    <div class="section-title"><?php echo nl2br(esc_html($featured_empty_title)); ?></div>
+    <p class="section-label"><?php echo esc_html($featured_label); ?></p>
+    <h2 id="featured-title" class="section-title"><?php echo nl2br(esc_html($featured_empty_title)); ?></h2>
     <p><?php echo esc_html($featured_empty_text ?: 'Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.'); ?></p>
     <a href="<?php echo esc_url($featured_button_url); ?>" class="btn-primary"><?php echo esc_html($featured_button_text); ?></a>
   </div>
-</div>
+</section>
 <?php endif; ?>
+
+<?php
+// Local SEO: a contractor's home page carried no structured data at all, so
+// search engines had nothing to build a business listing from.
+$yaya_schema = [
+  '@context'    => 'https://schema.org',
+  '@type'       => 'GeneralContractor',
+  'name'        => get_bloginfo('name'),
+  'url'         => home_url('/'),
+  'description' => wp_strip_all_tags(get_bloginfo('description')),
+];
+if (has_custom_logo()) {
+  $yaya_logo_src = wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full');
+  if ($yaya_logo_src) {
+    $yaya_schema['logo'] = $yaya_logo_src[0];
+  }
+} else {
+  $yaya_schema['logo'] = get_template_directory_uri() . '/images/logo.png';
+}
+?>
+<script type="application/ld+json"><?php echo wp_json_encode($yaya_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
 
 <?php get_footer(); ?>

@@ -3,6 +3,11 @@
 <head>
   <meta charset="<?php bloginfo('charset'); ?>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <?php // The fonts are render-blocking and third-party; warm the connections early. ?>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <?php
   // Open Graph & Twitter Card
   if ( is_singular() ) {
@@ -24,6 +29,10 @@
     $og_img  = $logo ? $logo[0] : '';
   }
   ?>
+  <?php // Search engines had no description to work with — only Open Graph tags. ?>
+  <?php if ( $og_desc ) : ?>
+  <meta name="description"        content="<?php echo esc_attr( wp_strip_all_tags( $og_desc ) ); ?>">
+  <?php endif; ?>
   <meta property="og:type"        content="<?php echo esc_attr( $og_type ); ?>">
   <meta property="og:title"       content="<?php echo esc_attr( $og_title ); ?>">
   <meta property="og:description" content="<?php echo esc_attr( $og_desc ); ?>">
@@ -39,32 +48,43 @@
   <meta name="twitter:image"       content="<?php echo esc_url( $og_img ); ?>">
   <?php endif; ?>
   <?php wp_head(); ?>
+  <?php // .reveal starts at opacity:0 and only JS turns it on, so without
+        // scripting everything below the hero rendered as a blank page. ?>
+  <noscript>
+    <style>.reveal { opacity: 1 !important; transform: none !important; }</style>
+  </noscript>
 </head>
 <body <?php body_class(); ?>>
 
-<nav id="main-nav">
+<?php // Keyboard and screen-reader users had to tab the whole nav on every page. ?>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<nav id="main-nav" aria-label="Main">
 
   <!-- Logo -->
   <?php if (has_custom_logo()): ?>
     <div class="nav-logo"><?php the_custom_logo(); ?></div>
   <?php else: ?>
     <a class="nav-logo" href="<?php echo home_url('/'); ?>">
+      <?php // Intrinsic size is declared so the nav does not reflow once it loads. ?>
       <img src="<?php echo get_template_directory_uri(); ?>/images/logo.png"
            alt="<?php bloginfo('name'); ?>"
+           width="256" height="256"
+           fetchpriority="high" decoding="async"
            class="nav-logo-img" />
     </a>
   <?php endif; ?>
 
   <!-- Desktop & mobile nav links -->
   <ul class="nav-links" id="nav-links">
-    <li><a href="<?php echo home_url('/'); ?>"         <?php if (is_front_page())     echo 'class="active"'; ?>>Home</a></li>
-    <li><a href="<?php echo home_url('/about'); ?>"    <?php if (is_page('about'))    echo 'class="active"'; ?>>About Us</a></li>
-    <li><a href="<?php echo home_url('/projects'); ?>" <?php if (is_page('projects')) echo 'class="active"'; ?>>Projects</a></li>
-    <li><a href="<?php echo home_url('/contact'); ?>"  <?php if (is_page('contact'))  echo 'class="active"'; ?>>Contact</a></li>
+    <li><a href="<?php echo home_url('/'); ?>"         <?php if (is_front_page())     echo 'class="active" aria-current="page"'; ?>>Home</a></li>
+    <li><a href="<?php echo home_url('/about'); ?>"    <?php if (is_page('about'))    echo 'class="active" aria-current="page"'; ?>>About Us</a></li>
+    <li><a href="<?php echo home_url('/projects'); ?>" <?php if (is_page('projects')) echo 'class="active" aria-current="page"'; ?>>Projects</a></li>
+    <li><a href="<?php echo home_url('/contact'); ?>"  <?php if (is_page('contact'))  echo 'class="active" aria-current="page"'; ?>>Contact</a></li>
   </ul>
 
   <!-- Hamburger (mobile only) -->
-  <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+  <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
     <span></span>
     <span></span>
     <span></span>
@@ -74,6 +94,8 @@
 
 <!-- Overlay behind mobile menu -->
 <div class="nav-overlay" id="nav-overlay"></div>
+
+<main id="main-content">
 
 <script>
 (function () {
@@ -86,6 +108,9 @@
     navLinks.classList.toggle('open', open);
     overlay.classList.toggle('open', open);
     hamburger.setAttribute('aria-expanded', String(open));
+    // The label described the button's icon, not the action it performs, so it
+    // still said "Open menu" while the menu was open.
+    hamburger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     document.body.style.overflow = open ? 'hidden' : '';
   }
 
@@ -95,6 +120,15 @@
   overlay.addEventListener('click', function () { toggleMenu(false); });
   navLinks.querySelectorAll('a').forEach(function (a) {
     a.addEventListener('click', function () { toggleMenu(false); });
+  });
+
+  // Escape is the expected way out of an overlay menu; without it the only exit
+  // was hitting the hamburger or the overlay.
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && navLinks.classList.contains('open')) {
+      toggleMenu(false);
+      hamburger.focus();
+    }
   });
 })();
 </script>

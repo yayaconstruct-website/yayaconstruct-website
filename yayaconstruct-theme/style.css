@@ -11,6 +11,9 @@ Version: 1.0
       --rust: #c0532a;
       --rust-dark: #8f3b1c;
       --concrete: #6b6560;
+      /* --concrete on --black is only 3.5:1, below the 4.5:1 AA floor for body
+         text. Anything muted sitting on a dark panel uses this instead (6.5:1). */
+      --concrete-on-dark: #9a938c;
       --light-gray: #e8e3db;
       /* Height of the fixed nav. Everything that has to clear it reads this,
          and footer.php syncs it to the nav's measured height on load/resize.
@@ -21,6 +24,47 @@ Version: 1.0
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html { scroll-behavior: smooth; }
+
+    /* ── FOCUS ──
+       Nothing outside the contact form defined a focus style, so tabbing
+       through the site gave no indication of where you were. */
+    :focus-visible {
+      outline: 2px solid var(--rust);
+      outline-offset: 3px;
+    }
+
+    /* On the dark panels rust-on-black is too dim to track; use the light tone. */
+    .hero :focus-visible,
+    nav :focus-visible,
+    .stats-bar :focus-visible,
+    .home-project :focus-visible,
+    .values-section :focus-visible,
+    .contact-info :focus-visible,
+    footer :focus-visible {
+      outline-color: var(--off-white);
+    }
+
+    /* ── SKIP LINK ──
+       Visually hidden until focused, then it parks itself over the nav. */
+    .skip-link {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 300;
+      transform: translateY(-120%);
+      background: var(--rust);
+      color: var(--off-white);
+      padding: 0.9rem 1.5rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
 
     body {
       font-family: 'Barlow', sans-serif;
@@ -84,6 +128,8 @@ Version: 1.0
          where overflow:hidden then clips it. Growing instead keeps it whole,
          and the top padding guarantees it always clears the header. */
       min-height: 100vh;
+      /* dvh tracks the collapsing mobile URL bar; vh stays as the fallback. */
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
@@ -138,7 +184,8 @@ Version: 1.0
       animation: fadeUp 1s 0.4s both;
     }
 
-    .hero h1 em {
+    .hero h1 em,
+    .hero h1 .hero-accent {
       font-style: normal;
       color: var(--rust);
     }
@@ -162,17 +209,30 @@ Version: 1.0
       animation: fadeUp 1s 0.8s both;
     }
 
-    .btn-primary {
-      background: var(--rust);
-      color: var(--off-white);
-      border: none;
+    /* Both buttons are rendered as <a> in every template, so they inherited the
+       default link underline — the hero CTAs shipped underlined. */
+    .btn-primary,
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      /* 44px is the minimum comfortable touch target. */
+      min-height: 44px;
       padding: 0.9rem 2.2rem;
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 0.85rem;
       font-weight: 600;
       letter-spacing: 2px;
       text-transform: uppercase;
+      text-align: center;
+      text-decoration: none;
       cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--rust);
+      color: var(--off-white);
+      border: none;
       transition: background 0.25s, transform 0.2s;
     }
 
@@ -185,13 +245,6 @@ Version: 1.0
       background: transparent;
       color: var(--off-white);
       border: 1px solid rgba(240,235,227,0.4);
-      padding: 0.9rem 2.2rem;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      cursor: pointer;
       transition: border-color 0.25s, color 0.25s, transform 0.2s;
     }
 
@@ -213,7 +266,7 @@ Version: 1.0
       font-size: 0.7rem;
       letter-spacing: 3px;
       text-transform: uppercase;
-      color: var(--concrete);
+      color: var(--concrete-on-dark);
       animation: fadeUp 1s 1s both;
     }
 
@@ -258,7 +311,7 @@ Version: 1.0
       font-weight: 500;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--concrete);
+      color: var(--concrete-on-dark);
       margin-top: 0.3rem;
     }
 
@@ -289,6 +342,9 @@ Version: 1.0
 
     .section-title {
       font-family: 'Bebas Neue', sans-serif;
+      /* Set explicitly: these are <h2> now, and browsers would otherwise
+         synthesise a faux-bold for a single-weight display face. */
+      font-weight: 400;
       font-size: clamp(2.5rem, 5vw, 4rem);
       line-height: 1;
       margin-bottom: 3rem;
@@ -315,7 +371,7 @@ Version: 1.0
 
     .service-card:hover { background: var(--black); }
     .service-card:hover .service-title { color: var(--off-white); }
-    .service-card:hover .service-text { color: var(--concrete); }
+    .service-card:hover .service-text { color: var(--concrete-on-dark); }
     .service-card:hover .service-icon { color: var(--rust); }
 
     .service-icon {
@@ -386,7 +442,19 @@ Version: 1.0
 
     .home-project-content .section-title { color: var(--off-white); }
 
-    .home-project-content p {
+    /* Location/year line under the featured project title. */
+    .home-project-meta {
+      display: block;
+      margin-top: 0.5rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--rust);
+    }
+
+    /* The section label is a <p> now, so the body-copy rule has to skip it. */
+    .home-project-content p:not(.section-label) {
       font-size: 0.95rem;
       font-weight: 300;
       line-height: 1.8;
@@ -478,7 +546,7 @@ Version: 1.0
       font-size: 0.88rem;
       font-weight: 300;
       line-height: 1.7;
-      color: var(--concrete);
+      color: var(--concrete-on-dark);
     }
 
 
@@ -723,6 +791,26 @@ Version: 1.0
       }
     }
 
+    /* ── TABLET ──
+       The home page went straight from 3 columns to 1 at 768px, so every tablet
+       rendered three cramped ~230px service columns. Bounded at the bottom so
+       these border rules cannot leak into the single-column mobile layout. */
+    @media (min-width: 769px) and (max-width: 1100px) {
+      .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .service-card { padding: 2.5rem 2rem; }
+      .service-card:nth-child(3n) { border-right: 1px solid var(--light-gray); }
+      .service-card:nth-child(2n) { border-right: none; }
+      .service-card:nth-last-child(-n+3) { border-bottom: 1px solid var(--light-gray); }
+      .service-card:nth-last-child(-n+2) { border-bottom: none; }
+
+      .section       { padding: 5rem 2rem; }
+      .home-project  { gap: 3rem; padding: 4rem 2rem; }
+      .stat-item     { padding: 2.5rem 1.5rem; }
+    }
+
     /* ── CONTACT ── */
     .contact-hero {
       min-height: 40vh;
@@ -936,7 +1024,8 @@ Version: 1.0
       .section { padding: 4rem 1.5rem; }
       .services-grid { grid-template-columns: 1fr; }
       .service-card { border-right: none; }
-      .home-project { grid-template-columns: 1fr; }
+      /* Was 3rem of side padding on a 375px screen. */
+      .home-project { grid-template-columns: 1fr; padding: 4rem 1.5rem; gap: 2.5rem; }
       .about-body { grid-template-columns: 1fr; }
       .values-grid { grid-template-columns: 1fr 1fr; }
       .contact-body { grid-template-columns: 1fr; }
@@ -1157,10 +1246,49 @@ Version: 1.0
       to   { opacity: 1; transform: translateY(0); }
     }
 
+    /* ── REDUCED MOTION ──
+       Only the project-card entrance honoured this before, while the hero
+       zoom, the staged fade-ups, the scroll reveals and smooth scrolling all
+       still ran. Content must stay visible: .reveal is opacity:0 until JS adds
+       .visible, so this neutralises the transition rather than the class. */
     @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+
       .project-group:not(.is-hidden) .project-card {
         animation: none;
       }
+
+      .reveal,
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+
+      .hero-bg,
+      .project-detail-bg,
+      .hero-tag,
+      .hero h1,
+      .hero-sub,
+      .hero-cta,
+      .hero-scroll,
+      .scroll-line,
+      .fade-up {
+        animation: none !important;
+      }
+
+      .btn-primary:hover,
+      .btn-outline:hover {
+        transform: none;
+      }
+
+      .home-project-img:hover img,
+      .project-gallery-item:hover img,
+      .project-card:hover img {
+        transform: none;
+      }
+
+      * { scroll-behavior: auto !important; }
     }
 
     /* ── SINGLE PROJECT DETAIL ── */
@@ -1450,7 +1578,9 @@ Version: 1.0
         right: -100%;
         width: 75%;
         max-width: 280px;
+        /* 100vh ignores the mobile browser chrome, which cut the panel off. */
         height: 100vh;
+        height: 100dvh;
         background: rgba(10,10,10,0.98);
         flex-direction: column;
         justify-content: center;

@@ -1,3 +1,5 @@
+</main>
+
 <script>
 // Keep --nav-h matching the real nav height, so page content and the sticky
 // project filter always clear the fixed header even if the logo changes size.

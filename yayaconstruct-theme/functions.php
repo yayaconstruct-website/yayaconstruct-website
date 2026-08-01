@@ -85,9 +85,33 @@ function yaya_scripts() {
         'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap',
         [], null
     );
-    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.6');
+    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.7');
 }
 add_action('wp_enqueue_scripts', 'yaya_scripts');
+
+/**
+ * Preload the home page hero image.
+ *
+ * It is the LCP element, but it is a CSS background, so the browser cannot
+ * discover it until the stylesheet has downloaded and parsed. Naming it in the
+ * head lets the preload scanner start the fetch immediately.
+ */
+function yaya_preload_hero_image() {
+    if (!is_front_page()) {
+        return;
+    }
+
+    $hero_img = get_theme_mod('yaya_hero_image', 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80');
+    if (!$hero_img) {
+        return;
+    }
+
+    printf(
+        '<link rel="preload" as="image" href="%s" fetchpriority="high">' . "\n",
+        esc_url($hero_img)
+    );
+}
+add_action('wp_head', 'yaya_preload_hero_image', 2);
 
 /* ─────────────────────────────────────────
    CUSTOM POST TYPE: PROJECT
