@@ -400,12 +400,13 @@ Version: 1.0
 
     .about-body {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 0;
     }
 
     .about-text {
       padding: 5rem 3rem;
+      max-width: 800px;
     }
 
     .about-text h2 {
@@ -420,17 +421,6 @@ Version: 1.0
       line-height: 1.9;
       color: var(--concrete);
       margin-bottom: 1.2rem;
-    }
-
-    .about-img {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .about-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
     }
 
     .values-section {
@@ -854,7 +844,6 @@ Version: 1.0
       .service-card { border-right: none; }
       .home-project { grid-template-columns: 1fr; }
       .about-body { grid-template-columns: 1fr; }
-      .about-img { height: 300px; }
       .values-grid { grid-template-columns: 1fr 1fr; }
       .team-grid { grid-template-columns: 1fr 1fr; }
       .projects-grid { grid-template-columns: 1fr; }

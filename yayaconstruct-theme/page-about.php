@@ -11,8 +11,6 @@ $about_body_label = function_exists('yaya_get_about_page_field') ? yaya_get_abou
 $about_body_heading = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_body_heading', $about_defaults['body']['heading'] ?? "MORE THAN JUST\nA CONTRACTOR") : "MORE THAN JUST\nA CONTRACTOR";
 $about_cta_url = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_cta_url', $about_defaults['body']['cta_url'] ?? home_url('/contact')) : home_url('/contact');
 $about_cta_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_cta_label', $about_defaults['body']['cta_label'] ?? 'Work With Us') : 'Work With Us';
-$about_image_url = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_image_url', $about_defaults['body']['image_url'] ?? 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80') : 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80';
-$about_image_alt = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_image_alt', $about_defaults['body']['image_alt'] ?? 'Our team at work') : 'Our team at work';
 $about_values_section_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_values_section_label', $about_defaults['values']['section_label'] ?? 'Our Values') : 'Our Values';
 $about_values_section_title = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_values_section_title', $about_defaults['values']['section_title'] ?? 'WHAT DRIVES US') : 'WHAT DRIVES US';
 $about_team_section_label = function_exists('yaya_get_about_page_field') ? yaya_get_about_page_field(get_the_ID(), '_yaya_about_team_section_label', $about_defaults['team']['section_label'] ?? 'The People Behind the Build') : 'The People Behind the Build';
@@ -45,9 +43,6 @@ $about_team_section_title = function_exists('yaya_get_about_page_field') ? yaya_
         ?>
       </div>
       <a href="<?php echo esc_url($about_cta_url); ?>" class="btn-primary" style="margin-top:1rem;display:inline-block"><?php echo esc_html($about_cta_label); ?></a>
-    </div>
-    <div class="about-img reveal" style="transition-delay:0.2s">
-      <img src="<?php echo esc_url($about_image_url); ?>" alt="<?php echo esc_attr($about_image_alt); ?>" />
     </div>
   </div>
 

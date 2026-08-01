@@ -528,8 +528,6 @@ function yaya_about_page_defaults() {
             'heading'    => 'MORE THAN JUST' . "\n" . 'A CONTRACTOR',
             'cta_label'  => 'Work With Us',
             'cta_url'    => home_url('/contact'),
-            'image_url'  => 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80',
-            'image_alt'  => 'Our team at work',
         ],
         'values' => [
             'section_label' => 'Our Values',
@@ -634,15 +632,11 @@ function yaya_render_about_meta_box($post) {
     $body_heading = yaya_get_about_page_field($post->ID, '_yaya_about_body_heading', $defaults['body']['heading']);
     $cta_label = yaya_get_about_page_field($post->ID, '_yaya_about_cta_label', $defaults['body']['cta_label']);
     $cta_url = yaya_get_about_page_field($post->ID, '_yaya_about_cta_url', $defaults['body']['cta_url']);
-    $image_url = yaya_get_about_page_field($post->ID, '_yaya_about_image_url', $defaults['body']['image_url']);
-    $image_alt = yaya_get_about_page_field($post->ID, '_yaya_about_image_alt', $defaults['body']['image_alt']);
     echo '<div class="yaya-meta-row"><label for="yaya_about_hero_label">Hero Label</label><input type="text" id="yaya_about_hero_label" name="yaya_about_hero_label" value="' . esc_attr($hero_label) . '"></div>';
     echo '<div class="yaya-meta-row"><label for="yaya_about_body_label">Body Section Label</label><input type="text" id="yaya_about_body_label" name="yaya_about_body_label" value="' . esc_attr($body_label) . '"></div>';
     echo '<div class="yaya-meta-row"><label for="yaya_about_body_heading">Body Heading</label><textarea rows="3" id="yaya_about_body_heading" name="yaya_about_body_heading">' . esc_textarea($body_heading) . '</textarea></div>';
     echo '<div class="yaya-meta-row"><label for="yaya_about_cta_label">CTA Button Text</label><input type="text" id="yaya_about_cta_label" name="yaya_about_cta_label" value="' . esc_attr($cta_label) . '"></div>';
     echo '<div class="yaya-meta-row"><label for="yaya_about_cta_url">CTA Button URL</label><input type="url" id="yaya_about_cta_url" name="yaya_about_cta_url" value="' . esc_attr($cta_url) . '"></div>';
-    echo '<div class="yaya-meta-row"><label for="yaya_about_image_url">About Image URL</label><input type="url" id="yaya_about_image_url" name="yaya_about_image_url" value="' . esc_attr($image_url) . '" placeholder="https://"></div>';
-    echo '<div class="yaya-meta-row"><label for="yaya_about_image_alt">About Image Alt Text</label><input type="text" id="yaya_about_image_alt" name="yaya_about_image_alt" value="' . esc_attr($image_alt) . '"></div>';
     echo '</div>';
 
     echo '<div class="yaya-meta-section"><h3>Values Section</h3>';
@@ -709,7 +703,6 @@ function yaya_save_about_meta_box($post_id) {
         'yaya_about_body_label' => '_yaya_about_body_label',
         'yaya_about_body_heading' => '_yaya_about_body_heading',
         'yaya_about_cta_label' => '_yaya_about_cta_label',
-        'yaya_about_image_alt' => '_yaya_about_image_alt',
         'yaya_about_values_section_label' => '_yaya_about_values_section_label',
         'yaya_about_values_section_title' => '_yaya_about_values_section_title',
         'yaya_about_team_section_label' => '_yaya_about_team_section_label',
@@ -726,10 +719,6 @@ function yaya_save_about_meta_box($post_id) {
 
     if (isset($_POST['yaya_about_cta_url'])) {
         update_post_meta($post_id, '_yaya_about_cta_url', esc_url_raw(wp_unslash($_POST['yaya_about_cta_url'])));
-    }
-
-    if (isset($_POST['yaya_about_image_url'])) {
-        update_post_meta($post_id, '_yaya_about_image_url', esc_url_raw(wp_unslash($_POST['yaya_about_image_url'])));
     }
 
     for ($i = 1; $i <= 4; $i++) {

@@ -409,12 +409,13 @@
 
     .about-body {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 0;
     }
 
     .about-text {
       padding: 5rem 3rem;
+      max-width: 800px;
     }
 
     .about-text h2 {
@@ -429,17 +430,6 @@
       line-height: 1.9;
       color: var(--concrete);
       margin-bottom: 1.2rem;
-    }
-
-    .about-img {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .about-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
     }
 
     .values-section {
@@ -853,7 +843,6 @@
       .service-card { border-right: none; }
       .home-project { grid-template-columns: 1fr; }
       .about-body { grid-template-columns: 1fr; }
-      .about-img { height: 300px; }
       .values-grid { grid-template-columns: 1fr 1fr; }
       .team-grid { grid-template-columns: 1fr 1fr; }
       .projects-grid { grid-template-columns: 1fr; }
@@ -995,9 +984,6 @@
         <p>We bring together the best tradespeople, the finest materials, and a management approach built on transparency and communication. Every project we deliver is a long-term investment in quality — and in the communities we serve.</p>
         <p>Whether it's a custom home, a commercial complex, or a renovation project, we approach each build with the same level of dedication and care that has earned us our reputation.</p>
         <button class="btn-primary" onclick="showPage('contact')" style="margin-top:1rem">Work With Us</button>
-      </div>
-      <div class="about-img">
-        <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80" alt="Our team at work" />
       </div>
     </div>
 
