@@ -31,18 +31,58 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
   </div>
 
   <?php
+  /* ── Categories, ordered by the city order defined in functions.php ── */
   $cats = get_terms(['taxonomy' => 'project_category', 'hide_empty' => true]);
-  if ($cats && !is_wp_error($cats)) {
-    $city_order = function_exists('yaya_project_city_order') ? yaya_project_city_order() : ['Brussels', 'Amsterdam', 'Izmir'];
-    usort($cats, function ($a, $b) use ($city_order) {
-      $pos_a = array_search($a->name, $city_order, true);
-      $pos_b = array_search($b->name, $city_order, true);
-      $pos_a = $pos_a === false ? count($city_order) : $pos_a;
-      $pos_b = $pos_b === false ? count($city_order) : $pos_b;
-      return $pos_a <=> $pos_b;
-    });
+  if (!$cats || is_wp_error($cats)) {
+    $cats = [];
   }
+  $city_order = function_exists('yaya_project_city_order') ? yaya_project_city_order() : ['Brussels', 'Amsterdam', 'Izmir'];
+  usort($cats, function ($a, $b) use ($city_order) {
+    $pos_a = array_search($a->name, $city_order, true);
+    $pos_b = array_search($b->name, $city_order, true);
+    $pos_a = $pos_a === false ? count($city_order) : $pos_a;
+    $pos_b = $pos_b === false ? count($city_order) : $pos_b;
+    if ($pos_a === $pos_b) {
+      return strcasecmp($a->name, $b->name);
+    }
+    return $pos_a <=> $pos_b;
+  });
+
+  /* ── One group per category, projects bucketed by their primary category ── */
+  $groups = [];
+  foreach ($cats as $cat) {
+    $groups[$cat->slug] = ['name' => $cat->name, 'slug' => $cat->slug, 'items' => []];
+  }
+
   $projects = new WP_Query(['post_type' => 'project', 'posts_per_page' => -1, 'orderby' => 'date', 'order' => 'DESC']);
+  $total_projects = 0;
+
+  while ($projects->have_posts()) {
+    $projects->the_post();
+    $p_cats = get_the_terms(get_the_ID(), 'project_category');
+    $slug = ($p_cats && !is_wp_error($p_cats)) ? $p_cats[0]->slug : 'other';
+    $name = ($p_cats && !is_wp_error($p_cats)) ? $p_cats[0]->name : 'Other Projects';
+
+    if (!isset($groups[$slug])) {
+      $groups[$slug] = ['name' => $name, 'slug' => $slug, 'items' => []];
+    }
+
+    $groups[$slug]['items'][] = [
+      'title'       => get_the_title(),
+      'permalink'   => get_permalink(),
+      'image'       => get_the_post_thumbnail_url(get_the_ID(), 'large'),
+      'location'    => get_post_meta(get_the_ID(), 'project_location', true),
+      'year'        => get_post_meta(get_the_ID(), 'project_year', true),
+      'coming_soon' => (bool) get_post_meta(get_the_ID(), '_yaya_project_coming_soon', true),
+    ];
+    $total_projects++;
+  }
+  wp_reset_postdata();
+
+  // Drop categories that ended up with no projects of their own.
+  $groups = array_filter($groups, function ($group) {
+    return !empty($group['items']);
+  });
   ?>
 
   <?php if (trim((string) $projects_content) !== '') : ?>
@@ -53,105 +93,141 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
   </div>
   <?php endif; ?>
 
-  <?php if ($cats && !is_wp_error($cats)): ?>
-  <div class="filter-bar reveal" style="transition-delay:0.3s">
-    <button class="filter-btn active" onclick="filterProjects('all', this)"><?php echo esc_html($projects_filter_label); ?></button>
-    <?php foreach ($cats as $cat): ?>
-      <button class="filter-btn" onclick="filterProjects('<?php echo esc_js($cat->slug); ?>', this)"><?php echo esc_html($cat->name); ?></button>
+  <?php if ($groups): ?>
+  <div class="filter-bar" id="projects-filter">
+    <button type="button" class="filter-btn active" data-filter="all">
+      <?php echo esc_html($projects_filter_label); ?>
+      <span class="filter-count"><?php echo esc_html($total_projects); ?></span>
+    </button>
+    <?php foreach ($groups as $group): ?>
+      <button type="button" class="filter-btn" data-filter="<?php echo esc_attr($group['slug']); ?>">
+        <?php echo esc_html($group['name']); ?>
+        <span class="filter-count"><?php echo esc_html(count($group['items'])); ?></span>
+      </button>
     <?php endforeach; ?>
   </div>
   <?php endif; ?>
 
-  <div class="projects-grid" id="projects-grid">
-    <?php if (!$projects->have_posts()): ?>
+  <div class="project-groups" id="project-groups">
+    <?php if (!$groups): ?>
       <div class="projects-empty">
         <p><?php echo esc_html($projects_empty_state); ?></p>
       </div>
     <?php else: ?>
-      <?php $i = 0; while ($projects->have_posts()): $projects->the_post();
-        $p_cats   = get_the_terms(get_the_ID(), 'project_category');
-        $cat_slug = $p_cats ? $p_cats[0]->slug : 'other';
-        $cat_name = $p_cats ? $p_cats[0]->name : '';
-        $location = get_post_meta(get_the_ID(), 'project_location', true);
-        $year     = get_post_meta(get_the_ID(), 'project_year', true);
-        $img      = get_the_post_thumbnail_url(get_the_ID(), 'large');
-        $coming_soon = (bool) get_post_meta(get_the_ID(), '_yaya_project_coming_soon', true);
-        $card_classes = 'project-card';
-        if ($i === 4) {
-          $card_classes .= ' project-card--wide';
-        }
-        if (!$img) {
-          $card_classes .= ' project-card--no-image';
-        }
-        if ($coming_soon) {
-          $card_classes .= ' project-card--coming-soon';
-        }
-        $i++;
+      <?php $group_index = 0; foreach ($groups as $group):
+        $group_index++;
+        $count = count($group['items']);
       ?>
-      <a href="<?php the_permalink(); ?>"
-         class="<?php echo esc_attr($card_classes); ?>"
-         data-cat="<?php echo esc_attr($cat_slug); ?>">
-        <?php if ($img): ?>
-          <img src="<?php echo esc_url($img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
-        <?php else: ?>
-          <div class="project-card-placeholder">
-            <span><?php echo $coming_soon ? 'Coming soon' : 'Project image coming soon'; ?></span>
+      <section class="project-group" data-cat="<?php echo esc_attr($group['slug']); ?>" id="projects-<?php echo esc_attr($group['slug']); ?>">
+        <header class="project-group-head reveal">
+          <div class="project-group-heading">
+            <span class="project-group-index"><?php echo esc_html(str_pad((string) $group_index, 2, '0', STR_PAD_LEFT)); ?></span>
+            <h2 class="project-group-title"><?php echo esc_html($group['name']); ?></h2>
           </div>
-        <?php endif; ?>
-        <div class="project-overlay">
-          <?php if ($cat_name): ?><div class="project-cat"><?php echo esc_html($cat_name); ?></div><?php endif; ?>
-          <div class="project-name"><?php the_title(); ?></div>
-          <?php if ($location || $year): ?>
-            <div class="project-loc">
-              <?php if ($location): ?>&#x1F4CD; <?php echo esc_html($location); ?><?php endif; ?>
-              <?php if ($location && $year): ?>, <?php endif; ?>
-              <?php echo esc_html($year); ?>
+          <span class="project-group-count">
+            <?php echo esc_html($count); ?> <?php echo esc_html($count === 1 ? 'Project' : 'Projects'); ?>
+          </span>
+        </header>
+
+        <?php
+        // Small groups get their own column count so they never leave holes
+        // in a three-column row.
+        $grid_classes = 'project-group-grid';
+        if ($count === 1) {
+          $grid_classes .= ' project-group-grid--single';
+        } elseif ($count === 2) {
+          $grid_classes .= ' project-group-grid--pair';
+        }
+        ?>
+        <div class="<?php echo esc_attr($grid_classes); ?>">
+          <?php foreach (array_values($group['items']) as $index => $item):
+            $card_classes = 'project-card';
+            // The lead card of a group gets the wide treatment, but only when the
+            // group is big enough that the row still fills out.
+            if ($index === 0 && $count >= 3) {
+              $card_classes .= ' project-card--feature';
+            }
+            if (!$item['image']) {
+              $card_classes .= ' project-card--no-image';
+            }
+            if ($item['coming_soon']) {
+              $card_classes .= ' project-card--coming-soon';
+            }
+          ?>
+          <a href="<?php echo esc_url($item['permalink']); ?>" class="<?php echo esc_attr($card_classes); ?>">
+            <div class="project-card-media">
+              <?php if ($item['image']): ?>
+                <img src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr($item['title']); ?>" loading="lazy" />
+              <?php else: ?>
+                <div class="project-card-placeholder">
+                  <?php // Coming-soon cards already carry a flag in the overlay. ?>
+                  <?php if (!$item['coming_soon']): ?>
+                    <span>Project image coming soon</span>
+                  <?php endif; ?>
+                </div>
+              <?php endif; ?>
             </div>
-          <?php endif; ?>
+            <div class="project-overlay">
+              <?php if ($item['coming_soon']): ?>
+                <span class="project-flag">Coming soon</span>
+              <?php endif; ?>
+              <div class="project-name"><?php echo esc_html($item['title']); ?></div>
+              <?php if ($item['location'] || $item['year']): ?>
+                <div class="project-loc">
+                  <?php if ($item['location']): ?>&#x1F4CD; <?php echo esc_html($item['location']); ?><?php endif; ?>
+                  <?php if ($item['location'] && $item['year']): ?><span class="project-loc-sep">&middot;</span><?php endif; ?>
+                  <?php echo esc_html($item['year']); ?>
+                </div>
+              <?php endif; ?>
+            </div>
+          </a>
+          <?php endforeach; ?>
         </div>
-      </a>
-      <?php endwhile; wp_reset_postdata(); ?>
+      </section>
+      <?php endforeach; ?>
     <?php endif; ?>
   </div>
 
 </div>
 
 <script>
-  function filterProjects(cat, btn) {
-    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
+(function () {
+  var bar = document.getElementById('projects-filter');
+  var wrap = document.getElementById('project-groups');
+  if (!bar || !wrap) { return; }
 
-    var cards = document.querySelectorAll('.project-card');
+  var groups = Array.prototype.slice.call(wrap.querySelectorAll('.project-group'));
 
-    cards.forEach(function(card) {
-      if (card.style.display !== 'none') {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(10px)';
-      }
+  function revealInside(group) {
+    group.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('visible'); });
+  }
+
+  bar.addEventListener('click', function (e) {
+    var btn = e.target.closest('.filter-btn');
+    if (!btn || !bar.contains(btn)) { return; }
+
+    var cat = btn.dataset.filter;
+
+    bar.querySelectorAll('.filter-btn').forEach(function (b) {
+      b.classList.toggle('active', b === btn);
     });
 
-    setTimeout(function() {
-      cards.forEach(function(card) {
-        if (cat === 'all' || card.dataset.cat === cat) {
-          card.style.display = '';
-        } else {
-          card.style.display = 'none';
-          card.style.opacity = '';
-          card.style.transform = '';
-        }
-      });
-      requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-          cards.forEach(function(card) {
-            if (card.style.display !== 'none') {
-              card.style.opacity = '1';
-              card.style.transform = '';
-            }
-          });
-        });
-      });
-    }, 350);
-  }
+    groups.forEach(function (group) {
+      var show = (cat === 'all' || group.dataset.cat === cat);
+      group.classList.toggle('is-hidden', !show);
+      if (show) { revealInside(group); }
+    });
+
+    // Keep the newly filtered list in view instead of leaving the user
+    // stranded further down the page.
+    if (cat !== 'all') {
+      var target = wrap.querySelector('.project-group:not(.is-hidden)');
+      if (target && target.getBoundingClientRect().top < 0) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  });
+})();
 </script>
 
 <?php get_footer(); ?>

@@ -85,7 +85,7 @@ function yaya_scripts() {
         'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap',
         [], null
     );
-    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.2');
+    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '1.3');
 }
 add_action('wp_enqueue_scripts', 'yaya_scripts');
 
