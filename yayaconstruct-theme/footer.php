@@ -1,4 +1,19 @@
 <script>
+// Keep --nav-h matching the real nav height, so page content and the sticky
+// project filter always clear the fixed header even if the logo changes size.
+(function () {
+  var nav = document.getElementById('main-nav');
+  if (!nav) { return; }
+
+  function syncNavHeight() {
+    document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
+  }
+
+  syncNavHeight();
+  window.addEventListener('resize', syncNavHeight);
+  window.addEventListener('load', syncNavHeight);
+})();
+
 (function () {
   if (!('IntersectionObserver' in window)) {
     document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('visible'); });
