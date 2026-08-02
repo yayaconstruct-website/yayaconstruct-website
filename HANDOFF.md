@@ -12,12 +12,11 @@ if you don't want it in the repo.
 | `redesign/batch-1-reskin` @ `aaabf6e` | Batch 2 project index | No |
 | working tree | Batch 3, Sonnet-scoped items — **uncommitted** | No |
 
-**Batch 3 is split across two models.** New hero, the featured-block rework, and
-the `front-page.php` transition-delay cleanup were done under Claude Sonnet 5 —
-mechanical/content work with a clear spec. Deleting the six services cards and
-retiring the stats bar (items 14–15) are held for Claude Opus 5: they remove
-content that makes claims about the business, and Emir asked to review those
-specifically before they're shipped. See "Batch 3" below for the exact split.
+**Batch 3 status:** the hero photo swap, the services-card removal, and the
+`front-page.php` transition-delay cleanup are done. The hero copy and the
+featured-block selection logic were tried and then rolled back at Emir's
+request — see "Batch 3" below. Retiring the stats bar (item 15) is the one
+item still open; no model split needed after all, it's just not done yet.
 
 `.github/workflows/deploy.yml` FTPs `yayaconstruct-theme/` to production **on every
 push to `main`**. Pushing the branch does not deploy. There is no staging.
@@ -105,70 +104,66 @@ until someone clears that one too.
 
 ## Batch 3 — homepage restructure (in progress, uncommitted)
 
-| # | Change | File | Model |
+| # | Change | File | Status |
 |---|---|---|---|
-| 13 | New hero: real project photo + copy grounded in the Aegean/Low Countries positioning, replacing the generic stock photo and "Est. in Excellence" tagline | `front-page.php`, `functions.php` | Sonnet 5 — done |
-| — | Featured block: skip empty-excerpt candidates instead of always taking the single newest project; meta line now uses the Batch 2 spec-field system instead of a bare location/year string | `front-page.php` | Sonnet 5 — done |
-| — | Cleared the five inline `transition-delay` attributes in `front-page.php` (see Batch 2's note — they were already dead under the `!important` override; this is hygiene, not a visual change) | `front-page.php` | Sonnet 5 — done |
-| 14 | Delete the six services cards | `front-page.php`, `functions.php`, `style.css` | **Opus 5 — reserved** |
-| 15 | Retire the stats bar | `front-page.php`, `functions.php`, `style.css` | **Opus 5 — reserved** |
+| 13 | New hero photo (real Inkim Suites render, replacing the generic stock photo) | `front-page.php` | Done |
+| — | Cleared the five inline `transition-delay` attributes in `front-page.php` (see Batch 2's note — they were already dead under the `!important` override; this is hygiene, not a visual change) | `front-page.php` | Done |
+| 14 | Delete the six services cards | `front-page.php`, `functions.php`, `style.css` | Done |
+| 15 | Retire the stats bar | `front-page.php`, `functions.php`, `style.css` | Not started |
 
-Items 14 and 15 are still business decisions — they remove content that makes
-claims about the business (what services are offered, the stats bar's trust
-signals) — and still need Emir's sign-off before shipping, independent of
-which model does the implementation.
+**Tried and rolled back, at Emir's request (2 Aug 2026):**
 
-**New hero, concretely:**
+- **Hero copy.** Rewrote the tagline/headline/sub-line to move off the generic
+  "Est. in Excellence" / "WE BUILD YOUR VISION" boilerplate. Reverted — the
+  hero now runs the original copy again, in both `functions.php`
+  (`yaya_home_page_defaults()['hero']`, the single source for the front end
+  and the admin meta-box placeholders) and `front-page.php`'s fallback
+  literals. **The photo swap stayed** — `yaya_hero_image`'s default is still
+  `.../uploads/2026/04/IMG_0103.png` (a real Inkim Suites render), not the old
+  Unsplash stock photo. Only the text was in scope for the revert.
+- **Featured-block selection.** Tried: skip candidates with an empty excerpt
+  instead of always taking the single newest project, so Amsterdam (no
+  description) wouldn't lead the homepage with filler text. Reverted — the
+  query is back to "single newest non-coming-soon project," so Amsterdam is
+  featured again with the canned filler paragraph, exactly as before Batch 3.
+  **Kept:** the meta line still renders via `yaya_project_spec_rows()` (the
+  Batch 2 field set) into its own `<p class="home-project-meta">` sibling,
+  rather than a bare "location, year" string inline in the `<h2>` — this
+  wasn't part of what was asked to revert, and it's a no-op for Amsterdam
+  specifically (no location/year/scope/area/status set, so the row renders
+  nothing either way). It matters the next time this block features a project
+  that *has* those fields filled in.
+  **CSS note, still relevant:** `.home-project-content p:not(.section-label)`
+  is the body-copy rule for that column; it now also excludes
+  `.home-project-meta` (`:not(.home-project-meta)`), or its higher specificity
+  would overwrite the spec line's mono styling with body-copy styling once a
+  project does have spec fields. Keep both exclusions if another paragraph
+  type is added to that column.
 
-- `yaya_hero_image` default is now `.../uploads/2026/04/IMG_0103.png` — a real
-  Inkim Suites render (the Aegean coastline, palm trees, sailboats), pulled
-  from the project's own live page rather than uploaded fresh. Still
-  overridable via the Customizer.
-- Copy (`yaya_home_page_defaults()['hero']` in `functions.php`, single source
-  for both the front end and the admin meta-box placeholders): tag "Two
-  Latitudes, One Standard", headline "BUILDING / ACROSS / TWO LATITUDES", and
-  a sub-line naming the two regions instead of the old "lasts generations"
-  boilerplate. No layout or CSS change — the hero was already fully wired into
-  the Batch 1 bounded-grid and dark-band systems.
+**Services cards, concretely (item 14, done):** removed the whole section
+from `front-page.php` (the markup and its `$service_icons`/`$service_defaults`
+setup), plus everything that fed it in `functions.php` — the `services` key
+in `yaya_home_page_defaults()`, the Customizer `yaya_services` section and its
+12 settings/controls, the "Services Section" block in the admin home-page
+meta box, and its save-handler code. In `style.css`: removed `.services-grid`,
+`.service-card` (base + `:nth-child`/`:hover` variants), `.service-icon` (+ the
+`svg` sizing rule), `.service-title`, `.service-text`, and the now-fully-unused
+`.section` wrapper class — including its entries in the two shared selector
+lists (`padding-inline` bounded-grid list, and the running-text `max-width`
+list). `.section-label`/`.section-title` **stayed** — they're generic classes
+reused on every other page (about, contact, projects, single-project) and
+were never services-specific. Also trimmed the tablet and mobile media
+queries down to the rules that don't reference the removed classes, without
+touching the unrelated `.home-project`/`.stat-item` tweaks living in the same
+blocks.
 
-**Featured-block rework, concretely:**
-
-- The query now pulls every non-coming-soon project (was: just the single
-  newest) and picks the first one, in date order, with a non-empty
-  `get_the_excerpt()`. This is the same emptiness check the block already had —
-  just applied across candidates instead of only the newest one — so it can't
-  regress the "nothing has content" case, which still falls through to the
-  existing empty-state copy.
-  **Why:** Amsterdam is the newest non-coming-soon project and has no
-  description at all, so before this change the homepage's most visible slot
-  led with the canned filler paragraph. Confirmed live: `get_the_excerpt()` on
-  Amsterdam returns empty (both `post_excerpt` and `post_content` are empty),
-  so this isn't guessing — it's the same emptiness signal the block already
-  trusted, just checked before committing to a project instead of after.
-  **Not fully verifiable locally:** which project the fix actually lands on
-  depends on `post_date` ordering among Güzelbahçe X / Brussels / Inkim
-  Suites, which isn't exposed by REST or the sitemap (only `post_modified` is,
-  and it doesn't match `post_date` order here) — no `php` binary or DB access
-  to check directly. Read the live result after this deploys.
-- The meta line under the title now renders `yaya_project_spec_rows()` (the
-  same Batch 2 field set — location · year · scope · area · status) instead of
-  a bare "location, year" string, and moved from inline text inside the `<h2>`
-  to its own `<p class="home-project-meta">` sibling — same fix Batch 2 made
-  on the single-project page, for the same reason (a location caption
-  shouldn't be part of the heading's accessible name).
-  **CSS note:** `.home-project-content p:not(.section-label)` is the body-copy
-  rule for that column; it now also excludes `.home-project-meta`
-  (`:not(.home-project-meta)`), or its higher specificity would overwrite the
-  spec line's mono styling with body-copy styling. Keep both exclusions if
-  another paragraph type is added to that column.
-
-**Harness:** `tools/harness.py` now renders the home page's hero and featured
-block from hardcoded real data (`render_home()`), the same approach
-`render_index()`/`render_spec()` already used for the projects page — injecting
-CSS into the fetched production markup stopped being enough once the markup
-itself changed. The featured project shown in the harness (Inkim Suites) is
-illustrative — real content, but not a claim about which project the live
-"skip empty excerpts" logic will land on (see above).
+**Harness:** `tools/harness.py`'s `render_home()` (added for Batch 3, still
+needed since the home page's markup no longer matches the fetched production
+page) now mirrors the current file exactly: original hero copy with the new
+photo, Amsterdam featured with the filler paragraph and no spec line, no
+services section. Verified via `getComputedStyle` — zero stale
+`transition-delay` attributes, zero `.services-grid`/`.service-card` nodes in
+the DOM, and the reverted hero/featured text matches source.
 
 ## Batch 4 — performance & hygiene (not started)
 
@@ -182,7 +177,7 @@ Verified by reading all five project pages on 2 Aug 2026.
 | Page | Published right now |
 |---|---|
 | `/project/brussels` | Description is the literal string `sdsd`, with 5 photos under it |
-| `/project/amsterdam` | No description at all. Was the newest non-coming-soon project, so it used to be what the homepage featured block led with (falling back to filler text); Batch 3's featured-block fix now skips it for a project with real content — see Batch 3 notes above. |
+| `/project/amsterdam` | No description at all. It's the newest non-coming-soon project, so the homepage featured block leads with it and falls back to filler text. A fix for this was tried in Batch 3 and rolled back — see Batch 3 notes above. |
 | `/project/z-suites` | "Details for Z-Suites are coming soon." No images. |
 | 3 of 5 projects | No location or year. The spec block now has five fields to fill and these three can fill none of them, so it doesn't render at all on Brussels, Amsterdam or Z-Suites, and their index rows show a bare name. The fields are in the editor now — **Projects → edit → Project Details** |
 | Site title | Still "YAYA Construct website" — now the description on every inner page in search and every shared link |

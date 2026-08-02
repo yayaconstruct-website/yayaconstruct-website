@@ -85,57 +85,37 @@ SPEC_FULL = [('Location', 'Ilica, Cesme'), ('Year', '2021'), ('Scope', 'Conversi
 SPEC_THREE = [('Location', 'Guzelbahce, Izmir'), ('Year', '2018'), ('Status', 'Completed')]
 SPEC_THIN = [('Status', 'Coming soon')]   # Z-Suites: the flag is its only fact.
 
-# ── Home page, as Batch 3 renders it ─────────────────────────────────────────
+# ── Home page, as it renders today ───────────────────────────────────────────
+# Hero text and the featured-project pick were tried under Batch 3 and rolled
+# back at Emir's request; the real hero photo swap and the services-card
+# removal stayed. See HANDOFF.md.
 HERO = {
-    'tag': 'Two Latitudes, One Standard',
-    'line1': 'BUILDING', 'line2': 'ACROSS', 'line3': 'TWO LATITUDES',
-    'sub': ('Yaya Construct builds and renovates across two regions — the '
-            'Aegean coast and the Low Countries — with the same standard '
-            'of craft on every site.'),
+    'tag': 'Est. in Excellence',
+    'line1': 'WE', 'line2': 'BUILD', 'line3': 'YOUR VISION',
+    'sub': ('From groundbreaking to grand opening — Yaya Construct delivers '
+            'construction that lasts generations.'),
     'cta1': 'View Our Work', 'cta1_url': '/harness-projects.html',
     'cta2': 'Get a Quote', 'cta2_url': SITE + '/contact/',
-    # Real project photo (Inkim Suites, on the Aegean) — same asset the
-    # template now defaults to — not the old generic Unsplash stand-in.
+    # Real project photo (Inkim Suites, on the Aegean) — kept from Batch 3
+    # even though the copy reverted; not the old generic Unsplash stand-in.
     'img': UPLOADS + 'IMG_0103.png',
 }
 
 STATS = [('150+', 'Projects Completed'), ('12+', 'Years of Experience'),
          ('98%', 'Client Satisfaction'), ('40+', 'Skilled Professionals')]
 
-SERVICE_ICONS = [
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M6 20V9"/><path d="M18 20V9"/><path d="M1 9l11-7 11 7"/><path d="M9 20v-6h6v6"/></svg>',
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9.5L12 3l7 6.5V21"/><path d="M9 21v-6h6v6"/><path d="M9 12h.01M15 12h.01"/></svg>',
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>',
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg>',
-]
-SERVICES = [
-    ('General Construction', 'Full-cycle construction management from planning to handover, delivered on time and within budget.'),
-    ('Commercial Buildings', 'Office complexes, retail centers, warehouses, and industrial facilities built to the highest standards.'),
-    ('Residential Projects', 'Custom homes, apartment buildings, and residential renovations crafted with care and precision.'),
-    ('Renovation & Refit', 'Breathing new life into existing structures with expert renovation, retrofitting, and restoration work.'),
-    ('Design & Build', 'Integrated design-build solutions combining architectural vision with construction expertise under one roof.'),
-    ('Project Management', 'Professional oversight, scheduling, and coordination for complex multi-phase construction projects.'),
-]
-
-# Featured project: Amsterdam has no description (confirmed live — its
-# get_the_excerpt() is genuinely empty, content and excerpt both), so the
-# new "skip empty-excerpt candidates" logic passes over it. Which project
-# WP_Query lands on next depends on post_date, which isn't observable
-# without DB access — Inkim Suites stands in here as "a candidate with real
-# content," not a claim about exactly which slug goes live.
+# Featured project: back to "the single newest non-coming-soon project",
+# same as before Batch 3. Amsterdam is that project and has no description
+# (confirmed live), so it falls back to the canned filler paragraph — the
+# original behavior.
 FEATURED = {
-    'title': 'Inkim Suites',
-    'href': '/harness-project.html',
-    'img': UPLOADS + 'IMG_0098-1024x614.png',
-    'spec': SPEC_FULL,
-    'text': ("Inkim Suites is described as the transformation of the "
-             "long-standing Inkim Hotel into a refreshed residence concept "
-             "in the heart of Ilica, Cesme. The source highlights "
-             "Zabıtçı's renovation work, a central location "
-             "close to beaches and amenities, and a residence program built "
-             "around comfort, design, and year-round use."),
+    'title': 'Amsterdam',
+    'href': SITE + '/project/amsterdam/',
+    'img': UPLOADS + 'IMG_0120-1024x768.jpg',
+    'spec': [],
+    'text': ('Every project we take on is a testament to our commitment to '
+             'quality. Our team of experienced builders, engineers, and '
+             'project managers ensure every detail is executed to perfection.'),
 }
 
 
@@ -229,13 +209,6 @@ def render_home():
         f'    <div class="stat-label">{l}</div>\n'
         f'  </div>' for n, l in STATS)
 
-    cards = '\n'.join(
-        f'    <div class="service-card reveal">\n'
-        f'      <div class="service-icon" aria-hidden="true">{SERVICE_ICONS[i]}</div>\n'
-        f'      <h3 class="service-title">{title}</h3>\n'
-        f'      <p class="service-text">{text}</p>\n'
-        f'    </div>' for i, (title, text) in enumerate(SERVICES))
-
     spec_line = ' &middot; '.join(v for _, v in FEATURED['spec'])
 
     return f'''<!-- Hero -->
@@ -263,15 +236,6 @@ def render_home():
 {stats}
 </div>
 
-<!-- Services -->
-<section class="section" aria-labelledby="services-title">
-  <p class="section-label reveal">What We Do</p>
-  <h2 id="services-title" class="section-title reveal">OUR SERVICES</h2>
-  <div class="services-grid">
-{cards}
-  </div>
-</section>
-
 <!-- Featured Project -->
 <section class="home-project" aria-labelledby="featured-title">
   <div class="home-project-img reveal">
@@ -284,7 +248,7 @@ def render_home():
     <h2 id="featured-title" class="section-title">
       <a class="home-project-link" href="{FEATURED['href']}">{FEATURED['title']}</a>
     </h2>
-    <p class="home-project-meta">{spec_line}</p>
+    {f'<p class="home-project-meta">{spec_line}</p>' if spec_line else ''}
     <p>{FEATURED['text']}</p>
     <a href="/harness-projects.html" class="btn-primary">Explore All Projects</a>
   </div>

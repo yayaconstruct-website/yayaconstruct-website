@@ -60,7 +60,6 @@ Version: 1.0
        the outer margin is defined once. */
     .hero,
     .stats-bar,
-    .section,
     .home-project,
     .about-hero,
     .about-text,
@@ -157,7 +156,6 @@ Version: 1.0
 
     /* Running text never exceeds a comfortable measure, whatever the band is
        doing. Full-bleed sections were producing 140-character lines. */
-    .service-text,
     .about-text p,
     .value-card p,
     .home-project-content p:not(.section-label),
@@ -409,11 +407,6 @@ Version: 1.0
       margin-top: 0.3rem;
     }
 
-    /* Services section */
-    .section {
-      padding-block: clamp(4.5rem, 8vw, 7rem);
-    }
-
     .section-label {
       font-family: var(--font-mono);
       font-size: 0.75rem;
@@ -446,53 +439,6 @@ Version: 1.0
       letter-spacing: -0.03em;
       margin-bottom: 3rem;
       color: var(--slate);
-    }
-
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      border: 1px solid var(--dust);
-    }
-
-    .service-card {
-      padding: 3rem 2.5rem;
-      border-right: 1px solid var(--dust);
-      border-bottom: 1px solid var(--dust);
-      transition: background 0.3s;
-      cursor: default;
-    }
-
-    .service-card:nth-child(3n) { border-right: none; }
-    .service-card:nth-last-child(-n+3) { border-bottom: none; }
-
-    .service-card:hover { background: var(--slate); }
-    .service-card:hover .service-title { color: var(--limewash); }
-    .service-card:hover .service-text { color: var(--zinc-on-dark); }
-    .service-card:hover .service-icon { color: var(--aegean); }
-
-    .service-icon {
-      font-size: 2.2rem;
-      margin-bottom: 1.5rem;
-      transition: color 0.3s;
-    }
-
-    .service-title {
-      font-family: var(--font-display);
-      font-stretch: 105%;
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: -0.015em;
-      margin-bottom: 0.8rem;
-      transition: color 0.3s;
-    }
-
-    .service-text {
-      font-size: 1rem;
-      font-weight: 400;
-      line-height: 1.7;
-      color: var(--zinc);
-      transition: color 0.3s;
     }
 
     /* Featured project on home */
@@ -890,22 +836,8 @@ Version: 1.0
       }
     }
 
-    /* ── TABLET ──
-       The home page went straight from 3 columns to 1 at 768px, so every tablet
-       rendered three cramped ~230px service columns. Bounded at the bottom so
-       these border rules cannot leak into the single-column mobile layout. */
+    /* ── TABLET ── */
     @media (min-width: 769px) and (max-width: 1100px) {
-      .services-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .service-card { padding: 2.5rem 2rem; }
-      .service-card:nth-child(3n) { border-right: 1px solid var(--dust); }
-      .service-card:nth-child(2n) { border-right: none; }
-      .service-card:nth-last-child(-n+3) { border-bottom: 1px solid var(--dust); }
-      .service-card:nth-last-child(-n+2) { border-bottom: none; }
-
-      .section       { padding-block: 4.5rem; }
       .home-project  { gap: 3rem; padding-block: 4rem; }
       .stat-item     { padding: 2.5rem 1.5rem; }
     }
@@ -1148,9 +1080,6 @@ Version: 1.0
       .hero { padding-block: calc(var(--nav-h) + 1rem) 4rem; }
       .stats-bar { flex-wrap: wrap; }
       .stat-item { min-width: 50%; border-bottom: 1px solid rgba(168,173,171,0.1); }
-      .section { padding-block: 4rem; }
-      .services-grid { grid-template-columns: 1fr; }
-      .service-card { border-right: none; }
       /* Was 3rem of side padding on a 375px screen. */
       .home-project { grid-template-columns: 1fr; padding-block: 3.5rem; gap: 2.5rem; }
       .about-body { grid-template-columns: 1fr; }
@@ -1586,18 +1515,6 @@ Version: 1.0
       .nav-logo .custom-logo {
         height: 38px;
       }
-    }
-
-    /* ── SVG SERVICE ICONS ── */
-    .service-icon svg {
-      width: 2.2rem;
-      height: 2.2rem;
-      color: var(--zinc);
-      transition: color 0.3s;
-    }
-
-    .service-card:hover .service-icon svg {
-      color: var(--aegean);
     }
 
     /* ── CONTACT ICON SVGs ── */

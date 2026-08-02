@@ -9,10 +9,10 @@ if (!$home_page_id) {
 $home_defaults = function_exists('yaya_home_page_defaults') ? yaya_home_page_defaults() : [];
 
 // Hero values
-$hero_tag   = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_tag', get_theme_mod('yaya_hero_tag',   $home_defaults['hero']['tag'] ?? 'Two Latitudes, One Standard')) : get_theme_mod('yaya_hero_tag',   'Two Latitudes, One Standard');
-$hero_line1 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line1', get_theme_mod('yaya_hero_line1', $home_defaults['hero']['line1'] ?? 'BUILDING')) : get_theme_mod('yaya_hero_line1', 'BUILDING');
-$hero_line2 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line2', get_theme_mod('yaya_hero_line2', $home_defaults['hero']['line2'] ?? 'ACROSS')) : get_theme_mod('yaya_hero_line2', 'ACROSS');
-$hero_line3 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line3', get_theme_mod('yaya_hero_line3', $home_defaults['hero']['line3'] ?? 'TWO LATITUDES')) : get_theme_mod('yaya_hero_line3', 'TWO LATITUDES');
+$hero_tag   = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_tag', get_theme_mod('yaya_hero_tag',   $home_defaults['hero']['tag'] ?? 'Est. in Excellence')) : get_theme_mod('yaya_hero_tag',   'Est. in Excellence');
+$hero_line1 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line1', get_theme_mod('yaya_hero_line1', $home_defaults['hero']['line1'] ?? 'WE')) : get_theme_mod('yaya_hero_line1', 'WE');
+$hero_line2 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line2', get_theme_mod('yaya_hero_line2', $home_defaults['hero']['line2'] ?? 'BUILD')) : get_theme_mod('yaya_hero_line2', 'BUILD');
+$hero_line3 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line3', get_theme_mod('yaya_hero_line3', $home_defaults['hero']['line3'] ?? 'YOUR VISION')) : get_theme_mod('yaya_hero_line3', 'YOUR VISION');
 $hero_sub   = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_sub',   get_theme_mod('yaya_hero_sub',   $home_defaults['hero']['sub'] ?? '')) : get_theme_mod('yaya_hero_sub', '');
 $hero_cta1  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta1',  get_theme_mod('yaya_hero_cta1',  $home_defaults['hero']['cta1'] ?? 'View Our Work')) : get_theme_mod('yaya_hero_cta1', 'View Our Work');
 $hero_cta2  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta2',  get_theme_mod('yaya_hero_cta2',  $home_defaults['hero']['cta2'] ?? 'Get a Quote')) : get_theme_mod('yaya_hero_cta2', 'Get a Quote');
@@ -32,8 +32,6 @@ for ($i = 1; $i <= 4; $i++) {
   ];
 }
 
-$services_section_label = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_services_section_label', $home_defaults['services']['section_label'] ?? 'What We Do') : 'What We Do';
-$services_section_title = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_services_section_title', $home_defaults['services']['section_title'] ?? 'OUR SERVICES') : 'OUR SERVICES';
 $featured_label = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_label', $home_defaults['featured']['label'] ?? 'Featured Work') : 'Featured Work';
 $featured_button_text = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_button_text', $home_defaults['featured']['button_text'] ?? 'Explore All Projects') : 'Explore All Projects';
 $featured_button_url = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_button_url', $home_defaults['featured']['button_url'] ?? home_url('/projects')) : home_url('/projects');
@@ -72,53 +70,13 @@ $featured_empty_text = function_exists('yaya_get_home_page_field') && $home_page
   <?php endforeach; ?>
 </div>
 
-<?php
-// Service icons (SVG, indexed 1–6)
-$service_icons = [
-  1 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M6 20V9"/><path d="M18 20V9"/><path d="M1 9l11-7 11 7"/><path d="M9 20v-6h6v6"/></svg>',
-  2 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
-  3 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9.5L12 3l7 6.5V21"/><path d="M9 21v-6h6v6"/><path d="M9 12h.01M15 12h.01"/></svg>',
-  4 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
-  5 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>',
-  6 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg>',
-];
-$service_defaults = [
-  1 => ['General Construction', 'Full-cycle construction management from planning to handover, delivered on time and within budget.'],
-  2 => ['Commercial Buildings', 'Office complexes, retail centers, warehouses, and industrial facilities built to the highest standards.'],
-  3 => ['Residential Projects', 'Custom homes, apartment buildings, and residential renovations crafted with care and precision.'],
-  4 => ['Renovation & Refit',   'Breathing new life into existing structures with expert renovation, retrofitting, and restoration work.'],
-  5 => ['Design & Build',       'Integrated design-build solutions combining architectural vision with construction expertise under one roof.'],
-  6 => ['Project Management',   'Professional oversight, scheduling, and coordination for complex multi-phase construction projects.'],
-];
-?>
-<!-- Services -->
-<section class="section" aria-labelledby="services-title">
-  <p class="section-label reveal"><?php echo esc_html($services_section_label); ?></p>
-  <?php // Was a <div>: the page had a single <h1> and no other headings at all. ?>
-  <h2 id="services-title" class="section-title reveal"><?php echo esc_html($services_section_title); ?></h2>
-  <div class="services-grid">
-    <?php for ($i = 1; $i <= 6; $i++):
-      $svc_title = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_service_{$i}_title", get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0])) : get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0]);
-      $svc_text  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_service_{$i}_text",  get_theme_mod("yaya_service{$i}_text",  $service_defaults[$i][1])) : get_theme_mod("yaya_service{$i}_text",  $service_defaults[$i][1]);
-    ?>
-    <div class="service-card reveal">
-      <div class="service-icon" aria-hidden="true"><?php echo $service_icons[$i]; ?></div>
-      <h3 class="service-title"><?php echo esc_html($svc_title); ?></h3>
-      <p class="service-text"><?php echo esc_html($svc_text); ?></p>
-    </div>
-    <?php endfor; ?>
-  </div>
-</section>
-
 <!-- Featured Project -->
 <?php
 // "Coming soon" placeholders are skipped — the homepage showcase should be
-// finished work, not an empty card. Among the rest, prefer one with a real
-// description over merely the newest: an empty excerpt on the page's most
-// visible slot reads as filler, not as "recently added."
-$featured_candidates = new WP_Query([
+// finished work, not an empty card.
+$featured = new WP_Query([
   'post_type'      => 'project',
-  'posts_per_page' => -1,
+  'posts_per_page' => 1,
   'orderby'        => 'date',
   'order'          => 'DESC',
   'meta_query'     => [
@@ -127,20 +85,7 @@ $featured_candidates = new WP_Query([
     ['key' => '_yaya_project_coming_soon', 'value' => '1', 'compare' => '!='],
   ],
 ]);
-$featured_id = null;
-$fallback_id = null;
-foreach ($featured_candidates->posts as $candidate) {
-  if ($fallback_id === null) {
-    $fallback_id = $candidate->ID;
-  }
-  if (trim(get_the_excerpt($candidate)) !== '') {
-    $featured_id = $candidate->ID;
-    break;
-  }
-}
-if ($featured_id === null) {
-  $featured_id = $fallback_id;
-}
+$featured_id = $featured->have_posts() ? $featured->posts[0]->ID : null;
 wp_reset_postdata();
 if ($featured_id):
   // Same resolution as the project cards: featured image, then the project's

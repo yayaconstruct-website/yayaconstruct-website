@@ -1066,42 +1066,6 @@ function yaya_customizer($wp_customize) {
         ]);
     }
 
-    /* ══════════════ SERVICES SECTION ══════════════ */
-    $wp_customize->add_section('yaya_services', [
-        'title' => 'Services',
-        'panel' => 'yaya_panel',
-    ]);
-
-    $service_defaults = [
-        1 => ['General Construction', 'Full-cycle construction management from planning to handover, delivered on time and within budget.'],
-        2 => ['Commercial Buildings', 'Office complexes, retail centers, warehouses, and industrial facilities built to the highest standards.'],
-        3 => ['Residential Projects', 'Custom homes, apartment buildings, and residential renovations crafted with care and precision.'],
-        4 => ['Renovation & Refit',   'Breathing new life into existing structures with expert renovation, retrofitting, and restoration work.'],
-        5 => ['Design & Build',       'Integrated design-build solutions combining architectural vision with construction expertise under one roof.'],
-        6 => ['Project Management',   'Professional oversight, scheduling, and coordination for complex multi-phase construction projects.'],
-    ];
-
-    for ($i = 1; $i <= 6; $i++) {
-        $wp_customize->add_setting("yaya_service{$i}_title", [
-            'default'           => $service_defaults[$i][0],
-            'sanitize_callback' => 'sanitize_text_field',
-        ]);
-        $wp_customize->add_control("yaya_service{$i}_title", [
-            'label'   => "Service $i — Title",
-            'section' => 'yaya_services',
-            'type'    => 'text',
-        ]);
-        $wp_customize->add_setting("yaya_service{$i}_text", [
-            'default'           => $service_defaults[$i][1],
-            'sanitize_callback' => 'sanitize_textarea_field',
-        ]);
-        $wp_customize->add_control("yaya_service{$i}_text", [
-            'label'   => "Service $i — Description",
-            'section' => 'yaya_services',
-            'type'    => 'textarea',
-        ]);
-    }
-
 }
 add_action('customize_register', 'yaya_customizer');
 
@@ -1381,11 +1345,11 @@ add_action('save_post_page', 'yaya_save_projects_meta_box');
 function yaya_home_page_defaults() {
     return [
         'hero' => [
-            'tag'      => 'Two Latitudes, One Standard',
-            'line1'    => 'BUILDING',
-            'line2'    => 'ACROSS',
-            'line3'    => 'TWO LATITUDES',
-            'sub'      => 'Yaya Construct builds and renovates across two regions — the Aegean coast and the Low Countries — with the same standard of craft on every site.',
+            'tag'      => 'Est. in Excellence',
+            'line1'    => 'WE',
+            'line2'    => 'BUILD',
+            'line3'    => 'YOUR VISION',
+            'sub'      => 'From groundbreaking to grand opening — Yaya Construct delivers construction that lasts generations.',
             'cta1'     => 'View Our Work',
             'cta1_url' => home_url('/projects'),
             'cta2'     => 'Get a Quote',
@@ -1396,16 +1360,6 @@ function yaya_home_page_defaults() {
             2 => ['num' => '12+',  'label' => 'Years of Experience'],
             3 => ['num' => '98%',  'label' => 'Client Satisfaction'],
             4 => ['num' => '40+',  'label' => 'Skilled Professionals'],
-        ],
-        'services' => [
-            'section_label' => 'What We Do',
-            'section_title' => 'OUR SERVICES',
-            1 => ['title' => 'General Construction', 'text' => 'Full-cycle construction management from planning to handover, delivered on time and within budget.'],
-            2 => ['title' => 'Commercial Buildings', 'text' => 'Office complexes, retail centers, warehouses, and industrial facilities built to the highest standards.'],
-            3 => ['title' => 'Residential Projects', 'text' => 'Custom homes, apartment buildings, and residential renovations crafted with care and precision.'],
-            4 => ['title' => 'Renovation & Refit',   'text' => 'Breathing new life into existing structures with expert renovation, retrofitting, and restoration work.'],
-            5 => ['title' => 'Design & Build',       'text' => 'Integrated design-build solutions combining architectural vision with construction expertise under one roof.'],
-            6 => ['title' => 'Project Management',   'text' => 'Professional oversight, scheduling, and coordination for complex multi-phase construction projects.'],
         ],
         'featured' => [
             'label'         => 'Featured Work',
@@ -1505,19 +1459,6 @@ function yaya_render_home_meta_box($post) {
     }
     echo '</div>';
 
-    echo '<div class="yaya-meta-section"><h3>Services Section</h3>';
-    $service_section_label = yaya_get_home_page_field($post->ID, '_yaya_home_services_section_label', $defaults['services']['section_label']);
-    $service_section_title = yaya_get_home_page_field($post->ID, '_yaya_home_services_section_title', $defaults['services']['section_title']);
-    echo '<div class="yaya-meta-row"><label for="yaya_home_services_section_label">Section Label</label><input type="text" id="yaya_home_services_section_label" name="yaya_home_services_section_label" value="' . esc_attr($service_section_label) . '"></div>';
-    echo '<div class="yaya-meta-row"><label for="yaya_home_services_section_title">Section Title</label><input type="text" id="yaya_home_services_section_title" name="yaya_home_services_section_title" value="' . esc_attr($service_section_title) . '"></div>';
-    for ($i = 1; $i <= 6; $i++) {
-        $title = yaya_get_home_page_field($post->ID, "_yaya_home_service_{$i}_title", $defaults['services'][$i]['title']);
-        $text = yaya_get_home_page_field($post->ID, "_yaya_home_service_{$i}_text", $defaults['services'][$i]['text']);
-        echo '<div class="yaya-meta-row"><label for="yaya_home_service_' . $i . '_title">Service ' . $i . ' Title</label><input type="text" id="yaya_home_service_' . $i . '_title" name="yaya_home_service_' . $i . '_title" value="' . esc_attr($title) . '"></div>';
-        echo '<div class="yaya-meta-row"><label for="yaya_home_service_' . $i . '_text">Service ' . $i . ' Description</label><textarea rows="3" id="yaya_home_service_' . $i . '_text" name="yaya_home_service_' . $i . '_text">' . esc_textarea($text) . '</textarea></div>';
-    }
-    echo '</div>';
-
     echo '<div class="yaya-meta-section"><h3>Featured Project Section</h3>';
     $featured_fields = [
         'label'       => 'Section Label',
@@ -1572,22 +1513,6 @@ function yaya_save_home_meta_box($post_id) {
         }
         if (isset($_POST["yaya_home_stat_{$i}_label"])) {
             update_post_meta($post_id, "_yaya_home_stat_{$i}_label", sanitize_text_field(wp_unslash($_POST["yaya_home_stat_{$i}_label"])));
-        }
-    }
-
-    if (isset($_POST['yaya_home_services_section_label'])) {
-        update_post_meta($post_id, '_yaya_home_services_section_label', sanitize_text_field(wp_unslash($_POST['yaya_home_services_section_label'])));
-    }
-    if (isset($_POST['yaya_home_services_section_title'])) {
-        update_post_meta($post_id, '_yaya_home_services_section_title', sanitize_text_field(wp_unslash($_POST['yaya_home_services_section_title'])));
-    }
-
-    for ($i = 1; $i <= 6; $i++) {
-        if (isset($_POST["yaya_home_service_{$i}_title"])) {
-            update_post_meta($post_id, "_yaya_home_service_{$i}_title", sanitize_text_field(wp_unslash($_POST["yaya_home_service_{$i}_title"])));
-        }
-        if (isset($_POST["yaya_home_service_{$i}_text"])) {
-            update_post_meta($post_id, "_yaya_home_service_{$i}_text", sanitize_textarea_field(wp_unslash($_POST["yaya_home_service_{$i}_text"])));
         }
     }
 
