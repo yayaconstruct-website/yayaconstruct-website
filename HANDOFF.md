@@ -1,4 +1,4 @@
-# Redesign handoff — state as of 2 Aug 2026 (Batches 3 + 4 landed)
+# Redesign handoff — state as of 2 Aug 2026 (Batches 3 + 4 landed, about/contact aligned)
 
 Working notes for the yayaconstruct.com redesign. Delete before merging to `main`
 if you don't want it in the repo.
@@ -11,7 +11,8 @@ if you don't want it in the repo.
 | `redesign/batch-1-reskin` @ `9c76390` | Batch 1 re-skin, logo + menu fixes | No |
 | `redesign/batch-1-reskin` @ `aaabf6e` | Batch 2 project index | No |
 | `redesign/batch-1-reskin` @ `46c2c8f` | Batch 3 (net of reverts) + hero-image default fixes | No |
-| working tree | Batch 4 — **uncommitted** | No |
+| `redesign/batch-1-reskin` @ `fa6dad4` | Batch 4 — performance & hygiene | No |
+| working tree | About/contact alignment pass — **uncommitted** | No |
 
 **Batch 3 status:** the hero photo swap, the services-card removal, and the
 `front-page.php` transition-delay cleanup are done. The hero copy, the
@@ -268,6 +269,57 @@ Emoji and dashicons are `wp_head`/enqueue-level output the harness's
 only — re-read all three edited templates and the full `functions.php` diff
 after making each change, twice, since there's still no `php` binary on this
 machine.
+
+## About + Contact pages — aligned with Batches 1–4 (done, uncommitted)
+
+Not a numbered batch — a pass to bring `page-about.php`/`page-contact.php` in
+line with what the four batches already established elsewhere, at Emir's
+request. Scoped to `page-about.php`, `style.css`; `page-contact.php` needed no
+changes (see below).
+
+| Change | File |
+|---|---|
+| Cleared the last `transition-delay` inline style anywhere in the theme (the `.value-card` loop) | `page-about.php` |
+| Removed the now-fully-unused `transition-delay: 0s !important` override from `.reveal` | `style.css` |
+| Swapped the generic stock hero photos for real Inkim Suites renders | `style.css` |
+| Removed `.contact-form-wrap` from the shared `padding-inline` list — dead: the template's actual class is `.contact-form`, this name was never used anywhere | `style.css` |
+
+**Transition-delay, concretely:** `page-about.php`'s value-card loop was the
+one instance HANDOFF flagged as "no batch covers" back when Batch 2 cleared
+`page-projects.php` and Batch 3 cleared `front-page.php`. Confirmed via grep
+across every template — zero remain anywhere — so the site-wide
+`!important` override in `.reveal` (which existed purely to countermand
+inline `transition-delay` values) is now provably dead weight and comes out
+too. Transition-delay's browser default is already `0s`, so this changes
+nothing observable — pure cleanup, not a behavior change.
+
+**Hero photos, concretely:** `.about-hero` and `.contact-hero` had the same
+issue the home hero had before Batch 3 — a generic Unsplash stock photo
+hardcoded directly in the CSS `background:` shorthand, with no theme_mod or
+per-page override at all (unlike the home hero, which reads `yaya_hero_image`).
+Replaced both with real Inkim Suites photos — a different one per page, and
+different from the home hero's, so the same building doesn't appear three
+times in an obvious repeat: `IMG_0100.png` (poolside/amenities) for About,
+`IMG_0098.png` (street-level facade) for Contact. Deliberately did **not**
+add theme_mod configurability to match the home hero's mechanism — that's a
+bigger feature than "align with what's already there," and nobody asked for
+admin-configurable about/contact hero images. Copy on both pages is
+untouched — this was scoped to photography and dead CSS, not prose, given
+the hero-copy revert earlier in this project.
+
+**Left alone, deliberately, out of the requested scope:** `page-projects.php`'s
+own `.projects-hero` and `single-project.php`'s `.project-detail-hero` fallback
+still carry stock Unsplash photos too — same issue, but Emir asked specifically
+about the about and contact pages this time, not projects. `.hero-bg`'s
+earlier, fully-dead rule (`style.css` line ~242, documented in the Batch 3
+hero-image-fix note above) also still carries its own stale URL — untouched,
+same reasoning as before: a later rule already overrides it, so it renders
+nothing.
+
+**Not verifiable via the harness:** `tools/harness.py` doesn't fetch or
+render the about or contact pages at all — "About and Contact still point at
+the live site" (see "How to see it" below), unchanged by this pass. Verified
+by manual review only.
 
 ## Content blockers — nobody's code can fix these
 

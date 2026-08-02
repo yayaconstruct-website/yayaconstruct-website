@@ -58,9 +58,8 @@ $about_values_section_title = function_exists('yaya_get_about_page_field') ? yay
         $text = function_exists('yaya_get_about_page_field')
           ? yaya_get_about_page_field(get_the_ID(), "_yaya_about_value_{$i}_text", $about_defaults['values'][$i]['text'])
           : $about_defaults['values'][$i]['text'];
-        $delay = round(($i - 1) * 0.1, 2);
       ?>
-      <div class="value-card reveal" style="transition-delay:<?php echo esc_attr($delay); ?>s">
+      <div class="value-card reveal">
         <h3><?php echo esc_html($title); ?></h3>
         <p><?php echo esc_html($text); ?></p>
       </div>
