@@ -134,32 +134,52 @@ $project_type_options = array_values(array_filter(array_map('trim', preg_split('
       </div>
     </div>
 
-    <div class="contact-form">
+    <?php
+    /* ── A REAL FORM ──
+       These fields sat in a bare <div>. Enter in a text field did nothing, the
+       button had no submit semantics, there was no constraint validation to
+       read state from, and assistive tech was never told a form was here at
+       all — it was six labelled inputs and an unrelated button. It is a <form>
+       now; the script below intercepts submit and the request still goes over
+       fetch, so nothing about delivery changes.
+
+       novalidate suppresses the browser's own validation *UI*, not its parser:
+       element.validity is still populated and the script reads typeMismatch
+       off the email field. The bubbles have to go because they vanish on the
+       next keystroke, are announced once and never again, and cannot be
+       associated with the persistent per-field messages below. */
+    ?>
+    <form class="contact-form" id="contact-form" method="post" novalidate>
       <h2><?php echo wp_kses(nl2br(esc_html($form_heading)), ['br' => []]); ?></h2>
       <?php wp_nonce_field('yaya_contact_nonce', 'yaya_nonce'); ?>
       <div class="form-row">
         <div class="form-group">
           <label for="cf-first"><?php echo esc_html($first_name_label); ?></label>
-          <input type="text" id="cf-first" placeholder="<?php echo esc_attr($first_name_placeholder); ?>" autocomplete="given-name" />
+          <input type="text" id="cf-first" name="cf-first" required aria-required="true" aria-describedby="cf-first-error" placeholder="<?php echo esc_attr($first_name_placeholder); ?>" autocomplete="given-name" />
+          <p class="form-field-error" id="cf-first-error" hidden></p>
         </div>
         <div class="form-group">
           <label for="cf-last"><?php echo esc_html($last_name_label); ?></label>
-          <input type="text" id="cf-last" placeholder="<?php echo esc_attr($last_name_placeholder); ?>" autocomplete="family-name" />
+          <input type="text" id="cf-last" name="cf-last" required aria-required="true" aria-describedby="cf-last-error" placeholder="<?php echo esc_attr($last_name_placeholder); ?>" autocomplete="family-name" />
+          <p class="form-field-error" id="cf-last-error" hidden></p>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label for="cf-email"><?php echo esc_html($form_email_label); ?></label>
-          <input type="email" id="cf-email" placeholder="<?php echo esc_attr($form_email_placeholder); ?>" autocomplete="email" />
+          <input type="email" id="cf-email" name="cf-email" required aria-required="true" aria-describedby="cf-email-error" placeholder="<?php echo esc_attr($form_email_placeholder); ?>" autocomplete="email" />
+          <p class="form-field-error" id="cf-email-error" hidden></p>
         </div>
         <div class="form-group">
+          <?php /* Phone and project type are optional by design — no required,
+                   no aria-required, and the script does not check them. */ ?>
           <label for="cf-phone"><?php echo esc_html($form_phone_label); ?></label>
-          <input type="tel" id="cf-phone" placeholder="<?php echo esc_attr($form_phone_placeholder); ?>" autocomplete="tel" />
+          <input type="tel" id="cf-phone" name="cf-phone" placeholder="<?php echo esc_attr($form_phone_placeholder); ?>" autocomplete="tel" />
         </div>
       </div>
       <div class="form-group">
         <label for="cf-type"><?php echo esc_html($project_type_label); ?></label>
-        <select id="cf-type">
+        <select id="cf-type" name="cf-type">
           <option value=""><?php echo esc_html($project_type_placeholder); ?></option>
           <?php foreach ($project_type_options as $option) : ?>
             <option><?php echo esc_html($option); ?></option>
@@ -168,71 +188,207 @@ $project_type_options = array_values(array_filter(array_map('trim', preg_split('
       </div>
       <div class="form-group">
         <label for="cf-message"><?php echo esc_html($message_label); ?></label>
-        <textarea id="cf-message" placeholder="<?php echo esc_attr($message_placeholder); ?>"></textarea>
+        <textarea id="cf-message" name="cf-message" required aria-required="true" aria-describedby="cf-message-error" placeholder="<?php echo esc_attr($message_placeholder); ?>"></textarea>
+        <p class="form-field-error" id="cf-message-error" hidden></p>
       </div>
-      <button class="btn-primary" id="cf-submit" onclick="submitContactForm()"><?php echo esc_html($submit_label); ?></button>
-      <div class="form-success" id="form-success">
-        &#10003; <?php echo esc_html($success_message); ?>
+      <?php
+      /* Honeypot. Clipped out of the layout by .form-honeypot, out of the tab
+         order by tabindex, and out of the accessibility tree by aria-hidden —
+         a field no visitor can reach by sight, keyboard or screen reader, so
+         anything in it was typed by a script. yaya_contact_form() drops those
+         submissions and reports success, because a bot that is told it failed
+         comes back having learned something. It is labelled anyway: the label
+         is what makes a browser's own autofill leave it alone. */
+      ?>
+      <div class="form-honeypot" aria-hidden="true">
+        <label for="cf-website">Leave this field blank</label>
+        <input type="text" id="cf-website" name="website" tabindex="-1" autocomplete="off" />
       </div>
-      <div class="form-error" id="form-error">
-        <?php echo esc_html($error_message); ?>
-      </div>
-    </div>
+      <?php
+      /* Delivery has always been JavaScript-only — there is no non-AJAX
+         handler behind this. While the fields sat in a <div>, that failed
+         silently; inside a real <form> the browser submits to the page itself
+         and empties every field instead. Say so, and give the address. */
+      ?>
+      <noscript>
+        <div class="form-error is-shown">
+          This form needs JavaScript to send.
+          <?php if ($email) : ?>
+            Please email us at <a href="<?php echo esc_url('mailto:' . $email); ?>" style="color:inherit"><?php echo esc_html($email); ?></a> instead.
+          <?php endif; ?>
+        </div>
+      </noscript>
+      <button class="btn-primary" id="cf-submit"><?php echo esc_html($submit_label); ?></button>
+      <?php
+      /* Both boxes render empty and stay in the DOM. A live region has to be
+         in the accessibility tree before its text changes or the change is not
+         announced, which is why neither is display:none any more and why the
+         copy is handed to the script rather than printed here. tabindex on the
+         success box is so focus has somewhere to land when the button that
+         currently holds it is hidden. */
+      ?>
+      <div class="form-success" id="form-success" role="status" aria-live="polite" tabindex="-1"><span class="form-feedback-mark" aria-hidden="true">&#10003;</span><span class="form-feedback-text"></span></div>
+      <div class="form-error" id="form-error" role="alert" aria-live="assertive"><span class="form-feedback-text"></span></div>
+    </form>
 
   </div>
 </div>
 
 <script>
-async function submitContactForm() {
-  var fields = ['cf-first', 'cf-last', 'cf-email', 'cf-message'];
-  var valid = true;
-  fields.forEach(function(id) {
-    var el = document.getElementById(id);
-    if (!el.value.trim()) { el.style.borderColor = 'var(--aegean)'; valid = false; }
-    else { el.style.borderColor = ''; }
-  });
-  if (!valid) return;
+(function () {
+  var form = document.getElementById('contact-form');
+  if (!form) { return; }
 
-  var btn = document.getElementById('cf-submit');
-  btn.textContent = <?php echo wp_json_encode($submit_loading_label); ?>;
-  btn.disabled = true;
-  document.getElementById('form-error').style.display = 'none';
+  var btn        = document.getElementById('cf-submit');
+  var successBox = document.getElementById('form-success');
+  var errorBox   = document.getElementById('form-error');
+  var successTxt = successBox.querySelector('.form-feedback-text');
+  var errorTxt   = errorBox.querySelector('.form-feedback-text');
 
-  var formData = new FormData();
-  formData.append('action', 'yaya_contact');
-  formData.append('nonce',  document.getElementById('yaya_nonce').value);
-  formData.append('name',    document.getElementById('cf-first').value + ' ' + document.getElementById('cf-last').value);
-  formData.append('email',   document.getElementById('cf-email').value);
-  formData.append('phone',   document.getElementById('cf-phone').value);
-  formData.append('type',    document.getElementById('cf-type').value);
-  formData.append('message', document.getElementById('cf-message').value);
+  var SUBMIT_LABEL  = <?php echo wp_json_encode($submit_label); ?>;
+  var LOADING_LABEL = <?php echo wp_json_encode($submit_loading_label); ?>;
+  var SUCCESS_MSG   = <?php echo wp_json_encode($success_message); ?>;
+  var ERROR_MSG     = <?php echo wp_json_encode($error_message); ?>;
+
+  // The four fields yaya_contact_form() also insists on. Phone and project
+  // type are absent deliberately — they are optional on both sides.
+  var REQUIRED = [
+    { id: 'cf-first',   empty: 'Enter your first name.' },
+    { id: 'cf-last',    empty: 'Enter your last name.' },
+    { id: 'cf-email',   empty: 'Enter your email address.',
+                        malformed: 'Enter an email address in the form name@example.com.' },
+    { id: 'cf-message', empty: 'Tell us what you would like to build.' }
+  ];
+
+  var sending = false;
+
+  // aria-invalid is the machine-readable half and the message under the field
+  // is the human-readable half; the border colour is the third signal, not the
+  // only one. The message element is always present and always referenced by
+  // aria-describedby, so the description exists before the text arrives —
+  // adding the relationship at the same moment as the text is how screen
+  // readers end up reading the field with no explanation attached.
+  function setFieldError(el, message) {
+    var note = document.getElementById(el.id + '-error');
+    if (message) {
+      el.setAttribute('aria-invalid', 'true');
+      if (note) { note.textContent = message; note.hidden = false; }
+    } else {
+      el.removeAttribute('aria-invalid');
+      if (note) { note.textContent = ''; note.hidden = true; }
+    }
+  }
+
+  function show(box, textNode, message) {
+    textNode.textContent = message;
+    box.classList.add('is-shown');
+  }
+
+  function hide(box, textNode) {
+    textNode.textContent = '';
+    box.classList.remove('is-shown');
+  }
+
+  // Returns the first field that failed, so focus can be sent there.
+  function validate() {
+    var firstInvalid = null;
+    REQUIRED.forEach(function (field) {
+      var el = document.getElementById(field.id);
+      if (!el) { return; }
+      var message = '';
+      if (!el.value.trim()) {
+        // trim() rather than validity.valueMissing: a field holding only
+        // spaces satisfies required and fails the server.
+        message = field.empty;
+      } else if (field.malformed && el.validity && el.validity.typeMismatch) {
+        message = field.malformed;
+      }
+      setFieldError(el, message);
+      if (message && !firstInvalid) { firstInvalid = el; }
+    });
+    return firstInvalid;
+  }
+
+  function busy(state) {
+    sending = state;
+    // aria-disabled, not disabled. Disabling the element that currently holds
+    // focus drops focus to <body>, and the visitor has just pressed this
+    // button. The guard at the top of the handler is what actually stops a
+    // second send.
+    btn.setAttribute('aria-disabled', state ? 'true' : 'false');
+    btn.textContent = state ? LOADING_LABEL : SUBMIT_LABEL;
+  }
 
   // Show what actually went wrong when the server explains itself, rather
   // than the same generic line for an expired nonce and a failed send alike.
-  function showError(serverMessage) {
-    var box = document.getElementById('form-error');
-    box.textContent = serverMessage || <?php echo wp_json_encode($error_message); ?>;
-    box.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = <?php echo wp_json_encode($submit_label); ?>;
+  function fail(serverMessage) {
+    show(errorBox, errorTxt, serverMessage || ERROR_MSG);
+    busy(false);
   }
 
-  try {
-    var res  = await fetch('<?php echo admin_url('admin-ajax.php'); ?>', { method: 'POST', body: formData });
-    var data = await res.json();
-    if (data.success) {
-      btn.style.display = 'none';
-      document.getElementById('form-success').style.display = 'block';
+  // Clear a field's error the moment it stops being wrong, so a message that
+  // has been acted on does not sit under a field that now reads fine.
+  REQUIRED.forEach(function (field) {
+    var el = document.getElementById(field.id);
+    if (!el) { return; }
+    el.addEventListener('input', function () {
+      if (el.getAttribute('aria-invalid') !== 'true') { return; }
+      var stillWrong = !el.value.trim() ||
+        (field.malformed && el.validity && el.validity.typeMismatch);
+      if (!stillWrong) { setFieldError(el, ''); }
+    });
+  });
+
+  form.addEventListener('submit', async function (e) {
+    // First statement in the handler: the form has no action, so anything that
+    // throws before this reloads the page and empties every field.
+    e.preventDefault();
+    if (sending) { return; }
+
+    var firstInvalid = validate();
+    if (firstInvalid) {
+      hide(errorBox, errorTxt);
+      firstInvalid.focus();
       return;
     }
-    console.error('Contact form:', data.error || 'send failed');
-    showError(data.error);
-  } catch(e) {
-    // Network failure or a non-JSON response: keep the configured copy.
-    console.error('Contact form:', e);
-    showError('');
-  }
-}
+
+    hide(errorBox, errorTxt);
+    busy(true);
+
+    var formData = new FormData();
+    formData.append('action', 'yaya_contact');
+    formData.append('nonce',  document.getElementById('yaya_nonce').value);
+    formData.append('name',    document.getElementById('cf-first').value + ' ' + document.getElementById('cf-last').value);
+    formData.append('email',   document.getElementById('cf-email').value);
+    formData.append('phone',   document.getElementById('cf-phone').value);
+    formData.append('type',    document.getElementById('cf-type').value);
+    formData.append('message', document.getElementById('cf-message').value);
+    formData.append('website', document.getElementById('cf-website').value);
+
+    try {
+      // wp_json_encode, not esc_url: this is a JavaScript string, and the
+      // HTML entities esc_url emits are not decoded inside a <script>.
+      var res  = await fetch(<?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>, { method: 'POST', body: formData });
+      var data = await res.json();
+      if (data.success) {
+        show(successBox, successTxt, SUCCESS_MSG);
+        // Move focus before hiding the button, not after: focus is on the
+        // button right now, and hiding the focused element leaves focus on
+        // <body> with the confirmation unread and the tab order restarted
+        // from the top of the document.
+        successBox.focus();
+        btn.style.display = 'none';
+        return;
+      }
+      console.error('Contact form:', data.error || 'send failed');
+      fail(data.error);
+    } catch (err) {
+      // Network failure or a non-JSON response: keep the configured copy.
+      console.error('Contact form:', err);
+      fail('');
+    }
+  });
+})();
 </script>
 
 <?php get_footer(); ?>

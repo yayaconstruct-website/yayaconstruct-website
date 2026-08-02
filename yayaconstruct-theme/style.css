@@ -28,6 +28,17 @@ Version: 1.0
       --zinc: #5D6362;         /* muted text on light  — 4.9:1 on limewash */
       --zinc-on-dark: #A8ADAB; /* muted text on dark   — kept AA-safe */
       --dust: #DEDCD6;         /* sunk panels, hairlines on light */
+      /* The form's error state needed a colour that reads as *wrong*. It used
+         to borrow --aegean, which is the same hue as the focus ring, so an
+         empty field looked focused rather than invalid. This is an oxide red —
+         6.0:1 on limewash, 7.4:1 on the white input fill, 6.5:1 on the error
+         box's own tint, so it carries AA text everywhere the form puts it. */
+      --alarm: #A4231B;
+      /* The busy fill on a button whose label must stay legible while it
+         sends. Exempt from the dark-ground rebinding for the same reason
+         --accent-fill is: the pairing that matters is fill against label
+         (limewash on this is 5.0:1), not fill against the band behind it. */
+      --fill-muted: #5D6362;
 
       /* Hairlines, so a rule is one decision rather than nine rgba() literals. */
       --rule-on-light: rgba(27,30,31,0.16);
@@ -144,6 +155,31 @@ Version: 1.0
     }
 
     .skip-link:focus { transform: translateY(0); }
+
+    /* ── VISUALLY HIDDEN ──
+       For text that only assistive technology should get: the live regions on
+       the contact form and the projects filter, which have to say what just
+       happened without printing it on a page that already shows it.
+       display:none and visibility:hidden are both wrong here — they take the
+       element out of the accessibility tree entirely, and a live region that
+       is not in the tree is never announced. So the element stays rendered and
+       is clipped away instead. The 1px box rather than 0 is deliberate: a
+       zero-sized box lets the text collapse, and some screen readers skip
+       content they measure as empty. clip-path does the clipping; the legacy
+       clip: rect() it replaces is deprecated and needs position:absolute plus
+       a fixed-height quirk to work at all. white-space keeps the string on one
+       line so nothing wraps inside the 1px box before it is clipped. */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
 
     body {
       font-family: var(--font-body);
@@ -337,6 +373,23 @@ Version: 1.0
     .btn-primary:hover {
       background: var(--accent-fill-deep);
       transform: translateY(-2px);
+    }
+
+    /* Busy, not disabled. The contact form marks the submit button
+       aria-disabled while a send is in flight rather than setting the
+       `disabled` property, because disabling the element that currently holds
+       focus drops focus to <body> — and the visitor has just pressed this
+       button. Opacity was the obvious way to dim it and the wrong one: at 0.65
+       over limewash the fill composites to #668892 and the label falls to
+       3.1:1. A solid muted fill keeps it at 5.0:1. */
+    .btn-primary[aria-disabled="true"] {
+      background: var(--fill-muted);
+      cursor: progress;
+    }
+
+    .btn-primary[aria-disabled="true"]:hover {
+      background: var(--fill-muted);
+      transform: none;
     }
 
     .btn-outline {
@@ -662,7 +715,12 @@ Version: 1.0
       transition: background 0.2s, border-color 0.2s, color 0.2s;
     }
 
-    .filter-btn:hover, .filter-btn.active {
+    /* These are toggle buttons, so aria-pressed is the state — and it is the
+       only state. The .active class that used to drive this said the same
+       thing in a second place that assistive tech could not read, and two
+       records of one fact drift; the attribute now carries both the semantics
+       and the paint, so a filter that looks applied is applied. */
+    .filter-btn:hover, .filter-btn[aria-pressed="true"] {
       background: var(--accent-fill);
       border-color: var(--accent-fill);
       color: var(--limewash);
@@ -1009,19 +1067,104 @@ Version: 1.0
       border-color: var(--aegean);
     }
 
+    /* The `outline: none` above outranks the site-wide :focus-visible rule
+       (0,2,1 beats 0,1,0), so these controls had no focus ring at all — the
+       1px border recolour was doing the whole job. That was survivable while
+       nothing else recoloured the border; it stops being survivable now that
+       an invalid field does, because the two states would be told apart by a
+       hue and nothing else. Ring for focus, border for validity. */
+    .form-group input:focus-visible,
+    .form-group select:focus-visible,
+    .form-group textarea:focus-visible {
+      outline: 2px solid var(--aegean);
+      outline-offset: 2px;
+    }
+
+    /* After the :focus rule on purpose: a field that is both focused and
+       invalid keeps the alarm border, and the outline above is what says where
+       focus is. The inset shadow doubles the rule to 2px without the reflow a
+       border-width change would cause. Colour is never the only signal — every
+       field carrying this also carries aria-invalid and the message below. */
+    .form-group input[aria-invalid="true"],
+    .form-group select[aria-invalid="true"],
+    .form-group textarea[aria-invalid="true"] {
+      border-color: var(--alarm);
+      box-shadow: inset 0 0 0 1px var(--alarm);
+    }
+
+    /* One message per field, tied to it with aria-describedby, and set in body
+       type rather than the label's 0.72rem mono — this is the one string on
+       the form that has to be read rather than scanned. */
+    .form-field-error {
+      margin-top: 0.45rem;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: var(--alarm);
+    }
+
     .form-group textarea {
       height: 130px;
       resize: vertical;
     }
 
-    .form-success {
-      display: none;
-      background: #e8f5e9;
-      border: 1px solid #a5d6a7;
-      padding: 1rem 1.5rem;
-      margin-top: 1rem;
+    /* The honeypot. Not the visually-hidden utility above, which exists to
+       keep text available to screen readers — this has to be unreachable by
+       every route a person has, so it is clipped away *and* aria-hidden *and*
+       out of the tab order. Only a script fills it in. */
+    .form-honeypot {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* ── FORM FEEDBACK ──
+       Both boxes are live regions, which is why neither can be display:none
+       any more: an element that is outside the accessibility tree when its
+       text changes is not announced, and flipping display and text in the same
+       frame is the standard way to get silence out of a live region. They sit
+       in the DOM from first paint, empty and zero-height, and .is-shown is
+       what puts a box around them. Success is role="status" — the news is
+       good and can wait for a pause; failure is role="alert", because the
+       visitor is about to walk away believing a message was sent. */
+    .form-success,
+    .form-error {
       font-size: 0.9rem;
+    }
+
+    .form-success.is-shown,
+    .form-error.is-shown {
+      margin-top: 1rem;
+      padding: 1rem 1.5rem;
+      border: 1px solid;
+    }
+
+    .form-success.is-shown {
+      background: #e8f5e9;
+      border-color: #a5d6a7;
       color: #2e7d32;
+    }
+
+    .form-error.is-shown {
+      background: #fdecea;
+      border-color: #f5c6c6;
+      color: var(--alarm);
+    }
+
+    /* Decorative, and aria-hidden in the markup so it is left out of the
+       announcement — a live region that opens with "check mark" buries its
+       own first word. */
+    .form-feedback-mark {
+      display: none;
+    }
+
+    .form-success.is-shown .form-feedback-mark {
+      display: inline;
+      margin-right: 0.5rem;
+      font-weight: 700;
     }
 
     /* ── FOOTER ── */
@@ -1570,16 +1713,11 @@ Version: 1.0
       color: var(--aegean);
     }
 
-    /* ── CONTACT FORM ERROR STATE ── */
-    .form-error {
-      display: none;
-      background: #fdecea;
-      border: 1px solid #f5c6c6;
-      padding: 1rem 1.5rem;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #c0392b;
-    }
+    /* .form-error used to live here, three hundred lines away from
+       .form-success, with its own display:none and its own red. Both now sit
+       together under FORM FEEDBACK above — they are one mechanism, and the
+       #c0392b this rule carried was 4.4:1 on the form's limewash ground, below
+       AA the moment the same red was asked to caption a field. */
 
     /* ── HERO DYNAMIC BACKGROUND ──
        The whole of .hero-bg's paint, in one place. front-page.php sets

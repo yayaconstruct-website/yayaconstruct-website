@@ -111,16 +111,30 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
   <?php endif; ?>
 
   <?php if (count($groups) > 1): ?>
+  <?php
+  /* aria-pressed is the state of these toggles, set here for the first paint
+     and flipped by the script. Without it the only record of which filter is
+     applied was a class name, which a screen reader cannot see — so the list
+     silently shrank and nothing said why or to what. The "all" button starts
+     pressed because nothing is filtered out yet. */
+  ?>
   <div class="filter-bar" id="projects-filter">
-    <button type="button" class="filter-btn active" data-filter="all">
+    <button type="button" class="filter-btn" data-filter="all" aria-pressed="true">
       <?php echo esc_html($projects_filter_label); ?>
     </button>
     <?php foreach ($groups as $group): ?>
-      <button type="button" class="filter-btn" data-filter="<?php echo esc_attr($group['slug']); ?>">
+      <button type="button" class="filter-btn" data-filter="<?php echo esc_attr($group['slug']); ?>" aria-pressed="false">
         <?php echo esc_html($group['name']); ?>
       </button>
     <?php endforeach; ?>
   </div>
+  <?php
+  /* Empty on purpose. Filtering is a visual change with no announcement of its
+     own: sections disappear and the page says nothing about how much is left.
+     The script writes the count here after each click. It renders empty rather
+     than describing the unfiltered page, so nothing is read out on load. */
+  ?>
+  <p class="visually-hidden" id="projects-filter-status" role="status" aria-live="polite"></p>
   <?php endif; ?>
 
   <div class="project-index" id="project-index">
@@ -188,6 +202,33 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
   if (!bar || !wrap) { return; }
 
   var regions = Array.prototype.slice.call(wrap.querySelectorAll('.project-region'));
+  var status = document.getElementById('projects-filter-status');
+  var total = wrap.querySelectorAll('.project-list-item').length;
+
+  // Counted off the DOM every time rather than written into the page as a
+  // number, so it cannot disagree with what is on screen after an editor adds
+  // a project or a region ends up empty.
+  function visibleCount() {
+    return wrap.querySelectorAll('.project-region:not(.is-hidden) .project-list-item').length;
+  }
+
+  function announce(cat, label) {
+    if (!status) { return; }
+    var n = visibleCount();
+    if (cat === 'all') {
+      status.textContent = total === 1
+        ? 'Showing 1 project.'
+        : 'Showing all ' + total + ' projects.';
+      return;
+    }
+    // "N projects in <name>" reads wrong for the fallback groups, which are
+    // named after a city rather than a region — yaya_project_regions() gives a
+    // category it does not know a group of its own, so this can say
+    // "Amsterdam" as easily as "Low Countries". Leading with the name and
+    // giving the total as well works for both and says more.
+    status.textContent = label + ': showing ' + n + ' of ' + total +
+      (total === 1 ? ' project.' : ' projects.');
+  }
 
   bar.addEventListener('click', function (e) {
     var btn = e.target.closest('.filter-btn');
@@ -196,7 +237,9 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
     var cat = btn.dataset.filter;
 
     bar.querySelectorAll('.filter-btn').forEach(function (b) {
-      b.classList.toggle('active', b === btn);
+      // The attribute is the state and the stylesheet paints off it, so the
+      // pressed look and the announced state cannot drift apart.
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
     });
 
     regions.forEach(function (region) {
@@ -207,12 +250,21 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
       if (show) { region.classList.add('visible'); }
     });
 
+    announce(cat, btn.textContent.trim());
+
     // Keep the newly filtered list in view instead of leaving the user
     // stranded further down the page.
     if (cat !== 'all') {
       var target = wrap.querySelector('.project-region:not(.is-hidden)');
       if (target && target.getBoundingClientRect().top < 0) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // The reduced-motion media query in style.css resets scroll-behavior,
+        // which an explicit behavior option here overrides — the JS value wins
+        // over the CSS property. Read the preference and pass it through
+        // instead, per click rather than once, so changing the OS setting
+        // takes effect without a reload.
+        var reduce = window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
       }
     }
   });

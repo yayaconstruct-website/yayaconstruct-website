@@ -975,6 +975,30 @@ function yaya_contact_header_name($name) {
     return trim(preg_replace('/[\r\n<>,;"]+/', ' ', $name));
 }
 
+/**
+ * The submitting address, for throttling and nothing else.
+ *
+ * REMOTE_ADDR only. X-Forwarded-For is a request header, so a script can put a
+ * fresh value in it on every attempt and walk straight through a per-address
+ * limit — honouring it would make the limit worse than not having one. The
+ * cost is that behind a proxy which does not rewrite REMOTE_ADDR the whole
+ * site shares one bucket, which is why the ceiling below is set well above
+ * anything a real enquirer does.
+ */
+function yaya_contact_client_ip() {
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? wp_unslash($_SERVER['REMOTE_ADDR']) : '';
+    $ip = filter_var((string) $ip, FILTER_VALIDATE_IP);
+
+    return $ip ?: 'unknown';
+}
+
+/**
+ * How many messages one address may send an hour.
+ */
+function yaya_contact_rate_limit() {
+    return (int) apply_filters('yaya_contact_rate_limit', 5);
+}
+
 function yaya_contact_form() {
     if (!check_ajax_referer('yaya_contact_nonce', 'nonce', false)) {
         // Usually a cached page serving a nonce that has since expired.
@@ -982,6 +1006,38 @@ function yaya_contact_form() {
             'success' => false,
             'error'   => 'Your session expired. Please reload the page and try again.',
         ]);
+    }
+
+    // Honeypot. The field this reads is clipped out of the layout, aria-hidden
+    // and out of the tab order, so no visitor reaches it by sight, keyboard or
+    // screen reader — anything in it was typed by a script. Report success:
+    // a bot told it failed comes back having learned where the trap is, and
+    // there is nothing here worth teaching it. Checked before the throttle so
+    // a flood of bot traffic cannot spend a real visitor's allowance.
+    if (trim((string) ($_POST['website'] ?? '')) !== '') {
+        wp_send_json(['success' => true]);
+    }
+
+    // One address, five messages an hour. High enough that someone who sends a
+    // follow-up, or mistypes their own address and resends, is never stopped;
+    // low enough that a script has nothing to gain by staying. Administrators
+    // are exempt so that testing the form cannot lock the tester out of it.
+    if (!current_user_can('manage_options')) {
+        $throttle_key = 'yaya_contact_rl_' . md5(yaya_contact_client_ip());
+        $recent       = get_transient($throttle_key);
+
+        if ($recent !== false && (int) $recent >= yaya_contact_rate_limit()) {
+            wp_send_json([
+                'success' => false,
+                'error'   => 'You have sent several messages recently. Please give it an hour, or email us directly using the address on this page.',
+            ]);
+        }
+
+        // Counted here rather than after a successful send, so a run of
+        // failing deliveries cannot be used to hammer the mailer. The window
+        // slides from the last accepted attempt, which is the stricter
+        // reading and the one that costs nothing to be wrong about.
+        set_transient($throttle_key, ((int) $recent) + 1, HOUR_IN_SECONDS);
     }
 
     $name    = sanitize_text_field($_POST['name']    ?? '');
