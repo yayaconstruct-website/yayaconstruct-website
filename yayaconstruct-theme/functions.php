@@ -1381,11 +1381,11 @@ add_action('save_post_page', 'yaya_save_projects_meta_box');
 function yaya_home_page_defaults() {
     return [
         'hero' => [
-            'tag'      => 'Est. in Excellence',
-            'line1'    => 'WE',
-            'line2'    => 'BUILD',
-            'line3'    => 'YOUR VISION',
-            'sub'      => 'From groundbreaking to grand opening — Yaya Construct delivers construction that lasts generations.',
+            'tag'      => 'Two Latitudes, One Standard',
+            'line1'    => 'BUILDING',
+            'line2'    => 'ACROSS',
+            'line3'    => 'TWO LATITUDES',
+            'sub'      => 'Yaya Construct builds and renovates across two regions — the Aegean coast and the Low Countries — with the same standard of craft on every site.',
             'cta1'     => 'View Our Work',
             'cta1_url' => home_url('/projects'),
             'cta2'     => 'Get a Quote',

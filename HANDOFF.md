@@ -1,4 +1,4 @@
-# Redesign handoff — state as of 2 Aug 2026 (Batch 2 landed in the working tree)
+# Redesign handoff — state as of 2 Aug 2026 (Batch 3 partially landed)
 
 Working notes for the yayaconstruct.com redesign. Delete before merging to `main`
 if you don't want it in the repo.
@@ -9,7 +9,15 @@ if you don't want it in the repo.
 |---|---|---|
 | `main` @ `c96a7b7` | Accessibility + performance + SEO passes | **Yes — live** |
 | `redesign/batch-1-reskin` @ `9c76390` | Batch 1 re-skin, logo + menu fixes | No |
-| working tree | Batch 2 project index — **uncommitted** | No |
+| `redesign/batch-1-reskin` @ `aaabf6e` | Batch 2 project index | No |
+| working tree | Batch 3, Sonnet-scoped items — **uncommitted** | No |
+
+**Batch 3 is split across two models.** New hero, the featured-block rework, and
+the `front-page.php` transition-delay cleanup were done under Claude Sonnet 5 —
+mechanical/content work with a clear spec. Deleting the six services cards and
+retiring the stats bar (items 14–15) are held for Claude Opus 5: they remove
+content that makes claims about the business, and Emir asked to review those
+specifically before they're shipped. See "Batch 3" below for the exact split.
 
 `.github/workflows/deploy.yml` FTPs `yayaconstruct-theme/` to production **on every
 push to `main`**. Pushing the branch does not deploy. There is no staging.
@@ -44,7 +52,7 @@ Type roles: `--font-display` (Archivo, `font-stretch: 112%`), `--font-body`
 (Archivo), `--font-mono` (Fragment Mono — the data layer). Archivo's weight axis
 starts at 400, so no `font-weight: 300`. Fragment Mono is wide: track in `em`, never `px`.
 
-## Batch 2 — project index (done, uncommitted)
+## Batch 2 — project index (done, committed)
 
 | # | Change | File |
 |---|---|---|
@@ -86,19 +94,86 @@ column while `.project-detail-header` and the new `.project-spec` are in the
 bounded-band system, so the prose starts at a different left edge from everything
 above it. Pre-existing, but the spec band makes it obvious. Reconcile in Batch 3.
 
-**Cleanup NOT available yet** (the old note here was wrong): the inline
-`style="transition-delay:…"` attributes are five in `front-page.php` and one in
-`page-about.php` — Batch 2 only removed the two in `page-projects.php`. The
-`transition-delay: 0s !important` in `style.css` has to stay until Batch 3 clears
-`front-page.php` *and* someone clears `page-about.php`, which no batch covers.
+**Cleanup, partially available:** the inline `style="transition-delay:…"`
+attributes were five in `front-page.php` and one in `page-about.php` — Batch 2
+removed the two in `page-projects.php`, and Batch 3 has now removed the five
+in `front-page.php` (they were already dead under the `!important` override
+below; this was hygiene, not a behavior change). One remains, in
+`page-about.php`, which no batch covers — so the
+`transition-delay: 0s !important` override in `style.css` still has to stay
+until someone clears that one too.
 
-## Batches 3 and 4 (not started)
+## Batch 3 — homepage restructure (in progress, uncommitted)
 
-- **3 — Homepage restructure:** new hero, delete the six services cards, retire the
-  stats bar, rework the featured block. *Items 14 and 15 are business decisions —
-  confirm before shipping.*
-- **4 — Performance & hygiene:** `srcset` + WebP, disable WP emoji (a 📍 in project
-  copy loads Twemoji SVGs), drop front-end dashicons (35 KB), register image sizes.
+| # | Change | File | Model |
+|---|---|---|---|
+| 13 | New hero: real project photo + copy grounded in the Aegean/Low Countries positioning, replacing the generic stock photo and "Est. in Excellence" tagline | `front-page.php`, `functions.php` | Sonnet 5 — done |
+| — | Featured block: skip empty-excerpt candidates instead of always taking the single newest project; meta line now uses the Batch 2 spec-field system instead of a bare location/year string | `front-page.php` | Sonnet 5 — done |
+| — | Cleared the five inline `transition-delay` attributes in `front-page.php` (see Batch 2's note — they were already dead under the `!important` override; this is hygiene, not a visual change) | `front-page.php` | Sonnet 5 — done |
+| 14 | Delete the six services cards | `front-page.php`, `functions.php`, `style.css` | **Opus 5 — reserved** |
+| 15 | Retire the stats bar | `front-page.php`, `functions.php`, `style.css` | **Opus 5 — reserved** |
+
+Items 14 and 15 are still business decisions — they remove content that makes
+claims about the business (what services are offered, the stats bar's trust
+signals) — and still need Emir's sign-off before shipping, independent of
+which model does the implementation.
+
+**New hero, concretely:**
+
+- `yaya_hero_image` default is now `.../uploads/2026/04/IMG_0103.png` — a real
+  Inkim Suites render (the Aegean coastline, palm trees, sailboats), pulled
+  from the project's own live page rather than uploaded fresh. Still
+  overridable via the Customizer.
+- Copy (`yaya_home_page_defaults()['hero']` in `functions.php`, single source
+  for both the front end and the admin meta-box placeholders): tag "Two
+  Latitudes, One Standard", headline "BUILDING / ACROSS / TWO LATITUDES", and
+  a sub-line naming the two regions instead of the old "lasts generations"
+  boilerplate. No layout or CSS change — the hero was already fully wired into
+  the Batch 1 bounded-grid and dark-band systems.
+
+**Featured-block rework, concretely:**
+
+- The query now pulls every non-coming-soon project (was: just the single
+  newest) and picks the first one, in date order, with a non-empty
+  `get_the_excerpt()`. This is the same emptiness check the block already had —
+  just applied across candidates instead of only the newest one — so it can't
+  regress the "nothing has content" case, which still falls through to the
+  existing empty-state copy.
+  **Why:** Amsterdam is the newest non-coming-soon project and has no
+  description at all, so before this change the homepage's most visible slot
+  led with the canned filler paragraph. Confirmed live: `get_the_excerpt()` on
+  Amsterdam returns empty (both `post_excerpt` and `post_content` are empty),
+  so this isn't guessing — it's the same emptiness signal the block already
+  trusted, just checked before committing to a project instead of after.
+  **Not fully verifiable locally:** which project the fix actually lands on
+  depends on `post_date` ordering among Güzelbahçe X / Brussels / Inkim
+  Suites, which isn't exposed by REST or the sitemap (only `post_modified` is,
+  and it doesn't match `post_date` order here) — no `php` binary or DB access
+  to check directly. Read the live result after this deploys.
+- The meta line under the title now renders `yaya_project_spec_rows()` (the
+  same Batch 2 field set — location · year · scope · area · status) instead of
+  a bare "location, year" string, and moved from inline text inside the `<h2>`
+  to its own `<p class="home-project-meta">` sibling — same fix Batch 2 made
+  on the single-project page, for the same reason (a location caption
+  shouldn't be part of the heading's accessible name).
+  **CSS note:** `.home-project-content p:not(.section-label)` is the body-copy
+  rule for that column; it now also excludes `.home-project-meta`
+  (`:not(.home-project-meta)`), or its higher specificity would overwrite the
+  spec line's mono styling with body-copy styling. Keep both exclusions if
+  another paragraph type is added to that column.
+
+**Harness:** `tools/harness.py` now renders the home page's hero and featured
+block from hardcoded real data (`render_home()`), the same approach
+`render_index()`/`render_spec()` already used for the projects page — injecting
+CSS into the fetched production markup stopped being enough once the markup
+itself changed. The featured project shown in the harness (Inkim Suites) is
+illustrative — real content, but not a claim about which project the live
+"skip empty excerpts" logic will land on (see above).
+
+## Batch 4 — performance & hygiene (not started)
+
+`srcset` + WebP, disable WP emoji (a 📍 in project copy loads Twemoji SVGs), drop
+front-end dashicons (35 KB), register image sizes.
 
 ## Content blockers — nobody's code can fix these
 
@@ -107,7 +182,7 @@ Verified by reading all five project pages on 2 Aug 2026.
 | Page | Published right now |
 |---|---|
 | `/project/brussels` | Description is the literal string `sdsd`, with 5 photos under it |
-| `/project/amsterdam` | No description at all — which is why the homepage featured block falls back to filler. This is the project the homepage leads with. |
+| `/project/amsterdam` | No description at all. Was the newest non-coming-soon project, so it used to be what the homepage featured block led with (falling back to filler text); Batch 3's featured-block fix now skips it for a project with real content — see Batch 3 notes above. |
 | `/project/z-suites` | "Details for Z-Suites are coming soon." No images. |
 | 3 of 5 projects | No location or year. The spec block now has five fields to fill and these three can fill none of them, so it doesn't render at all on Brussels, Amsterdam or Z-Suites, and their index rows show a bare name. The fields are in the editor now — **Projects → edit → Project Details** |
 | Site title | Still "YAYA Construct website" — now the description on every inner page in search and every shared link |
@@ -146,8 +221,8 @@ real bug**:
 
 Injecting CSS into fetched HTML only works while the markup is unchanged. Where a
 batch rewrote it, the harness renders that body from the live data instead —
-currently the projects index and the spec block. Batch 3 will need the same for
-`front-page.php`.
+currently the projects index, the spec block, and (as of Batch 3) the home
+page's hero and featured block.
 
 Screenshots after programmatic scroll are unreliable in this setup — prefer
 `getComputedStyle` assertions. A DOM-walking contrast audit is the fastest check;

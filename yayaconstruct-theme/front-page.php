@@ -9,16 +9,18 @@ if (!$home_page_id) {
 $home_defaults = function_exists('yaya_home_page_defaults') ? yaya_home_page_defaults() : [];
 
 // Hero values
-$hero_tag   = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_tag', get_theme_mod('yaya_hero_tag',   $home_defaults['hero']['tag'] ?? 'Est. in Excellence')) : get_theme_mod('yaya_hero_tag',   'Est. in Excellence');
-$hero_line1 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line1', get_theme_mod('yaya_hero_line1', $home_defaults['hero']['line1'] ?? 'WE')) : get_theme_mod('yaya_hero_line1', 'WE');
-$hero_line2 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line2', get_theme_mod('yaya_hero_line2', $home_defaults['hero']['line2'] ?? 'BUILD')) : get_theme_mod('yaya_hero_line2', 'BUILD');
-$hero_line3 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line3', get_theme_mod('yaya_hero_line3', $home_defaults['hero']['line3'] ?? 'YOUR VISION')) : get_theme_mod('yaya_hero_line3', 'YOUR VISION');
+$hero_tag   = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_tag', get_theme_mod('yaya_hero_tag',   $home_defaults['hero']['tag'] ?? 'Two Latitudes, One Standard')) : get_theme_mod('yaya_hero_tag',   'Two Latitudes, One Standard');
+$hero_line1 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line1', get_theme_mod('yaya_hero_line1', $home_defaults['hero']['line1'] ?? 'BUILDING')) : get_theme_mod('yaya_hero_line1', 'BUILDING');
+$hero_line2 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line2', get_theme_mod('yaya_hero_line2', $home_defaults['hero']['line2'] ?? 'ACROSS')) : get_theme_mod('yaya_hero_line2', 'ACROSS');
+$hero_line3 = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_line3', get_theme_mod('yaya_hero_line3', $home_defaults['hero']['line3'] ?? 'TWO LATITUDES')) : get_theme_mod('yaya_hero_line3', 'TWO LATITUDES');
 $hero_sub   = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_sub',   get_theme_mod('yaya_hero_sub',   $home_defaults['hero']['sub'] ?? '')) : get_theme_mod('yaya_hero_sub', '');
 $hero_cta1  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta1',  get_theme_mod('yaya_hero_cta1',  $home_defaults['hero']['cta1'] ?? 'View Our Work')) : get_theme_mod('yaya_hero_cta1', 'View Our Work');
 $hero_cta2  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta2',  get_theme_mod('yaya_hero_cta2',  $home_defaults['hero']['cta2'] ?? 'Get a Quote')) : get_theme_mod('yaya_hero_cta2', 'Get a Quote');
 $hero_cta1_url = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta1_url', $home_defaults['hero']['cta1_url'] ?? home_url('/projects')) : home_url('/projects');
 $hero_cta2_url = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_hero_cta2_url', $home_defaults['hero']['cta2_url'] ?? home_url('/contact')) : home_url('/contact');
-$hero_img   = get_theme_mod('yaya_hero_image', 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80');
+// Default is a real project photo (Inkim Suites, on the Aegean) rather than a
+// generic stock stand-in. Still overridable via the Customizer.
+$hero_img   = get_theme_mod('yaya_hero_image', 'https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0103.png');
 
 // Stats
 $stats = [];
@@ -62,8 +64,8 @@ $featured_empty_text = function_exists('yaya_get_home_page_field') && $home_page
 
 <!-- Stats -->
 <div class="stats-bar">
-  <?php foreach ($stats as $k => $stat): ?>
-  <div class="stat-item reveal" style="transition-delay: <?php echo ($k * 0.1); ?>s">
+  <?php foreach ($stats as $stat): ?>
+  <div class="stat-item reveal">
     <div class="stat-num"><?php echo esc_html($stat['num']); ?></div>
     <div class="stat-label"><?php echo esc_html($stat['label']); ?></div>
   </div>
@@ -93,14 +95,13 @@ $service_defaults = [
 <section class="section" aria-labelledby="services-title">
   <p class="section-label reveal"><?php echo esc_html($services_section_label); ?></p>
   <?php // Was a <div>: the page had a single <h1> and no other headings at all. ?>
-  <h2 id="services-title" class="section-title reveal" style="transition-delay:0.1s"><?php echo esc_html($services_section_title); ?></h2>
+  <h2 id="services-title" class="section-title reveal"><?php echo esc_html($services_section_title); ?></h2>
   <div class="services-grid">
     <?php for ($i = 1; $i <= 6; $i++):
       $svc_title = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_service_{$i}_title", get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0])) : get_theme_mod("yaya_service{$i}_title", $service_defaults[$i][0]);
       $svc_text  = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_service_{$i}_text",  get_theme_mod("yaya_service{$i}_text",  $service_defaults[$i][1])) : get_theme_mod("yaya_service{$i}_text",  $service_defaults[$i][1]);
-      $delay     = round(($i - 1) * 0.08, 2);
     ?>
-    <div class="service-card reveal" style="transition-delay:<?php echo $delay; ?>s">
+    <div class="service-card reveal">
       <div class="service-icon" aria-hidden="true"><?php echo $service_icons[$i]; ?></div>
       <h3 class="service-title"><?php echo esc_html($svc_title); ?></h3>
       <p class="service-text"><?php echo esc_html($svc_text); ?></p>
@@ -112,10 +113,12 @@ $service_defaults = [
 <!-- Featured Project -->
 <?php
 // "Coming soon" placeholders are skipped — the homepage showcase should be
-// finished work, not an empty card.
-$featured = new WP_Query([
+// finished work, not an empty card. Among the rest, prefer one with a real
+// description over merely the newest: an empty excerpt on the page's most
+// visible slot reads as filler, not as "recently added."
+$featured_candidates = new WP_Query([
   'post_type'      => 'project',
-  'posts_per_page' => 1,
+  'posts_per_page' => -1,
   'orderby'        => 'date',
   'order'          => 'DESC',
   'meta_query'     => [
@@ -124,19 +127,35 @@ $featured = new WP_Query([
     ['key' => '_yaya_project_coming_soon', 'value' => '1', 'compare' => '!='],
   ],
 ]);
-if ($featured->have_posts()):
-  $featured->the_post();
+$featured_id = null;
+$fallback_id = null;
+foreach ($featured_candidates->posts as $candidate) {
+  if ($fallback_id === null) {
+    $fallback_id = $candidate->ID;
+  }
+  if (trim(get_the_excerpt($candidate)) !== '') {
+    $featured_id = $candidate->ID;
+    break;
+  }
+}
+if ($featured_id === null) {
+  $featured_id = $fallback_id;
+}
+wp_reset_postdata();
+if ($featured_id):
   // Same resolution as the project cards: featured image, then the project's
   // own gallery, so the homepage stops falling back to a stock photo.
   $feat_img = function_exists('yaya_project_card_image')
-    ? yaya_project_card_image(get_the_ID(), 'large')
-    : get_the_post_thumbnail_url(get_the_ID(), 'large');
-  $feat_loc  = get_post_meta(get_the_ID(), 'project_location', true);
-  $feat_year = get_post_meta(get_the_ID(), 'project_year', true);
-  $feat_link = get_permalink();
+    ? yaya_project_card_image($featured_id, 'large')
+    : get_the_post_thumbnail_url($featured_id, 'large');
+  // Same spec fields as the project page and the index detail line — one
+  // definition (functions.php) drives all three, so this stays in sync with
+  // whatever fields an editor has filled in.
+  $feat_spec = function_exists('yaya_project_spec_rows') ? yaya_project_spec_rows($featured_id) : [];
+  $feat_link = get_permalink($featured_id);
   // The whole project body used to be printed here, inside a <p>. Use the
   // excerpt instead — manual if set, auto-generated otherwise — and bound it.
-  $feat_text = trim(get_the_excerpt());
+  $feat_text = trim(get_the_excerpt($featured_id));
   if ($feat_text !== '') {
     $feat_text = wp_trim_words($feat_text, 45, '…');
   }
@@ -156,24 +175,24 @@ if ($featured->have_posts()):
       <?php endif; ?>
     </a>
   </div>
-  <div class="home-project-content reveal" style="transition-delay:0.2s">
+  <div class="home-project-content reveal">
     <p class="section-label"><?php echo esc_html($featured_label); ?></p>
     <h2 id="featured-title" class="section-title">
-      <a class="home-project-link" href="<?php echo esc_url($feat_link); ?>"><?php the_title(); ?></a>
-      <?php if ($feat_loc): ?>
-        <span class="home-project-meta"><?php echo esc_html($feat_loc); ?><?php if ($feat_year): ?>, <?php echo esc_html($feat_year); ?><?php endif; ?></span>
-      <?php endif; ?>
+      <a class="home-project-link" href="<?php echo esc_url($feat_link); ?>"><?php echo esc_html(get_the_title($featured_id)); ?></a>
     </h2>
+    <?php if ($feat_spec): ?>
+      <p class="home-project-meta"><?php echo esc_html(implode(' · ', wp_list_pluck($feat_spec, 'value'))); ?></p>
+    <?php endif; ?>
     <p><?php echo esc_html($feat_text); ?></p>
     <a href="<?php echo esc_url($featured_button_url); ?>" class="btn-primary"><?php echo esc_html($featured_button_text); ?></a>
   </div>
 </section>
-<?php wp_reset_postdata(); else: ?>
+<?php else: ?>
 <section class="home-project" aria-labelledby="featured-title">
   <div class="home-project-img reveal">
     <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="" loading="lazy" decoding="async" />
   </div>
-  <div class="home-project-content reveal" style="transition-delay:0.2s">
+  <div class="home-project-content reveal">
     <p class="section-label"><?php echo esc_html($featured_label); ?></p>
     <h2 id="featured-title" class="section-title"><?php echo nl2br(esc_html($featured_empty_title)); ?></h2>
     <p><?php echo esc_html($featured_empty_text ?: 'Every project we take on is a testament to our commitment to quality. Our team of experienced builders, engineers, and project managers ensure every detail is executed to perfection.'); ?></p>

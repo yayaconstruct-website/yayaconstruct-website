@@ -540,10 +540,13 @@ Version: 1.0
 
     .home-project-content .section-title { color: var(--limewash); }
 
-    /* Location/year line under the featured project title. */
+    /* Spec line (location · year · scope · area · status) under the featured
+       project title — a <p> sibling of the heading now, not text stuffed
+       inside it, so it needs its own margin rather than the heading's. */
     .home-project-meta {
       display: block;
       margin-top: 0.5rem;
+      margin-bottom: 1.25rem;
       font-family: var(--font-mono);
       font-size: 1rem;
       font-weight: 400;
@@ -551,8 +554,9 @@ Version: 1.0
       color: var(--aegean);
     }
 
-    /* The section label is a <p> now, so the body-copy rule has to skip it. */
-    .home-project-content p:not(.section-label) {
+    /* The section label and the spec line are <p> now too, so the body-copy
+       rule has to skip both. */
+    .home-project-content p:not(.section-label):not(.home-project-meta) {
       font-size: 1.0625rem;
       font-weight: 400;
       line-height: 1.75;
