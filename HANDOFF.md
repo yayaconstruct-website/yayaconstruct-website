@@ -316,10 +316,23 @@ hero-image-fix note above) also still carries its own stale URL — untouched,
 same reasoning as before: a later rule already overrides it, so it renders
 nothing.
 
-**Not verifiable via the harness:** `tools/harness.py` doesn't fetch or
-render the about or contact pages at all — "About and Contact still point at
-the live site" (see "How to see it" below), unchanged by this pass. Verified
-by manual review only.
+**Harness extended to cover this** (Emir asked to review before merging to
+`main`): `tools/harness.py` didn't fetch or render About/Contact at all before
+this — they linked straight to the live site. Added `build_static()`, which
+just injects the working tree's CSS into the fetched page with no custom
+rendering, the same treatment `build_home()` used before Batch 3 changed the
+home page's own markup. **Caught a real bug writing it:** the fetched live
+pages are still running the pre-this-branch template, so About's HTML still
+had the four inline `transition-delay` attributes this pass removed —
+injecting the new CSS (with the now-gone `!important` override) into that old
+markup would have made the value cards visibly stagger in the harness, a
+behavior the deployed code will never actually produce. Same failure shape
+as HANDOFF's own stale-token warning below, just an attribute instead of a
+custom property. Fixed with a small regex (`ABOUT_MARKUP_FIXES`) that strips
+the attribute from the fetched HTML before injecting, so the harness matches
+what actually ships rather than what's live right now. Verified after the
+fix: `harness-about.html` and `harness-contact.html` both render with the
+real hero photos and zero stale `transition-delay` attributes.
 
 ## Content blockers — nobody's code can fix these
 
@@ -347,8 +360,8 @@ python3 tools/harness.py --serve
 
 Then open <http://localhost:8731/harness-home.html>. It fetches the live pages
 once into `.harness/` (gitignored), rewrites them against the working tree, and
-serves home / projects / three project pages, cross-linked so you can click
-between them. About and Contact still point at the live site. Re-run it after
+serves all seven pages — home / projects / three project pages / about /
+contact — cross-linked so you can click between them. Re-run it after
 editing `style.css`; add `--refetch` if production content changed. `tools/` is
 outside the FTP mirror, so none of this can deploy.
 
@@ -368,7 +381,12 @@ real bug**:
 Injecting CSS into fetched HTML only works while the markup is unchanged. Where a
 batch rewrote it, the harness renders that body from the live data instead —
 currently the projects index, the spec block, and (as of Batch 3) the home
-page's hero and featured block.
+page's hero and featured block. Where the markup changed only slightly — the
+about/contact alignment pass removed one inline attribute, nothing structural
+— `build_static()`'s `markup_fixes` parameter patches the fetched HTML with a
+small regex instead of a full custom render. Same principle as the token
+rename below: production is running the old template until this deploys, so
+its markup still has whatever the branch removed.
 
 Screenshots after programmatic scroll are unreliable in this setup — prefer
 `getComputedStyle` assertions. A DOM-walking contrast audit is the fastest check;

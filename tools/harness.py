@@ -23,7 +23,9 @@ Three rewrites matter, and each of them once looked like a real bug:
 Pages whose markup the working tree has changed can't be rewritten this way at
 all; their body is rendered here from the live data instead. That currently
 means the projects index, the project spec block, and — as of Batch 3 — the
-home page's hero and featured-project block.
+home page's hero and featured-project block. About and Contact haven't had
+their markup touched (only CSS, plus one inert inline-style removal), so they
+get the plain injection treatment with no custom rendering.
 """
 
 import argparse
@@ -47,6 +49,8 @@ LIVE_PAGES = {
     'live-home.html': 'https://yayaconstruct.com/',
     'live-projects.html': 'https://yayaconstruct.com/projects/',
     'live-project.html': 'https://yayaconstruct.com/project/inkim-suites/',
+    'live-about.html': 'https://yayaconstruct.com/about/',
+    'live-contact.html': 'https://yayaconstruct.com/contact/',
 }
 
 NAV_LOGO = '''<a class="nav-logo" href="/harness-home.html">
@@ -63,6 +67,8 @@ LINK_MAP = [
     (SITE + '/project/inkim-suites/', '/harness-project.html'),
     (SITE + '/project/guzelbahce-x/', '/harness-project-three.html'),
     (SITE + '/project/z-suites/', '/harness-project-thin.html'),
+    (SITE + '/about', '/harness-about.html'),
+    (SITE + '/contact', '/harness-contact.html'),
     (SITE + '/', '/harness-home.html'),
 ]
 
@@ -292,6 +298,28 @@ def build_project(name, spec_rows):
     (BUILD / name).write_text(inject(strip_assets(html)), encoding='utf-8')
 
 
+def build_static(live_name, out_name, markup_fixes=()):
+    """For pages whose markup the working tree hasn't touched (much) — inject
+    alone is close to enough. `markup_fixes` is a list of (pattern,
+    replacement) applied to the fetched HTML first, for the handful of spots
+    where the branch *did* change markup: production is still running the
+    old template until this deploys, so its HTML still has whatever the
+    branch removed — same failure shape as a stale `var(--rust)` token, just
+    an attribute instead of a custom property."""
+    html = (BUILD / live_name).read_text(encoding='utf-8')
+    for pattern, replacement in markup_fixes:
+        html = re.sub(pattern, replacement, html)
+    (BUILD / out_name).write_text(inject(strip_assets(html)), encoding='utf-8')
+
+
+# Production still serves the pre-cleanup value-card markup (this branch
+# hasn't deployed) — strip the inline transition-delay so the harness matches
+# what actually ships, not what's live right now.
+ABOUT_MARKUP_FIXES = [
+    (r'(<div class="value-card reveal")\s+style="transition-delay:[^"]*"(>)', r'\1\2'),
+]
+
+
 def build():
     fetch_live()
     build_home()
@@ -299,6 +327,8 @@ def build():
     build_project('harness-project.html', SPEC_FULL)
     build_project('harness-project-three.html', SPEC_THREE)
     build_project('harness-project-thin.html', SPEC_THIN)
+    build_static('live-about.html', 'harness-about.html', ABOUT_MARKUP_FIXES)
+    build_static('live-contact.html', 'harness-contact.html')
     link = BUILD / 'images'
     if not link.exists():
         link.symlink_to(THEME / 'images')
