@@ -8,6 +8,20 @@
   $coming_soon  = (bool) get_post_meta( get_the_ID(), '_yaya_project_coming_soon', true );
   $gallery_ids  = get_post_meta( get_the_ID(), '_yaya_project_gallery', true );
   $gallery_ids  = $gallery_ids ? array_filter( array_map( 'absint', explode( ',', $gallery_ids ) ) ) : [];
+  // Resolve the full-size URLs up front. An attachment that has since been
+  // deleted drops out here rather than mid-loop, so the "photo N of M" labels
+  // below count the photos that actually render, and an all-deleted gallery
+  // no longer prints an empty grid.
+  $gallery_items = [];
+  if ( ! $coming_soon ) {
+    foreach ( $gallery_ids as $attachment_id ) {
+      $full = wp_get_attachment_image_url( $attachment_id, 'large' );
+      if ( $full ) {
+        $gallery_items[] = [ 'id' => $attachment_id, 'url' => $full ];
+      }
+    }
+  }
+  $gallery_total = count( $gallery_items );
   // Location and year moved out of the hero and into the spec block below, so
   // the same two values no longer appear twice within a screen height.
   $spec_rows    = function_exists( 'yaya_project_spec_rows' ) ? yaya_project_spec_rows( get_the_ID() ) : [];
@@ -51,16 +65,24 @@
 <?php endif; ?>
 
 <!-- Gallery -->
-<?php if ( ! $coming_soon && ! empty( $gallery_ids ) ) : ?>
+<?php if ( $gallery_items ) : ?>
 <div class="project-gallery">
   <div class="project-gallery-grid">
-    <?php foreach ( $gallery_ids as $attachment_id ) :
-      $full = wp_get_attachment_image_url( $attachment_id, 'large' );
-      if ( ! $full ) continue;
+    <?php
+    // The photographs are decorative here: the <h1> above already names the
+    // project, so repeating it as alt text once per image only makes a screen
+    // reader read the same words ten times over. The accessible name belongs
+    // on the wrapping link instead — it goes somewhere (the full-size file),
+    // and with an empty alt it would otherwise have no name at all.
+    foreach ( $gallery_items as $i => $item ) :
     ?>
-      <a class="project-gallery-item" href="<?php echo esc_url( $full ); ?>" target="_blank" rel="noopener">
-        <?php echo wp_get_attachment_image( $attachment_id, 'yaya-gallery', false, [
-          'alt'      => get_the_title(),
+      <a class="project-gallery-item"
+         href="<?php echo esc_url( $item['url'] ); ?>"
+         target="_blank"
+         rel="noopener"
+         aria-label="<?php echo esc_attr( sprintf( 'View photo %d of %d, full size', $i + 1, $gallery_total ) ); ?>">
+        <?php echo wp_get_attachment_image( $item['id'], 'yaya-gallery', false, [
+          'alt'      => '',
           'loading'  => 'lazy',
           'decoding' => 'async',
           'sizes'    => '(max-width: 768px) 50vw, 33vw',

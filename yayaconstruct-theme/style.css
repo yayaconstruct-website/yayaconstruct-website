@@ -71,6 +71,9 @@ Version: 1.0
     .contact-info,
     .project-detail-header,
     .project-spec,
+    .project-detail-body,
+    .project-gallery,
+    .project-detail-back,
     footer {
       padding-inline: max(var(--gutter), calc((100% - var(--page-max)) / 2));
     }
@@ -234,12 +237,14 @@ Version: 1.0
       background: var(--slate);
     }
 
+    /* Positioning only. The paint lives in the HERO DYNAMIC BACKGROUND rule
+       near the end of this file, which reads --hero-bg; the shorthand that
+       used to sit here was fully overridden by it and still carried the old
+       stock photo, so it has come out. `position`/`inset` are NOT restated
+       down there — they are live here and must stay. */
     .hero-bg {
       position: absolute;
       inset: 0;
-      background:
-        linear-gradient(160deg, rgba(27,30,31,0.0) 0%, rgba(27,30,31,0.85) 60%),
-        url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80') center/cover no-repeat;
     }
 
     .hero-tag {
@@ -606,9 +611,12 @@ Version: 1.0
     /* ── PROJECTS ── */
     .projects-hero {
       min-height: 50vh;
+      /* Real work, not stock: Güzelbahçe X. A different building from the
+         home, about and contact heroes so the same facade doesn't recur
+         down the site. */
       background:
         linear-gradient(to bottom, rgba(27,30,31,0.5) 0%, rgba(27,30,31,0.92) 100%),
-        url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1400&q=80') center/cover no-repeat;
+        url('https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0090-1024x768.jpg') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
@@ -1019,7 +1027,12 @@ Version: 1.0
     /* ── FOOTER ── */
     footer {
       background: var(--slate);
-      padding: 3rem;
+      /* padding-block only. footer is in the bounded-band padding-inline list
+         at the top of this file, and a shorthand `padding` here overrode it —
+         so the footer sat 48px from the viewport edge while every band above
+         it sat on the 1360px column, 280px in at 1920. The two must stay
+         split; this is the collision the split exists to prevent. */
+      padding-block: 3rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1287,9 +1300,12 @@ Version: 1.0
     .project-detail-bg {
       position: absolute;
       inset: 0;
+      /* single-project.php sets --project-bg from the featured image; the
+         fallback only fires for a project that has none, so it is a real
+         photo of the practice's own work rather than a stock building. */
       background-image:
         linear-gradient(to top, rgba(27,30,31,0.95) 0%, rgba(27,30,31,0.25) 100%),
-        var(--project-bg, url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1600&q=80'));
+        var(--project-bg, url('https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0120-1024x768.jpg'));
       background-size: cover;
       background-position: center;
     }
@@ -1359,10 +1375,23 @@ Version: 1.0
       .project-spec-item { padding: 1rem 1.1rem 1.1rem; }
     }
 
+    /* ── ONE COLUMN, ALL THE WAY DOWN ──
+       The three sections below the spec block each used to invent their own
+       centring (a 800px prose column, a 1100px gallery, a 3rem-padded back
+       link), so a 1600px viewport showed four different left edges in one
+       scroll. They are on the shared bounded band now, like the header and
+       the spec above them, and carry vertical padding only — the band's
+       inline padding comes from the shared rule, and the two must never be
+       written as one shorthand or they collide.
+
+       The prose measure moved to where it belongs: `.project-detail-content`
+       is already in the running-text `max-width: var(--measure)` list near
+       the top of this file, so the copy is bounded as text rather than by
+       squeezing the band it sits in — same left edge as the h1, the spec
+       grid and the gallery, and the line length is one decision made once
+       for the whole site instead of a magic 800 here. */
     .project-detail-body {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 5rem 3rem;
+      padding-block: 5rem;
     }
     .project-detail-content {
       font-size: 1.0625rem;
@@ -1371,9 +1400,20 @@ Version: 1.0
       color: var(--zinc);
     }
     .project-detail-content p { margin-bottom: 1.2rem; }
+    /* Flush left, not centred. Centring made sense while this band spanned
+       the viewport and had no column to belong to; inside the bounded band
+       it would sit on an axis nothing else on the page uses, reading as an
+       orphan rather than a deliberate centre. Left-aligned it closes the
+       column, and matches every other trailing CTA on the site. */
     .project-detail-back {
-      padding: 0 3rem 5rem;
-      text-align: center;
+      padding-block: 0 5rem;
+    }
+    /* Each section above the back link ends with its own bottom padding, so
+       the link takes none of its own — except when it follows the spec grid
+       directly (a project with spec fields but no description and no
+       gallery), where nothing has opened the gap for it. */
+    .project-spec + .project-detail-back {
+      padding-block-start: 3.5rem;
     }
     .project-detail-back .btn-outline {
       display: inline-block;
@@ -1381,20 +1421,28 @@ Version: 1.0
     }
     @media (max-width: 768px) {
       .project-detail-header { padding-block: 2.5rem; }
-      .project-detail-body   { padding: 3rem 1.5rem; }
-      .project-detail-back   { padding: 0 1.5rem 3rem; }
+      .project-detail-body   { padding-block: 3rem; }
+      .project-detail-back   { padding-block: 0 3rem; }
+      .project-spec + .project-detail-back { padding-block-start: 2.25rem; }
     }
 
-    /* ── PROJECT GALLERY ── */
+    /* ── PROJECT GALLERY ──
+       On the shared bounded band with everything else on this page. Three
+       columns still: at the full 1360 band that's a ~440px plate rather than
+       the ~325px the 1100px wrapper allowed, which the source photos carry
+       comfortably (they cap at 1024px, so still over 2× at that size) and
+       which a builder's work deserves — these are the argument for the
+       practice, not thumbnails of it. */
     .project-gallery {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 3rem 5rem;
+      padding-block: 0 5rem;
     }
     .project-gallery-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
+      /* Was 1rem against a 325px cell. The cells grew ~35%; the gutter grows
+         a little with them so the contact-sheet density reads the same
+         instead of the plates crowding each other. */
+      gap: 1.25rem;
     }
     .project-gallery-item {
       display: block;
@@ -1412,8 +1460,10 @@ Version: 1.0
       transform: scale(1.06);
     }
     @media (max-width: 768px) {
-      .project-gallery { padding: 0 1.5rem 3rem; }
-      .project-gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .project-gallery { padding-block: 0 3rem; }
+      /* Two up, and back to the tighter gutter — the cells here are small
+         enough that 1.25rem starts eating the photograph. */
+      .project-gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
     }
 
     /* ── COMING SOON ── */
@@ -1531,13 +1581,18 @@ Version: 1.0
       color: #c0392b;
     }
 
-    /* ── HERO DYNAMIC BACKGROUND ── */
+    /* ── HERO DYNAMIC BACKGROUND ──
+       The whole of .hero-bg's paint, in one place. front-page.php sets
+       --hero-bg inline from the yaya_hero_image theme_mod; the fallback is
+       only reached if that is ever unset, and matches the mod's own default
+       and the wp_head preload hint. */
     .hero-bg {
       background-image:
         linear-gradient(160deg, rgba(27,30,31,0.0) 0%, rgba(27,30,31,0.85) 60%),
         var(--hero-bg, url('https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0103.png'));
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
     }
 
     /* ── HAMBURGER BUTTON ── */
