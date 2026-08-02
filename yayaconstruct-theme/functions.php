@@ -95,7 +95,13 @@ function yaya_scripts() {
         'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=Fragment+Mono&display=swap',
         [], null
     );
-    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '2.0');
+    // The version string used to be hardcoded '2.0' and was never bumped
+    // across four batches of CSS changes, so browsers and any CDN kept
+    // serving stale CSS after every deploy. The stylesheet's own mtime
+    // changes on every edit, so it can't go stale the same way.
+    $yaya_css_path = get_stylesheet_directory() . '/style.css';
+    $yaya_css_ver  = file_exists($yaya_css_path) ? (string) filemtime($yaya_css_path) : '2.0';
+    wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], $yaya_css_ver);
 }
 add_action('wp_enqueue_scripts', 'yaya_scripts');
 

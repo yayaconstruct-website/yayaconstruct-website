@@ -5,7 +5,7 @@ if (have_posts()) :
   while (have_posts()) :
     the_post();
     ?>
-    <main class="page-wrap">
+    <div class="page-wrap">
       <article <?php post_class('default-page-content'); ?>>
         <header class="default-page-header">
           <div class="section-label" style="color:var(--aegean)">Page</div>
@@ -16,7 +16,7 @@ if (have_posts()) :
           <?php the_content(); ?>
         </div>
       </article>
-    </main>
+    </div>
     <?php
   endwhile;
 endif;

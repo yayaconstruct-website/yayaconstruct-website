@@ -116,7 +116,8 @@ if ($featured_id):
       <?php if (!empty($feat_img['id']) || !empty($feat_img['url'])): ?>
         <?php yaya_render_project_image($feat_img, 'yaya-featured', '(max-width: 1100px) 100vw, 50vw'); ?>
       <?php else: ?>
-        <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="" loading="lazy" decoding="async" />
+        <?php // Real project photo (Inkim Suites), not a stock stand-in. ?>
+        <img src="https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0120-1024x768.jpg" alt="" loading="lazy" decoding="async" />
       <?php endif; ?>
     </a>
   </div>
@@ -135,7 +136,8 @@ if ($featured_id):
 <?php else: ?>
 <section class="home-project" aria-labelledby="featured-title">
   <div class="home-project-img reveal">
-    <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="" loading="lazy" decoding="async" />
+    <?php // Real project photo (Inkim Suites), not a stock stand-in. ?>
+    <img src="https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0120-1024x768.jpg" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="home-project-content reveal">
     <p class="section-label"><?php echo esc_html($featured_label); ?></p>

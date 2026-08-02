@@ -1,6 +1,6 @@
 <?php get_header(); ?>
 
-<main class="page-wrap">
+<div class="page-wrap">
   <?php if (have_posts()) : ?>
     <?php while (have_posts()) : the_post(); ?>
       <article <?php post_class('default-page-content'); ?>>
@@ -27,6 +27,6 @@
       </div>
     </article>
   <?php endif; ?>
-</main>
+</div>
 
 <?php get_footer(); ?>

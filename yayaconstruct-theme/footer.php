@@ -36,7 +36,7 @@
 <footer>
   <div class="footer-logo">YAYA<span>.</span>CONSTRUCT</div>
   <div class="footer-copy">
-    &copy; <?php echo date('Y'); ?> Yaya Construct. All rights reserved.<br>
+    &copy; <?php echo wp_date('Y'); ?> <?php echo esc_html(get_bloginfo('name')); ?>. All rights reserved.<br>
     <span style="color:var(--aegean)">yayaconstruct.com</span>
   </div>
 </footer>
