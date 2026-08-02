@@ -24,64 +24,66 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
 
   <div class="projects-hero">
     <div class="section-label reveal" style="color:var(--aegean)"><?php echo esc_html($projects_hero_label); ?></div>
-    <h1 class="reveal" style="transition-delay:0.15s"><?php echo wp_kses($projects_title, ['br' => []]); ?></h1>
+    <h1 class="reveal"><?php echo wp_kses($projects_title, ['br' => []]); ?></h1>
     <?php if ($projects_intro) : ?>
-      <p class="reveal" style="transition-delay:0.25s"><?php echo esc_html($projects_intro); ?></p>
+      <p class="reveal"><?php echo esc_html($projects_intro); ?></p>
     <?php endif; ?>
   </div>
 
   <?php
-  /* ── Categories, ordered by the city order defined in functions.php ── */
-  $cats = get_terms(['taxonomy' => 'project_category', 'hide_empty' => true]);
-  if (!$cats || is_wp_error($cats)) {
-    $cats = [];
-  }
-  $city_order = function_exists('yaya_project_city_order') ? yaya_project_city_order() : ['Brussels', 'Amsterdam', 'Izmir'];
-  usort($cats, function ($a, $b) use ($city_order) {
-    $pos_a = array_search($a->name, $city_order, true);
-    $pos_b = array_search($b->name, $city_order, true);
-    $pos_a = $pos_a === false ? count($city_order) : $pos_a;
-    $pos_b = $pos_b === false ? count($city_order) : $pos_b;
-    if ($pos_a === $pos_b) {
-      return strcasecmp($a->name, $b->name);
-    }
-    return $pos_a <=> $pos_b;
-  });
+  /* ── Groups, one per region ──
+     Five projects in a three-column grid left a visible empty slot, and the
+     per-city grouping it sat in announced that Amsterdam and Brussels are one
+     project each. The page is now a continuously numbered index grouped by
+     the two latitudes the practice builds in. */
+  $regions = function_exists('yaya_project_regions') ? yaya_project_regions() : [];
 
-  /* ── One group per category, projects bucketed by their primary category ── */
   $groups = [];
-  foreach ($cats as $cat) {
-    $groups[$cat->slug] = ['name' => $cat->name, 'slug' => $cat->slug, 'items' => []];
+  foreach ($regions as $region_slug => $region) {
+    $groups[$region_slug] = ['name' => $region['name'], 'slug' => $region_slug, 'items' => []];
   }
 
   $projects = new WP_Query(['post_type' => 'project', 'posts_per_page' => -1, 'orderby' => 'date', 'order' => 'DESC']);
-  $total_projects = 0;
 
   while ($projects->have_posts()) {
     $projects->the_post();
     $p_cats = get_the_terms(get_the_ID(), 'project_category');
-    $slug = ($p_cats && !is_wp_error($p_cats)) ? $p_cats[0]->slug : 'other';
-    $name = ($p_cats && !is_wp_error($p_cats)) ? $p_cats[0]->name : 'Other Projects';
+    $cat_name = ($p_cats && !is_wp_error($p_cats)) ? $p_cats[0]->name : '';
+    $cat_slug = ($p_cats && !is_wp_error($p_cats)) ? $p_cats[0]->slug : 'other';
 
-    if (!isset($groups[$slug])) {
-      $groups[$slug] = ['name' => $name, 'slug' => $slug, 'items' => []];
+    // A city that predates the region map, or one added in the admin since,
+    // gets a group of its own rather than disappearing off the page.
+    $group_slug = function_exists('yaya_project_region_for_category')
+      ? yaya_project_region_for_category($cat_name)
+      : '';
+    if ($group_slug === '') {
+      $group_slug = $cat_slug;
+      if (!isset($groups[$group_slug])) {
+        $groups[$group_slug] = [
+          'name'  => $cat_name !== '' ? $cat_name : 'Other Projects',
+          'slug'  => $group_slug,
+          'items' => [],
+        ];
+      }
     }
 
-    $groups[$slug]['items'][] = [
+    $groups[$group_slug]['items'][] = [
       'title'       => get_the_title(),
       'permalink'   => get_permalink(),
       'image'       => function_exists('yaya_project_card_image')
-                        ? yaya_project_card_image(get_the_ID(), 'large')
-                        : get_the_post_thumbnail_url(get_the_ID(), 'large'),
-      'location'    => get_post_meta(get_the_ID(), 'project_location', true),
-      'year'        => get_post_meta(get_the_ID(), 'project_year', true),
+                        ? yaya_project_card_image(get_the_ID(), 'medium')
+                        : get_the_post_thumbnail_url(get_the_ID(), 'medium'),
+      'category'    => $cat_name,
+      'location'    => function_exists('yaya_project_spec_value') ? yaya_project_spec_value(get_the_ID(), 'project_location') : (string) get_post_meta(get_the_ID(), 'project_location', true),
+      'year'        => function_exists('yaya_project_spec_value') ? yaya_project_spec_value(get_the_ID(), 'project_year') : (string) get_post_meta(get_the_ID(), 'project_year', true),
+      'scope'       => function_exists('yaya_project_spec_value') ? yaya_project_spec_value(get_the_ID(), '_yaya_project_scope') : '',
+      'status'      => function_exists('yaya_project_spec_value') ? yaya_project_spec_value(get_the_ID(), '_yaya_project_status') : '',
       'coming_soon' => (bool) get_post_meta(get_the_ID(), '_yaya_project_coming_soon', true),
     ];
-    $total_projects++;
   }
   wp_reset_postdata();
 
-  // Drop categories that ended up with no projects of their own.
+  // Drop regions that ended up with no projects of their own.
   $groups = array_filter($groups, function ($group) {
     return !empty($group['items']);
   });
@@ -108,96 +110,69 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
   </div>
   <?php endif; ?>
 
-  <?php if ($groups): ?>
+  <?php if (count($groups) > 1): ?>
   <div class="filter-bar" id="projects-filter">
     <button type="button" class="filter-btn active" data-filter="all">
       <?php echo esc_html($projects_filter_label); ?>
-      <span class="filter-count"><?php echo esc_html($total_projects); ?></span>
     </button>
     <?php foreach ($groups as $group): ?>
       <button type="button" class="filter-btn" data-filter="<?php echo esc_attr($group['slug']); ?>">
         <?php echo esc_html($group['name']); ?>
-        <span class="filter-count"><?php echo esc_html(count($group['items'])); ?></span>
       </button>
     <?php endforeach; ?>
   </div>
   <?php endif; ?>
 
-  <div class="project-groups" id="project-groups">
+  <div class="project-index" id="project-index">
     <?php if (!$groups): ?>
       <div class="projects-empty">
         <p><?php echo esc_html($projects_empty_state); ?></p>
       </div>
     <?php else: ?>
-      <?php $group_index = 0; foreach ($groups as $group):
-        $group_index++;
-        $count = count($group['items']);
+      <?php
+      // One running number across the whole index, so the list reads as a
+      // single catalogue that happens to be sectioned.
+      $entry_number = 0;
+      foreach ($groups as $group):
       ?>
-      <section class="project-group" data-cat="<?php echo esc_attr($group['slug']); ?>" id="projects-<?php echo esc_attr($group['slug']); ?>">
-        <header class="project-group-head reveal">
-          <div class="project-group-heading">
-            <span class="project-group-index"><?php echo esc_html(str_pad((string) $group_index, 2, '0', STR_PAD_LEFT)); ?></span>
-            <h2 class="project-group-title"><?php echo esc_html($group['name']); ?></h2>
-          </div>
-          <span class="project-group-count">
-            <?php echo esc_html($count); ?> <?php echo esc_html($count === 1 ? 'Project' : 'Projects'); ?>
-          </span>
-        </header>
+      <section class="project-region reveal" data-cat="<?php echo esc_attr($group['slug']); ?>" id="projects-<?php echo esc_attr($group['slug']); ?>">
+        <h2 class="project-region-title"><?php echo esc_html($group['name']); ?></h2>
 
-        <?php
-        // Small groups get their own column count so they never leave holes
-        // in a three-column row.
-        $grid_classes = 'project-group-grid';
-        if ($count === 1) {
-          $grid_classes .= ' project-group-grid--single';
-        } elseif ($count === 2) {
-          $grid_classes .= ' project-group-grid--pair';
-        }
-        ?>
-        <div class="<?php echo esc_attr($grid_classes); ?>">
-          <?php foreach (array_values($group['items']) as $index => $item):
-            $card_classes = 'project-card';
-            // The lead card of a group gets the wide treatment, but only when the
-            // group is big enough that the row still fills out.
-            if ($index === 0 && $count >= 3) {
-              $card_classes .= ' project-card--feature';
+        <ol class="project-list">
+          <?php foreach (array_values($group['items']) as $item):
+            $entry_number++;
+
+            /* The detail line is the top of the project's spec block: the first
+               two fields it actually has. The city stands in for a missing
+               location, unless the project is named after it. */
+            $place = $item['location'];
+            if ($place === '' && $item['category'] !== '' && strcasecmp($item['category'], $item['title']) !== 0) {
+              $place = $item['category'];
             }
-            if (!$item['image']) {
-              $card_classes .= ' project-card--no-image';
-            }
-            if ($item['coming_soon']) {
-              $card_classes .= ' project-card--coming-soon';
-            }
+            $detail = array_values(array_filter([$place, $item['year'], $item['scope'], $item['status']], 'strlen'));
+            $detail = array_slice($detail, 0, 2);
           ?>
-          <a href="<?php echo esc_url($item['permalink']); ?>" class="<?php echo esc_attr($card_classes); ?>">
-            <div class="project-card-media">
-              <?php if ($item['image']): ?>
-                <img src="<?php echo esc_url($item['image']); ?>" alt="<?php echo esc_attr($item['title']); ?>" loading="lazy" />
-              <?php else: ?>
-                <div class="project-card-placeholder">
-                  <?php // Coming-soon cards already carry a flag in the overlay. ?>
-                  <?php if (!$item['coming_soon']): ?>
-                    <span>Project image coming soon</span>
-                  <?php endif; ?>
-                </div>
+          <li class="project-list-item">
+            <a class="project-row" href="<?php echo esc_url($item['permalink']); ?>">
+              <span class="project-row-index"><?php echo esc_html(str_pad((string) $entry_number, 2, '0', STR_PAD_LEFT)); ?></span>
+              <span class="project-row-name"><?php echo esc_html($item['title']); ?></span>
+              <?php if ($detail): ?>
+                <span class="project-row-detail">
+                  <?php foreach ($detail as $detail_index => $detail_part): ?>
+                    <?php if ($detail_index > 0): ?><span class="project-row-sep">&middot;</span><?php endif; ?>
+                    <?php echo esc_html($detail_part); ?>
+                  <?php endforeach; ?>
+                </span>
               <?php endif; ?>
-            </div>
-            <div class="project-overlay">
-              <?php if ($item['coming_soon']): ?>
-                <span class="project-flag">Coming soon</span>
-              <?php endif; ?>
-              <div class="project-name"><?php echo esc_html($item['title']); ?></div>
-              <?php if ($item['location'] || $item['year']): ?>
-                <div class="project-loc">
-                  <?php if ($item['location']): ?>&#x1F4CD; <?php echo esc_html($item['location']); ?><?php endif; ?>
-                  <?php if ($item['location'] && $item['year']): ?><span class="project-loc-sep">&middot;</span><?php endif; ?>
-                  <?php echo esc_html($item['year']); ?>
-                </div>
-              <?php endif; ?>
-            </div>
-          </a>
+              <span class="project-row-thumb<?php echo $item['image'] ? '' : ' project-row-thumb--empty'; ?>" aria-hidden="true">
+                <?php if ($item['image']): ?>
+                  <img src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" />
+                <?php endif; ?>
+              </span>
+            </a>
+          </li>
           <?php endforeach; ?>
-        </div>
+        </ol>
       </section>
       <?php endforeach; ?>
     <?php endif; ?>
@@ -208,14 +183,10 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
 <script>
 (function () {
   var bar = document.getElementById('projects-filter');
-  var wrap = document.getElementById('project-groups');
+  var wrap = document.getElementById('project-index');
   if (!bar || !wrap) { return; }
 
-  var groups = Array.prototype.slice.call(wrap.querySelectorAll('.project-group'));
-
-  function revealInside(group) {
-    group.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('visible'); });
-  }
+  var regions = Array.prototype.slice.call(wrap.querySelectorAll('.project-region'));
 
   bar.addEventListener('click', function (e) {
     var btn = e.target.closest('.filter-btn');
@@ -227,16 +198,18 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
       b.classList.toggle('active', b === btn);
     });
 
-    groups.forEach(function (group) {
-      var show = (cat === 'all' || group.dataset.cat === cat);
-      group.classList.toggle('is-hidden', !show);
-      if (show) { revealInside(group); }
+    regions.forEach(function (region) {
+      var show = (cat === 'all' || region.dataset.cat === cat);
+      region.classList.toggle('is-hidden', !show);
+      // A region revealed by the filter must not stay at opacity 0 — its
+      // observer already fired, or never will while it is display:none.
+      if (show) { region.classList.add('visible'); }
     });
 
     // Keep the newly filtered list in view instead of leaving the user
     // stranded further down the page.
     if (cat !== 'all') {
-      var target = wrap.querySelector('.project-group:not(.is-hidden)');
+      var target = wrap.querySelector('.project-region:not(.is-hidden)');
       if (target && target.getBoundingClientRect().top < 0) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }

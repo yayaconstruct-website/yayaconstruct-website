@@ -177,6 +177,52 @@ function yaya_seed_project_categories() {
 add_action('init', 'yaya_seed_project_categories', 20);
 
 /* ─────────────────────────────────────────
+   PROJECT REGIONS
+   The projects index groups by the two latitudes the practice builds in
+   rather than by city. City categories stay as they are — they are still how
+   a project is filed, and they still label the individual entry — but a
+   region is what the page is organised around. Amsterdam and Brussels are one
+   project each; as cities they read as gaps, as "Low Countries" they read as
+   an international position.
+───────────────────────────────────────── */
+function yaya_project_regions() {
+    return [
+        'aegean' => [
+            'name'   => 'Aegean',
+            'cities' => ['Izmir'],
+        ],
+        'low-countries' => [
+            'name'   => 'Low Countries',
+            'cities' => ['Amsterdam', 'Brussels'],
+        ],
+    ];
+}
+
+/**
+ * The region a city category belongs to, or '' when it is not mapped.
+ *
+ * An unmapped category is not an error — a new city can be added in the admin
+ * before anyone touches this file — so callers group those under their own
+ * name instead of dropping them.
+ */
+function yaya_project_region_for_category($category_name) {
+    $category_name = trim((string) $category_name);
+    if ($category_name === '') {
+        return '';
+    }
+
+    foreach (yaya_project_regions() as $slug => $region) {
+        foreach ($region['cities'] as $city) {
+            if (strcasecmp($city, $category_name) === 0) {
+                return $slug;
+            }
+        }
+    }
+
+    return '';
+}
+
+/* ─────────────────────────────────────────
    PROJECT CARD IMAGE
    Featured image first, then the project's own gallery, then anything in its
    content — so a project shows a card image however its photos were added.
@@ -613,6 +659,175 @@ function yaya_save_project_gallery_meta_box($post_id) {
     update_post_meta($post_id, '_yaya_project_coming_soon', isset($_POST['yaya_project_coming_soon']) ? 1 : 0);
 }
 add_action('save_post_project', 'yaya_save_project_gallery_meta_box');
+
+/* ─────────────────────────────────────────
+   PROJECT SPEC
+   Location, year, scope, area and status, in that fixed order, set in mono on
+   every project page. It is how the profession presents work, and it gives a
+   short entry a spine — three of the five projects are a paragraph or less.
+
+   Location and year keep their original unprefixed meta keys: they were only
+   ever editable through the raw Custom Fields panel, and the data that is
+   already there has to keep resolving.
+───────────────────────────────────────── */
+function yaya_project_spec_definition() {
+    return [
+        [
+            'key'         => 'project_location',
+            'label'       => 'Location',
+            'placeholder' => 'Ilica, Cesme',
+            'suggestions' => [],
+        ],
+        [
+            'key'         => 'project_year',
+            'label'       => 'Year',
+            'placeholder' => '2021',
+            'suggestions' => [],
+        ],
+        [
+            'key'         => '_yaya_project_scope',
+            'label'       => 'Scope',
+            'placeholder' => 'Conversion',
+            'suggestions' => ['New build', 'Conversion', 'Renovation', 'Fit-out', 'Interior', 'Extension'],
+        ],
+        [
+            'key'         => '_yaya_project_area',
+            'label'       => 'Area',
+            'placeholder' => '240 m² per villa',
+            'suggestions' => [],
+        ],
+        [
+            'key'         => '_yaya_project_status',
+            'label'       => 'Status',
+            'placeholder' => 'Completed',
+            'suggestions' => ['Completed', 'In progress', 'In design', 'On site', 'Coming soon'],
+        ],
+    ];
+}
+
+/**
+ * One spec value.
+ *
+ * Status falls back to the coming-soon flag so a placeholder project still has
+ * something true to say for itself; every other field is only ever what an
+ * editor typed.
+ */
+function yaya_project_spec_value($post_id, $key) {
+    $value = trim((string) get_post_meta($post_id, $key, true));
+
+    if ($value === '' && $key === '_yaya_project_status' && get_post_meta($post_id, '_yaya_project_coming_soon', true)) {
+        return 'Coming soon';
+    }
+
+    return $value;
+}
+
+/**
+ * The spec rows a template should render: label/value pairs in the fixed
+ * order, with the unset fields dropped rather than shown blank.
+ */
+function yaya_project_spec_rows($post_id) {
+    $rows = [];
+
+    foreach (yaya_project_spec_definition() as $field) {
+        $value = yaya_project_spec_value($post_id, $field['key']);
+        if ($value === '') {
+            continue;
+        }
+        $rows[] = ['label' => $field['label'], 'value' => $value];
+    }
+
+    return $rows;
+}
+
+/* ─────────────────────────────────────────
+   PROJECT META BOX: DETAILS
+───────────────────────────────────────── */
+function yaya_add_project_details_meta_box() {
+    add_meta_box(
+        'yaya_project_details',
+        'Project Details',
+        'yaya_render_project_details_meta_box',
+        'project',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'yaya_add_project_details_meta_box');
+
+function yaya_render_project_details_meta_box($post) {
+    wp_nonce_field('yaya_project_details_meta_box', 'yaya_project_details_nonce');
+    ?>
+    <p style="margin-top:0;color:#50575e;">
+      Shown as the spec block on the project page and as the detail line in the projects index.
+      Leave a field empty to leave it out.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:14px 20px;">
+      <?php foreach (yaya_project_spec_definition() as $field):
+        $field_id  = 'yaya_field_' . ltrim($field['key'], '_');
+        $list_id   = $field['suggestions'] ? $field_id . '_options' : '';
+        // The raw stored value, not yaya_project_spec_value() — the coming-soon
+        // fallback is a display default and must not look like typed content.
+        $value     = trim((string) get_post_meta($post->ID, $field['key'], true));
+      ?>
+      <p style="margin:0;">
+        <label for="<?php echo esc_attr($field_id); ?>" style="display:block;font-weight:600;margin-bottom:4px;">
+          <?php echo esc_html($field['label']); ?>
+        </label>
+        <input
+          type="text"
+          id="<?php echo esc_attr($field_id); ?>"
+          name="<?php echo esc_attr($field_id); ?>"
+          value="<?php echo esc_attr($value); ?>"
+          placeholder="<?php echo esc_attr($field['placeholder']); ?>"
+          class="widefat"
+          <?php if ($list_id): ?>list="<?php echo esc_attr($list_id); ?>"<?php endif; ?>
+        />
+        <?php if ($list_id): ?>
+        <datalist id="<?php echo esc_attr($list_id); ?>">
+          <?php foreach ($field['suggestions'] as $suggestion): ?>
+            <option value="<?php echo esc_attr($suggestion); ?>"></option>
+          <?php endforeach; ?>
+        </datalist>
+        <?php endif; ?>
+      </p>
+      <?php endforeach; ?>
+    </div>
+    <?php
+}
+
+function yaya_save_project_details_meta_box($post_id) {
+    if (!isset($_POST['yaya_project_details_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['yaya_project_details_nonce'])), 'yaya_project_details_meta_box')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    foreach (yaya_project_spec_definition() as $field) {
+        $field_id = 'yaya_field_' . ltrim($field['key'], '_');
+        if (!isset($_POST[$field_id])) {
+            continue;
+        }
+
+        $value = sanitize_text_field(wp_unslash($_POST[$field_id]));
+
+        // Cleared fields are deleted rather than stored empty, so the spec
+        // block and the index both see one kind of "not set".
+        if ($value === '') {
+            delete_post_meta($post_id, $field['key']);
+            continue;
+        }
+
+        update_post_meta($post_id, $field['key'], $value);
+    }
+}
+add_action('save_post_project', 'yaya_save_project_details_meta_box');
 
 /* ─────────────────────────────────────────
    CONTACT FORM
