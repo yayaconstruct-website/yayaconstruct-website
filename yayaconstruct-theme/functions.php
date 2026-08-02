@@ -65,7 +65,14 @@ add_filter('template_include', 'yaya_force_templates');
 function yaya_setup() {
     add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
-    add_image_size('project-thumb', 800, 600, true);
+    // Sized to how each context actually displays a project photo (all three
+    // are 4:3 in the CSS), so wp_get_attachment_image() has a close match to
+    // serve instead of falling back to 'large' every time. 'project-thumb'
+    // (the old name for the first of these) was registered but never
+    // referenced by any template — renamed rather than left as dead weight.
+    add_image_size('yaya-featured', 1200, 900, true);     // home featured block
+    add_image_size('yaya-index-thumb', 240, 180, true);   // project index row
+    add_image_size('yaya-gallery', 640, 480, true);       // project gallery grid
     add_post_type_support('page', 'excerpt');
     add_theme_support('custom-logo', [
         'height'      => 60,
@@ -91,6 +98,56 @@ function yaya_scripts() {
     wp_enqueue_style('yaya-style', get_stylesheet_uri(), ['google-fonts'], '2.0');
 }
 add_action('wp_enqueue_scripts', 'yaya_scripts');
+
+/**
+ * Dashicons is enqueued on every front-end page load by plugins that
+ * declare it as a dependency (here: the cookie-consent and social-feeds
+ * plugins) — 35 KB nobody's markup on this site actually reads a
+ * dashicons-* class to use. Confirmed by grepping the rendered HTML of
+ * every page type: zero. Only dequeue for anonymous visitors — the admin
+ * toolbar shown to logged-in users draws its own icons from it.
+ */
+function yaya_dequeue_front_end_dashicons() {
+    if (!is_admin_bar_showing()) {
+        wp_dequeue_style('dashicons');
+        wp_deregister_style('dashicons');
+    }
+}
+add_action('wp_enqueue_scripts', 'yaya_dequeue_front_end_dashicons', 100);
+
+/**
+ * WP prints an emoji-detection script and inline style on every page so it
+ * can swap unsupported characters for Twemoji images — a compatibility shim
+ * for browsers with no native emoji support, which none still in use lack.
+ * Front-end only; the block editor keeps its own emoji handling.
+ */
+function yaya_disable_emojis() {
+    remove_action('wp_head', 'print_emoji_detection_script', 7);
+    remove_action('wp_print_styles', 'print_emoji_styles');
+}
+add_action('init', 'yaya_disable_emojis');
+
+function yaya_disable_emoji_dns_prefetch($urls, $relation_type) {
+    if ('dns-prefetch' === $relation_type) {
+        $urls = array_diff($urls, ['//s.w.org']);
+    }
+    return $urls;
+}
+add_filter('wp_resource_hints', 'yaya_disable_emoji_dns_prefetch', 10, 2);
+
+/**
+ * New image sub-sizes (thumbnail, medium, medium_large, large, and the
+ * yaya-* sizes above) are generated as WebP instead of the upload's own
+ * format. The original upload is untouched — this only affects sizes
+ * generated after this ships, so it doesn't do anything for the five
+ * projects' photos already on the server until they're regenerated.
+ */
+function yaya_generate_webp_subsizes($formats) {
+    $formats['image/jpeg'] = 'image/webp';
+    $formats['image/png']  = 'image/webp';
+    return $formats;
+}
+add_filter('image_editor_output_format', 'yaya_generate_webp_subsizes');
 
 /**
  * Preload the home page hero image.
@@ -226,13 +283,20 @@ function yaya_project_region_for_category($category_name) {
    PROJECT CARD IMAGE
    Featured image first, then the project's own gallery, then anything in its
    content — so a project shows a card image however its photos were added.
+
+   Returns ['id' => attachment ID or null, 'url' => resolved URL or ''].
+   The ID is set whenever the source is a real attachment — every case here
+   except the regex-extracted <img src> fallback (an arbitrary, possibly
+   external, URL pulled from post content). Callers use the ID with
+   wp_get_attachment_image() to get a real srcset, and fall back to a plain
+   <img src="url"> when there isn't one.
 ───────────────────────────────────────── */
 function yaya_project_card_image($post_id, $size = 'large') {
     static $cache = [];
 
     $post_id = (int) $post_id;
     if (!$post_id) {
-        return '';
+        return ['id' => null, 'url' => ''];
     }
 
     $key = $post_id . '|' . (is_array($size) ? implode('x', $size) : $size);
@@ -240,8 +304,14 @@ function yaya_project_card_image($post_id, $size = 'large') {
         return $cache[$key];
     }
 
+    $id = null;
+
     // 1. Featured image always wins, so a project can override its cover.
-    $url = get_the_post_thumbnail_url($post_id, $size);
+    $thumb_id = get_post_thumbnail_id($post_id);
+    $url = $thumb_id ? get_the_post_thumbnail_url($post_id, $size) : false;
+    if ($url) {
+        $id = $thumb_id;
+    }
 
     // 2. Otherwise the first image of the Project Gallery meta box — the way
     //    photos are normally added to a project in this theme.
@@ -252,6 +322,9 @@ function yaya_project_card_image($post_id, $size = 'large') {
             : [];
         if ($gallery_ids) {
             $url = wp_get_attachment_image_url($gallery_ids[0], $size);
+            if ($url) {
+                $id = $gallery_ids[0];
+            }
         }
     }
 
@@ -263,9 +336,13 @@ function yaya_project_card_image($post_id, $size = 'large') {
     if (!$url && $content !== '' && preg_match('/<img\b[^>]*>/i', $content, $tag)) {
         if (preg_match('/wp-image-(\d+)/i', $tag[0], $m)) {
             $url = wp_get_attachment_image_url((int) $m[1], $size);
+            if ($url) {
+                $id = (int) $m[1];
+            }
         }
         // Leading whitespace required so lazy-loader attributes such as
         // data-src (often a placeholder) are not mistaken for the real src.
+        // Not a resolvable attachment ID, so no srcset is possible here.
         if (!$url && preg_match('/\ssrc=["\']([^"\']+)["\']/i', $tag[0], $m)) {
             $url = $m[1];
         }
@@ -276,6 +353,9 @@ function yaya_project_card_image($post_id, $size = 'large') {
         $ids = array_values(array_filter(array_map('intval', explode(',', $m[1]))));
         if ($ids) {
             $url = wp_get_attachment_image_url($ids[0], $size);
+            if ($url) {
+                $id = $ids[0];
+            }
         }
     }
 
@@ -285,12 +365,46 @@ function yaya_project_card_image($post_id, $size = 'large') {
         if ($attached) {
             $first = reset($attached);
             $url = wp_get_attachment_image_url($first->ID, $size);
+            if ($url) {
+                $id = $first->ID;
+            }
         }
     }
 
-    $cache[$key] = $url ? $url : '';
+    $cache[$key] = ['id' => $url ? $id : null, 'url' => $url ? $url : ''];
 
     return $cache[$key];
+}
+
+/**
+ * Render an image from yaya_project_card_image(): a real srcset via
+ * wp_get_attachment_image() when there's an attachment ID behind it, a
+ * plain <img src> when there's only a URL (or nothing at all — the caller's
+ * own fallback markup runs in that case; this prints nothing).
+ *
+ * $sizes_attr is the CSS "sizes" hint for the slot this image fills. Get it
+ * wrong and the image still works — the browser just downloads a candidate
+ * that's not quite the best fit.
+ */
+function yaya_render_project_image($image, $size, $sizes_attr, $attrs = []) {
+    $attrs = wp_parse_args($attrs, ['alt' => '', 'loading' => 'lazy', 'decoding' => 'async']);
+
+    if (!empty($image['id'])) {
+        echo wp_get_attachment_image($image['id'], $size, false, array_merge($attrs, ['sizes' => $sizes_attr]));
+        return;
+    }
+
+    if (empty($image['url'])) {
+        return;
+    }
+
+    printf(
+        '<img src="%s" alt="%s" loading="%s" decoding="%s" />',
+        esc_url($image['url']),
+        esc_attr($attrs['alt']),
+        esc_attr($attrs['loading']),
+        esc_attr($attrs['decoding'])
+    );
 }
 
 /* ─────────────────────────────────────────

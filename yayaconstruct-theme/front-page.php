@@ -91,8 +91,8 @@ if ($featured_id):
   // Same resolution as the project cards: featured image, then the project's
   // own gallery, so the homepage stops falling back to a stock photo.
   $feat_img = function_exists('yaya_project_card_image')
-    ? yaya_project_card_image($featured_id, 'large')
-    : get_the_post_thumbnail_url($featured_id, 'large');
+    ? yaya_project_card_image($featured_id, 'yaya-featured')
+    : ['id' => get_post_thumbnail_id($featured_id), 'url' => get_the_post_thumbnail_url($featured_id, 'yaya-featured')];
   // Same spec fields as the project page and the index detail line — one
   // definition (functions.php) drives all three, so this stays in sync with
   // whatever fields an editor has filled in.
@@ -113,8 +113,8 @@ if ($featured_id):
     <?php // Decorative here: the heading link right beside it already names the
           // project, so an alt would make screen readers announce it twice. ?>
     <a href="<?php echo esc_url($feat_link); ?>" tabindex="-1" aria-hidden="true">
-      <?php if ($feat_img): ?>
-        <img src="<?php echo esc_url($feat_img); ?>" alt="" loading="lazy" decoding="async" />
+      <?php if (!empty($feat_img['id']) || !empty($feat_img['url'])): ?>
+        <?php yaya_render_project_image($feat_img, 'yaya-featured', '(max-width: 1100px) 100vw, 50vw'); ?>
       <?php else: ?>
         <img src="https://images.unsplash.com/photo-1590725121839-892b458a74fe?w=800&q=80" alt="" loading="lazy" decoding="async" />
       <?php endif; ?>

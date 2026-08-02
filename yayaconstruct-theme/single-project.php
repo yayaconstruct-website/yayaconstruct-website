@@ -55,12 +55,16 @@
 <div class="project-gallery">
   <div class="project-gallery-grid">
     <?php foreach ( $gallery_ids as $attachment_id ) :
-      $full  = wp_get_attachment_image_url( $attachment_id, 'large' );
-      $thumb = wp_get_attachment_image_url( $attachment_id, 'medium' );
+      $full = wp_get_attachment_image_url( $attachment_id, 'large' );
       if ( ! $full ) continue;
     ?>
       <a class="project-gallery-item" href="<?php echo esc_url( $full ); ?>" target="_blank" rel="noopener">
-        <img src="<?php echo esc_url( $thumb ?: $full ); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" />
+        <?php echo wp_get_attachment_image( $attachment_id, 'yaya-gallery', false, [
+          'alt'      => get_the_title(),
+          'loading'  => 'lazy',
+          'decoding' => 'async',
+          'sizes'    => '(max-width: 768px) 50vw, 33vw',
+        ] ); ?>
       </a>
     <?php endforeach; ?>
   </div>

@@ -1,4 +1,4 @@
-# Redesign handoff — state as of 2 Aug 2026 (Batch 3 partially landed)
+# Redesign handoff — state as of 2 Aug 2026 (Batches 3 + 4 landed)
 
 Working notes for the yayaconstruct.com redesign. Delete before merging to `main`
 if you don't want it in the repo.
@@ -10,13 +10,16 @@ if you don't want it in the repo.
 | `main` @ `c96a7b7` | Accessibility + performance + SEO passes | **Yes — live** |
 | `redesign/batch-1-reskin` @ `9c76390` | Batch 1 re-skin, logo + menu fixes | No |
 | `redesign/batch-1-reskin` @ `aaabf6e` | Batch 2 project index | No |
-| working tree | Batch 3, Sonnet-scoped items — **uncommitted** | No |
+| `redesign/batch-1-reskin` @ `46c2c8f` | Batch 3 (net of reverts) + hero-image default fixes | No |
+| working tree | Batch 4 — **uncommitted** | No |
 
 **Batch 3 status:** the hero photo swap, the services-card removal, and the
 `front-page.php` transition-delay cleanup are done. The hero copy, the
 featured-block selection logic, and retiring the stats bar (item 15) were
 all tried and then rolled back at Emir's request — see "Batch 3" below. Item
 15 is the one item from the original four still open.
+
+**Batch 4 status: all four items done** — see "Batch 4" below.
 
 `.github/workflows/deploy.yml` FTPs `yayaconstruct-theme/` to production **on every
 push to `main`**. Pushing the branch does not deploy. There is no staging.
@@ -189,10 +192,82 @@ stats bar's four values render correctly, the hero background resolves to the
 real photo, zero `.services-grid`/`.service-card` nodes, zero stale
 `transition-delay` attributes.
 
-## Batch 4 — performance & hygiene (not started)
+## Batch 4 — performance & hygiene (done, uncommitted)
 
-`srcset` + WebP, disable WP emoji (a 📍 in project copy loads Twemoji SVGs), drop
-front-end dashicons (35 KB), register image sizes.
+| Change | File |
+|---|---|
+| Register real image sizes, use them for `srcset` | `functions.php`, `front-page.php`, `page-projects.php`, `single-project.php` |
+| Generate WebP sub-sizes for new uploads | `functions.php` |
+| Disable WP's emoji detection script/style | `functions.php` |
+| Drop dashicons for anonymous front-end visitors | `functions.php` |
+
+**Image sizes + `srcset`, concretely:** the theme had exactly one registered
+size (`project-thumb`, 800×600) and it was dead — nothing referenced it.
+Registered three sized to how each context actually displays a photo (all
+three are 4:3 in the CSS): `yaya-featured` (1200×900, home featured block),
+`yaya-index-thumb` (240×180, project index row), `yaya-gallery` (640×480,
+project gallery grid). `yaya_project_card_image()` (the featured-image / index
+row resolver) now returns `['id' => attachment ID or null, 'url' => resolved
+URL or '']` instead of a bare URL string — the ID is set for every resolution
+path except the regex-extracted `<img src>` fallback (an arbitrary, possibly
+external, URL pulled from post content, not necessarily a WP attachment). A
+new `yaya_render_project_image($image, $size, $sizes_attr, $attrs = [])`
+helper renders a real `wp_get_attachment_image()` (real `srcset`) when there's
+an ID, and falls back to a plain `<img src>` when there's only a URL. All
+three template call sites (`front-page.php` featured block, `page-projects.php`
+index rows, `single-project.php` gallery) now go through this. The single-
+project gallery loop already had attachment IDs directly (no
+`yaya_project_card_image()` involved there) and switches straight to
+`wp_get_attachment_image()`.
+
+**Two things this doesn't do, and can't from a code change alone:**
+- **New sizes don't apply retroactively.** All five projects' photos are
+  already uploaded; WordPress doesn't regenerate existing attachments' sub-
+  sizes just because a theme registers a new one. Until someone runs a
+  regenerate-thumbnails pass (a plugin or `wp media regenerate` — routine WP
+  maintenance, not a code change), `wp_get_attachment_image()` on these
+  photos falls back to whatever sizes WordPress already generated at upload
+  time (`thumbnail`, `medium`, `medium_large`, `large`, `full`) — which is
+  still a real improvement over the single fixed URL every template rendered
+  before, just not using the new custom sizes yet.
+- **WebP generation depends on the server's image library.** The
+  `image_editor_output_format` filter only takes effect if the PHP image
+  library in use (GD or Imagick) actually supports encoding WebP — if it
+  doesn't, WordPress silently keeps generating the original format. No way to
+  check which the production server has from here.
+
+**Emoji, concretely:** removed the two hooks that print WP's emoji-detection
+script and inline style on every page load (`print_emoji_detection_script` on
+`wp_head`, `print_emoji_styles` on `wp_print_styles`), plus the `s.w.org`
+DNS-prefetch hint that went with them. Front-end only — didn't touch the
+admin-side hooks, so the block editor's own emoji handling is unaffected. The
+literal 📍 that motivated this item isn't in any of the five projects' current
+content (checked directly) — doesn't matter; the detection script loads
+unconditionally on every page regardless of whether the content actually
+contains an emoji, so removing it is a real saving either way.
+
+**Dashicons, concretely:** confirmed first, not assumed — grepped the
+rendered HTML of all five page types (home, projects, project detail, about,
+contact) for any element with a `dashicons` class. Zero, everywhere; the only
+occurrence anywhere is the stylesheet `<link>` tag itself. It's enqueued by
+two third-party plugins (`cookieadmin`, `socialfeeds`) as a dependency they
+never actually draw an icon from. Dequeued at priority 100 on
+`wp_enqueue_scripts`, gated on `!is_admin_bar_showing()` — logged-in visitors
+with the admin toolbar visible keep it, since the toolbar's own icons need it.
+Deregistering doesn't break the plugins' own stylesheets; WordPress's
+dependency resolver just skips a dependency that no longer exists.
+
+**Not verifiable via the harness, at all, this round:** none of these four
+changes touch anything the harness actually executes. `tools/harness.py`
+fakes the home and projects-index page bodies in pure Python (they don't run
+`front-page.php`/`page-projects.php`), and the project-detail page only has
+its spec block rewritten — the gallery section is whatever the *already-
+fetched, pre-Batch-4* production HTML contains, untouched by that rewrite.
+Emoji and dashicons are `wp_head`/enqueue-level output the harness's
+`inject()` never touches either. Verification here is manual code review
+only — re-read all three edited templates and the full `functions.php` diff
+after making each change, twice, since there's still no `php` binary on this
+machine.
 
 ## Content blockers — nobody's code can fix these
 

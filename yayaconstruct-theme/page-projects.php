@@ -71,8 +71,8 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
       'title'       => get_the_title(),
       'permalink'   => get_permalink(),
       'image'       => function_exists('yaya_project_card_image')
-                        ? yaya_project_card_image(get_the_ID(), 'medium')
-                        : get_the_post_thumbnail_url(get_the_ID(), 'medium'),
+                        ? yaya_project_card_image(get_the_ID(), 'yaya-index-thumb')
+                        : ['id' => get_post_thumbnail_id(get_the_ID()), 'url' => get_the_post_thumbnail_url(get_the_ID(), 'yaya-index-thumb')],
       'category'    => $cat_name,
       'location'    => function_exists('yaya_project_spec_value') ? yaya_project_spec_value(get_the_ID(), 'project_location') : (string) get_post_meta(get_the_ID(), 'project_location', true),
       'year'        => function_exists('yaya_project_spec_value') ? yaya_project_spec_value(get_the_ID(), 'project_year') : (string) get_post_meta(get_the_ID(), 'project_year', true),
@@ -164,9 +164,10 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
                   <?php endforeach; ?>
                 </span>
               <?php endif; ?>
-              <span class="project-row-thumb<?php echo $item['image'] ? '' : ' project-row-thumb--empty'; ?>" aria-hidden="true">
-                <?php if ($item['image']): ?>
-                  <img src="<?php echo esc_url($item['image']); ?>" alt="" loading="lazy" />
+              <?php $has_image = !empty($item['image']['id']) || $item['image']['url'] !== ''; ?>
+              <span class="project-row-thumb<?php echo $has_image ? '' : ' project-row-thumb--empty'; ?>" aria-hidden="true">
+                <?php if ($has_image): ?>
+                  <?php yaya_render_project_image($item['image'], 'yaya-index-thumb', '(max-width: 800px) 88px, 120px'); ?>
                 <?php endif; ?>
               </span>
             </a>
