@@ -1,4 +1,4 @@
-# Redesign handoff — state as of 2 Aug 2026 (Batch 3 done)
+# Redesign handoff — state as of 2 Aug 2026 (Batch 3 partially landed)
 
 Working notes for the yayaconstruct.com redesign. Delete before merging to `main`
 if you don't want it in the repo.
@@ -10,12 +10,13 @@ if you don't want it in the repo.
 | `main` @ `c96a7b7` | Accessibility + performance + SEO passes | **Yes — live** |
 | `redesign/batch-1-reskin` @ `9c76390` | Batch 1 re-skin, logo + menu fixes | No |
 | `redesign/batch-1-reskin` @ `aaabf6e` | Batch 2 project index | No |
-| working tree | Batch 3 — **uncommitted** | No |
+| working tree | Batch 3, Sonnet-scoped items — **uncommitted** | No |
 
-**Batch 3 status: all four items done.** Hero photo swap, services cards
-removed, stats bar removed, transition-delay cleanup — see "Batch 3" below.
-The hero copy and the featured-block selection logic were also tried and then
-rolled back at Emir's request.
+**Batch 3 status:** the hero photo swap, the services-card removal, and the
+`front-page.php` transition-delay cleanup are done. The hero copy and the
+featured-block selection logic were tried and then rolled back at Emir's
+request — see "Batch 3" below. Retiring the stats bar (item 15) is the one
+item still open; no model split needed after all, it's just not done yet.
 
 `.github/workflows/deploy.yml` FTPs `yayaconstruct-theme/` to production **on every
 push to `main`**. Pushing the branch does not deploy. There is no staging.
@@ -101,14 +102,14 @@ below; this was hygiene, not a behavior change). One remains, in
 `transition-delay: 0s !important` override in `style.css` still has to stay
 until someone clears that one too.
 
-## Batch 3 — homepage restructure (done, uncommitted)
+## Batch 3 — homepage restructure (in progress, uncommitted)
 
 | # | Change | File | Status |
 |---|---|---|---|
 | 13 | New hero photo (real Inkim Suites render, replacing the generic stock photo) | `front-page.php` | Done |
 | — | Cleared the five inline `transition-delay` attributes in `front-page.php` (see Batch 2's note — they were already dead under the `!important` override; this is hygiene, not a visual change) | `front-page.php` | Done |
 | 14 | Delete the six services cards | `front-page.php`, `functions.php`, `style.css` | Done |
-| 15 | Retire the stats bar | `front-page.php`, `functions.php`, `style.css` | Done |
+| 15 | Retire the stats bar | `front-page.php`, `functions.php`, `style.css` | Not started |
 
 **Tried and rolled back, at Emir's request (2 Aug 2026):**
 
@@ -147,41 +148,22 @@ in `yaya_home_page_defaults()`, the Customizer `yaya_services` section and its
 meta box, and its save-handler code. In `style.css`: removed `.services-grid`,
 `.service-card` (base + `:nth-child`/`:hover` variants), `.service-icon` (+ the
 `svg` sizing rule), `.service-title`, `.service-text`, and the now-fully-unused
-`.section` wrapper class — including its entries in the shared `padding-inline`
-bounded-grid list and the running-text `max-width` list. `.section-label`/
-`.section-title` **stayed** — they're generic classes reused on every other
-page (about, contact, projects, single-project) and were never
-services-specific.
-
-**Stats bar, concretely (item 15, done):** same pattern. Removed the
-`<div class="stats-bar">` markup and the `$stats` loop from `front-page.php`;
-the `stats` key in `yaya_home_page_defaults()`, the Customizer `yaya_stats`
-section and its 8 settings/controls, the "Stats Bar" admin meta-box block, and
-its save-handler code from `functions.php`. In `style.css`: removed
-`.stats-bar`, `.stat-item` (+ `:last-child`), `.stat-num`, `.stat-label`, and
-`.stats-bar`'s entries in the **three** shared selector lists it was in — the
-`padding-inline` bounded-grid list, the dark-band token-rebinding list, and
-the dark-panel `:focus-visible` list (services never needed that third one;
-the stats bar, being a dark band, did). Trimmed the tablet and mobile media
-queries down to the rules that don't reference the removed classes, keeping
-the unrelated `.home-project` tweaks living in the same blocks.
-
-**Not touched, spotted in passing:** the Customizer's own `yaya_hero_image`
-setting (`functions.php`, the `add_setting` call feeding the Image Control)
-still declares the *old* Unsplash URL as its `default` — a leftover from
-before the photo swap. It's cosmetic (an admin opening the Customizer without
-ever having set a custom hero image would see that URL as the field's
-placeholder default, even though the front end already renders the new photo
-via `front-page.php`'s own fallback), not something asked for in this pass.
+`.section` wrapper class — including its entries in the two shared selector
+lists (`padding-inline` bounded-grid list, and the running-text `max-width`
+list). `.section-label`/`.section-title` **stayed** — they're generic classes
+reused on every other page (about, contact, projects, single-project) and
+were never services-specific. Also trimmed the tablet and mobile media
+queries down to the rules that don't reference the removed classes, without
+touching the unrelated `.home-project`/`.stat-item` tweaks living in the same
+blocks.
 
 **Harness:** `tools/harness.py`'s `render_home()` (added for Batch 3, still
 needed since the home page's markup no longer matches the fetched production
 page) now mirrors the current file exactly: original hero copy with the new
 photo, Amsterdam featured with the filler paragraph and no spec line, no
-services section, no stats bar — just Hero → Featured Project. Verified via
-`getComputedStyle`/DOM query — zero stale `transition-delay` attributes, zero
-`.services-grid`/`.service-card`/`.stats-bar`/`.stat-item` nodes anywhere,
-and `.home-project` sitting directly after `.hero` with nothing between them.
+services section. Verified via `getComputedStyle` — zero stale
+`transition-delay` attributes, zero `.services-grid`/`.service-card` nodes in
+the DOM, and the reverted hero/featured text matches source.
 
 ## Batch 4 — performance & hygiene (not started)
 

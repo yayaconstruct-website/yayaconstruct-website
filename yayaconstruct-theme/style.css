@@ -59,6 +59,7 @@ Version: 1.0
     /* Full-bleed background, bounded content. Used by every top-level band so
        the outer margin is defined once. */
     .hero,
+    .stats-bar,
     .home-project,
     .about-hero,
     .about-text,
@@ -83,6 +84,7 @@ Version: 1.0
        templates, which a stylesheet rule could not have reached. */
     nav,
     .hero,
+    .stats-bar,
     .home-project,
     .about-hero,
     .values-section,
@@ -111,6 +113,7 @@ Version: 1.0
     /* On the dark panels rust-on-black is too dim to track; use the light tone. */
     .hero :focus-visible,
     nav :focus-visible,
+    .stats-bar :focus-visible,
     .home-project :focus-visible,
     .values-section :focus-visible,
     .contact-info :focus-visible,
@@ -365,6 +368,43 @@ Version: 1.0
       width: 1px;
       height: 50px;
       background: linear-gradient(to bottom, var(--aegean), transparent);
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      background: var(--slate);
+      display: flex;
+      border-top: 1px solid rgba(168,173,171,0.1);
+    }
+
+    .stat-item {
+      flex: 1;
+      padding-block: 2.5rem;
+      border-right: 1px solid rgba(168,173,171,0.1);
+      text-align: center;
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-stretch: 112%;
+      font-size: 2.6rem;
+      color: var(--aegean);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--zinc-on-dark);
+      margin-top: 0.3rem;
     }
 
     .section-label {
@@ -799,6 +839,7 @@ Version: 1.0
     /* ── TABLET ── */
     @media (min-width: 769px) and (max-width: 1100px) {
       .home-project  { gap: 3rem; padding-block: 4rem; }
+      .stat-item     { padding: 2.5rem 1.5rem; }
     }
 
     /* ── CONTACT ── */
@@ -1037,6 +1078,8 @@ Version: 1.0
       /* Decorative, and at this width it sits on top of the CTAs. */
       .hero-scroll { display: none; }
       .hero { padding-block: calc(var(--nav-h) + 1rem) 4rem; }
+      .stats-bar { flex-wrap: wrap; }
+      .stat-item { min-width: 50%; border-bottom: 1px solid rgba(168,173,171,0.1); }
       /* Was 3rem of side padding on a 375px screen. */
       .home-project { grid-template-columns: 1fr; padding-block: 3.5rem; gap: 2.5rem; }
       .about-body { grid-template-columns: 1fr; }

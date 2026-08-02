@@ -1004,6 +1004,41 @@ function yaya_customizer($wp_customize) {
         'section' => 'yaya_hero',
     ]));
 
+    /* ══════════════ STATS SECTION ══════════════ */
+    $wp_customize->add_section('yaya_stats', [
+        'title' => 'Stats Bar',
+        'panel' => 'yaya_panel',
+    ]);
+
+    $stats_defaults = [
+        ['150+', 'Projects Completed'],
+        ['12+',  'Years of Experience'],
+        ['98%',  'Client Satisfaction'],
+        ['40+',  'Skilled Professionals'],
+    ];
+
+    for ($i = 1; $i <= 4; $i++) {
+        $n = $i - 1;
+        $wp_customize->add_setting("yaya_stat{$i}_num", [
+            'default'           => $stats_defaults[$n][0],
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
+        $wp_customize->add_control("yaya_stat{$i}_num", [
+            'label'   => "Stat $i — Number",
+            'section' => 'yaya_stats',
+            'type'    => 'text',
+        ]);
+        $wp_customize->add_setting("yaya_stat{$i}_label", [
+            'default'           => $stats_defaults[$n][1],
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
+        $wp_customize->add_control("yaya_stat{$i}_label", [
+            'label'   => "Stat $i — Label",
+            'section' => 'yaya_stats',
+            'type'    => 'text',
+        ]);
+    }
+
     /* ══════════════ CONTACT DETAILS ══════════════ */
     $wp_customize->add_section('yaya_contact_details', [
         'title' => 'Contact Details',
@@ -1320,6 +1355,12 @@ function yaya_home_page_defaults() {
             'cta2'     => 'Get a Quote',
             'cta2_url' => home_url('/contact'),
         ],
+        'stats' => [
+            1 => ['num' => '150+', 'label' => 'Projects Completed'],
+            2 => ['num' => '12+',  'label' => 'Years of Experience'],
+            3 => ['num' => '98%',  'label' => 'Client Satisfaction'],
+            4 => ['num' => '40+',  'label' => 'Skilled Professionals'],
+        ],
         'featured' => [
             'label'         => 'Featured Work',
             'button_text'   => 'Explore All Projects',
@@ -1403,6 +1444,21 @@ function yaya_render_home_meta_box($post) {
     }
     echo '</div>';
 
+    echo '<div class="yaya-meta-section"><h3>Stats Bar</h3>';
+    for ($i = 1; $i <= 4; $i++) {
+        $num = yaya_get_home_page_field($post->ID, "_yaya_home_stat_{$i}_num", $defaults['stats'][$i]['num']);
+        $label = yaya_get_home_page_field($post->ID, "_yaya_home_stat_{$i}_label", $defaults['stats'][$i]['label']);
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_home_stat_' . $i . '_num">Stat ' . $i . ' Number</label>';
+        echo '<input type="text" id="yaya_home_stat_' . $i . '_num" name="yaya_home_stat_' . $i . '_num" value="' . esc_attr($num) . '">';
+        echo '</div>';
+        echo '<div class="yaya-meta-row">';
+        echo '<label for="yaya_home_stat_' . $i . '_label">Stat ' . $i . ' Label</label>';
+        echo '<input type="text" id="yaya_home_stat_' . $i . '_label" name="yaya_home_stat_' . $i . '_label" value="' . esc_attr($label) . '">';
+        echo '</div>';
+    }
+    echo '</div>';
+
     echo '<div class="yaya-meta-section"><h3>Featured Project Section</h3>';
     $featured_fields = [
         'label'       => 'Section Label',
@@ -1448,6 +1504,15 @@ function yaya_save_home_meta_box($post_id) {
             $value = wp_unslash($_POST[$field]);
             $value = str_ends_with($key, '_url') ? esc_url_raw($value) : ($key === 'sub' ? sanitize_textarea_field($value) : sanitize_text_field($value));
             update_post_meta($post_id, "_yaya_home_hero_{$key}", $value);
+        }
+    }
+
+    for ($i = 1; $i <= 4; $i++) {
+        if (isset($_POST["yaya_home_stat_{$i}_num"])) {
+            update_post_meta($post_id, "_yaya_home_stat_{$i}_num", sanitize_text_field(wp_unslash($_POST["yaya_home_stat_{$i}_num"])));
+        }
+        if (isset($_POST["yaya_home_stat_{$i}_label"])) {
+            update_post_meta($post_id, "_yaya_home_stat_{$i}_label", sanitize_text_field(wp_unslash($_POST["yaya_home_stat_{$i}_label"])));
         }
     }
 
