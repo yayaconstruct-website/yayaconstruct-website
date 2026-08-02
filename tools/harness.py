@@ -87,8 +87,8 @@ SPEC_THIN = [('Status', 'Coming soon')]   # Z-Suites: the flag is its only fact.
 
 # ── Home page, as it renders today ───────────────────────────────────────────
 # Hero text and the featured-project pick were tried under Batch 3 and rolled
-# back at Emir's request; the real hero photo swap and the services-card
-# removal stayed. See HANDOFF.md.
+# back at Emir's request; the real hero photo swap, the services-card removal,
+# and the stats-bar removal stayed. See HANDOFF.md.
 HERO = {
     'tag': 'Est. in Excellence',
     'line1': 'WE', 'line2': 'BUILD', 'line3': 'YOUR VISION',
@@ -100,9 +100,6 @@ HERO = {
     # even though the copy reverted; not the old generic Unsplash stand-in.
     'img': UPLOADS + 'IMG_0103.png',
 }
-
-STATS = [('150+', 'Projects Completed'), ('12+', 'Years of Experience'),
-         ('98%', 'Client Satisfaction'), ('40+', 'Skilled Professionals')]
 
 # Featured project: back to "the single newest non-coming-soon project",
 # same as before Batch 3. Amsterdam is that project and has no description
@@ -203,12 +200,6 @@ def render_spec(rows):
 
 
 def render_home():
-    stats = '\n'.join(
-        f'  <div class="stat-item reveal">\n'
-        f'    <div class="stat-num">{n}</div>\n'
-        f'    <div class="stat-label">{l}</div>\n'
-        f'  </div>' for n, l in STATS)
-
     spec_line = ' &middot; '.join(v for _, v in FEATURED['spec'])
 
     return f'''<!-- Hero -->
@@ -230,11 +221,6 @@ def render_home():
     Scroll
   </div>
 </section>
-
-<!-- Stats -->
-<div class="stats-bar">
-{stats}
-</div>
 
 <!-- Featured Project -->
 <section class="home-project" aria-labelledby="featured-title">

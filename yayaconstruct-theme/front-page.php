@@ -22,16 +22,6 @@ $hero_cta2_url = function_exists('yaya_get_home_page_field') && $home_page_id ? 
 // generic stock stand-in. Still overridable via the Customizer.
 $hero_img   = get_theme_mod('yaya_hero_image', 'https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0103.png');
 
-// Stats
-$stats = [];
-for ($i = 1; $i <= 4; $i++) {
-  $defaults = [1 => ['150+','Projects Completed'], 2 => ['12+','Years of Experience'], 3 => ['98%','Client Satisfaction'], 4 => ['40+','Skilled Professionals']];
-  $stats[] = [
-    'num'   => function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_stat_{$i}_num", get_theme_mod("yaya_stat{$i}_num",   $defaults[$i][0])) : get_theme_mod("yaya_stat{$i}_num",   $defaults[$i][0]),
-    'label' => function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, "_yaya_home_stat_{$i}_label", get_theme_mod("yaya_stat{$i}_label", $defaults[$i][1])) : get_theme_mod("yaya_stat{$i}_label", $defaults[$i][1]),
-  ];
-}
-
 $featured_label = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_label', $home_defaults['featured']['label'] ?? 'Featured Work') : 'Featured Work';
 $featured_button_text = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_button_text', $home_defaults['featured']['button_text'] ?? 'Explore All Projects') : 'Explore All Projects';
 $featured_button_url = function_exists('yaya_get_home_page_field') && $home_page_id ? yaya_get_home_page_field($home_page_id, '_yaya_home_featured_button_url', $home_defaults['featured']['button_url'] ?? home_url('/projects')) : home_url('/projects');
@@ -59,16 +49,6 @@ $featured_empty_text = function_exists('yaya_get_home_page_field') && $home_page
     Scroll
   </div>
 </section>
-
-<!-- Stats -->
-<div class="stats-bar">
-  <?php foreach ($stats as $stat): ?>
-  <div class="stat-item reveal">
-    <div class="stat-num"><?php echo esc_html($stat['num']); ?></div>
-    <div class="stat-label"><?php echo esc_html($stat['label']); ?></div>
-  </div>
-  <?php endforeach; ?>
-</div>
 
 <!-- Featured Project -->
 <?php
