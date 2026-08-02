@@ -1,4 +1,4 @@
-# Redesign handoff — state as of 2 Aug 2026 (Batches 3 + 4 landed, about/contact aligned)
+# Redesign handoff — state as of 2 Aug 2026 (Batches 1–4, then A, B, C)
 
 Working notes for the yayaconstruct.com redesign. Delete before merging to `main`
 if you don't want it in the repo.
@@ -334,6 +334,69 @@ what actually ships rather than what's live right now. Verified after the
 fix: `harness-about.html` and `harness-contact.html` both render with the
 real hero photos and zero stale `transition-delay` attributes.
 
+## Batches A, B, C — 2 Aug 2026 (committed on the branch)
+
+A later round, batched by whether the work needed judgement. All three are
+committed; none is deployed (only pushes to `main` deploy).
+
+**Batch A — PHP hygiene** (`97add9c`). Four mechanical fixes.
+
+| Change | File |
+|---|---|
+| Nested `<main>`: `header.php` already opens one and `footer.php` closes it, but `index.php`/`page.php` each opened their own inside it | `index.php`, `page.php` |
+| `wp_enqueue_style` shipped a hardcoded `'2.0'` never bumped across four batches, so every deploy served stale CSS. Now keyed to the file's mtime | `functions.php` |
+| Last two stock stand-in photos, in the featured block's fallbacks | `front-page.php` |
+| `date('Y')` → `wp_date('Y')` (server TZ, not the site's); hardcoded site name → `get_bloginfo('name')` | `footer.php` |
+
+**Batch B — one column down the project page** (`3af181b`). The page ran four
+centring systems: header and spec on the bounded band, prose in a centred 800px
+column, gallery in a centred 1100px one, back link on bare 3rem padding — four
+left edges at 120 / 448 / 298 / 650 at 1600px. All three now sit on the shared
+band with `padding-block` only; measured equal to within 0.5px across eleven
+widths from 375 to 1920.
+
+- The prose measure moved to `.project-detail-content`, already in the
+  running-text `max-width` list — bounded as text (68ch) rather than by
+  squeezing the band, so line length is one decision made once.
+- Gallery keeps three columns, now a ~440px plate. **Not verifiable from here:**
+  the harness renders placeholder SVGs and the uploads host is blocked, so
+  whether the real phone photos (capped at 1024px) hold up at 440px wants a
+  look on the live site.
+- Back link is flush left; centring put it on an axis nothing else used.
+- **`footer` had the shorthand bug the rules exist to prevent** — it was in the
+  bounded-band `padding-inline` list but set `padding: 3rem` further down the
+  file, which overrode it, so the footer sat 48px from the viewport edge while
+  every band sat at 280px. Now `padding-block`.
+- Last three stock photos gone; `.hero-bg`'s long-dead `background` shorthand
+  deleted (its `background-repeat: no-repeat` was the one live declaration and
+  moved to the rule that actually paints).
+- Gallery images each carried the project title as alt, so a ten-photo project
+  read the same words ten times. Now decorative, with the accessible name on the
+  wrapping link as "View photo N of M".
+
+**Batch C — the two interactive surfaces** (`9bc637b`). See the commit message
+for the full list. The shape of it: the contact form's fields were not in a
+`<form>` at all, errors were signalled by colour alone in the same hue as the
+focus ring, and the success/error boxes were `display:none` divs that no screen
+reader ever announced. The projects filter never set `aria-pressed`, announced
+nothing when the list changed, and passed `behavior:'smooth'` regardless of
+`prefers-reduced-motion` (a JS option beats the CSS property — the media query
+at the top of the file does not cover it). Adds the site's first
+`.visually-hidden` utility; both live regions need one.
+
+**Three known-failing things Batch C found and deliberately did not fix** —
+each is a design decision, not an a11y patch:
+
+1. **Form field borders fail WCAG 1.4.11.** `--dust` on the white input fill is
+   **1.37:1** against a 3:1 requirement. Every input boundary is effectively
+   invisible as a UI component. Fixing it changes how the whole form looks.
+2. **`.form-success` has no headroom** — `#2e7d32` on `#e8f5e9` is 4.56:1. It
+   passes, but any tint drift breaks it. Its colours and the error box's are the
+   only non-token literals left in the form; they predate the palette.
+3. **3–4px horizontal overflow on the projects page at ≤430px**, from the
+   off-canvas mobile nav panel in `header.php`. Pre-existing, unchanged by this
+   work, and masked by `body { overflow-x: hidden }`.
+
 ## Content blockers — nobody's code can fix these
 
 Verified by reading all five project pages on 2 Aug 2026.
@@ -388,6 +451,10 @@ small regex instead of a full custom render. Same principle as the token
 rename below: production is running the old template until this deploys, so
 its markup still has whatever the branch removed.
 
+> **⚠️ Both claims in this section were wrong as of 2 Aug 2026 — read
+> "Verification, corrected" below before following any of it.** `tools/harness.py`
+> cannot fetch in the current environment, and there *is* a `php` binary.
+
 Screenshots after programmatic scroll are unreliable in this setup — prefer
 `getComputedStyle` assertions. A DOM-walking contrast audit is the fastest check;
 treat any ancestor with a `background-image` as opaque or heroes over photos
@@ -397,9 +464,53 @@ cell-rect collisions at ten widths in one pass), and composite `rgba()` hover
 backgrounds over the body colour by hand rather than trying to hold a real
 `:hover` across a JS round-trip, which doesn't survive.
 
-There is no `php` binary on this machine and no Docker daemon running, so
-template changes get no syntax check before they reach the server. Read the PHP
-twice.
+## Verification, corrected (2 Aug 2026)
+
+Two things this document told four batches of people, both false. They cost
+real time, so they are corrected here rather than quietly edited above.
+
+**1. There *is* a `php` binary.** `/usr/bin/php` is PHP 8.4.19. The claim that
+there wasn't is why Batches 1–4 hand-read templates twice instead of linting,
+shipping unchecked PHP straight to a live FTP deploy. **Run `php -l` on every
+template you touch.** All ten currently lint clean.
+
+It also makes a real server-side test possible without WordPress: `functions.php`
+has no top-level statements except `add_action`/`add_filter`, so it can be
+included against a small stub and its functions called directly. Batch C tested
+`yaya_contact_form()` that way — nonce, honeypot, throttle, validation — with no
+database and no HTTP.
+
+**2. `tools/harness.py` does not work here.** The agent proxy denies CONNECT to
+`yayaconstruct.com:443`, so `fetch_live()` 403s and there is nothing to inject
+into. Every instruction above about `--serve` and `--refetch` is dead in this
+environment. It is not broken code — it just cannot reach production.
+
+What replaces it is better, and the reason is worth keeping: because `php`
+exists, a harness can **execute the real templates** against a WordPress stub
+instead of retyping their markup in Python. That removes the whole class of bug
+the "three rewrites" section above exists to warn about — there is no fetched
+production HTML to drift from the working tree, because the markup *is* the
+working tree. Local webfonts and inline-SVG photos keep it off the network
+entirely. Playwright lives at `/opt/node22/lib/node_modules/playwright` and must
+launch with `executablePath: '/opt/pw-browsers/chromium'`; never run
+`playwright install`.
+
+Two traps found the hard way while building it, both of which produce confident
+wrong answers rather than errors:
+
+- **Rebuild before you re-measure.** A stale results JSON reported a fix as
+  having no effect, twice, before anyone checked the timestamp.
+- **Wait out the transitions.** Reading `getComputedStyle` colours mid-transition
+  returns interpolated values — an error border measured at `rgb(171,58,51)`
+  instead of `rgb(164,35,27)`, which is a different contrast ratio.
+
+Screenshots after programmatic scroll remain unreliable; assert on
+`getComputedStyle` / `getBoundingClientRect` instead.
+
+**Measure things you are not changing.** The footer bug in Batch B was found
+only because `footer` was included as a control column in a sweep of the project
+page — four batches, including the one that wrote the rule it violated, had read
+that file without spotting it.
 
 ## Design direction
 
