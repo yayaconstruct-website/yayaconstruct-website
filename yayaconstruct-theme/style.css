@@ -1537,7 +1537,7 @@ Version: 1.0
     .hero-bg {
       background-image:
         linear-gradient(160deg, rgba(27,30,31,0.0) 0%, rgba(27,30,31,0.85) 60%),
-        var(--hero-bg, url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80'));
+        var(--hero-bg, url('https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0103.png'));
       background-size: cover;
       background-position: center;
     }

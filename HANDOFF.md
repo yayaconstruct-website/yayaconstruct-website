@@ -13,10 +13,10 @@ if you don't want it in the repo.
 | working tree | Batch 3, Sonnet-scoped items — **uncommitted** | No |
 
 **Batch 3 status:** the hero photo swap, the services-card removal, and the
-`front-page.php` transition-delay cleanup are done. The hero copy and the
-featured-block selection logic were tried and then rolled back at Emir's
-request — see "Batch 3" below. Retiring the stats bar (item 15) is the one
-item still open; no model split needed after all, it's just not done yet.
+`front-page.php` transition-delay cleanup are done. The hero copy, the
+featured-block selection logic, and retiring the stats bar (item 15) were
+all tried and then rolled back at Emir's request — see "Batch 3" below. Item
+15 is the one item from the original four still open.
 
 `.github/workflows/deploy.yml` FTPs `yayaconstruct-theme/` to production **on every
 push to `main`**. Pushing the branch does not deploy. There is no staging.
@@ -109,7 +109,7 @@ until someone clears that one too.
 | 13 | New hero photo (real Inkim Suites render, replacing the generic stock photo) | `front-page.php` | Done |
 | — | Cleared the five inline `transition-delay` attributes in `front-page.php` (see Batch 2's note — they were already dead under the `!important` override; this is hygiene, not a visual change) | `front-page.php` | Done |
 | 14 | Delete the six services cards | `front-page.php`, `functions.php`, `style.css` | Done |
-| 15 | Retire the stats bar | `front-page.php`, `functions.php`, `style.css` | Not started |
+| 15 | Retire the stats bar | `front-page.php`, `functions.php`, `style.css` | Tried, reverted — see below |
 
 **Tried and rolled back, at Emir's request (2 Aug 2026):**
 
@@ -139,6 +139,12 @@ until someone clears that one too.
   would overwrite the spec line's mono styling with body-copy styling once a
   project does have spec fields. Keep both exclusions if another paragraph
   type is added to that column.
+- **Stats bar (item 15).** Removed the section, its Customizer/admin/save
+  code, and the CSS, the same way the services cards were removed — see the
+  commit for the full list if it's needed again. Reverted via `git revert` on
+  request, so the stats bar is back exactly as it was: same markup, same
+  `functions.php` fields, same CSS, nothing rebuilt from scratch. Not part of
+  Batch 3 anymore — item 15 is back to not-started.
 
 **Services cards, concretely (item 14, done):** removed the whole section
 from `front-page.php` (the markup and its `$service_icons`/`$service_defaults`
@@ -157,13 +163,31 @@ queries down to the rules that don't reference the removed classes, without
 touching the unrelated `.home-project`/`.stat-item` tweaks living in the same
 blocks.
 
+**Hero image default, fixed (2 Aug 2026):** the photo swap in item 13
+originally only updated `front-page.php`'s own `get_theme_mod()` fallback.
+Three more places had their own hardcoded copy of the old Unsplash URL and
+were still stale: `yaya_preload_hero_image()` in `functions.php` (this one had
+real impact — it drives the `<link rel="preload">` LCP hint in `wp_head`, so
+it was silently preloading a different image than the one actually rendered),
+the Customizer's `yaya_hero_image` setting `default` (cosmetic — only visible
+if an admin opens the Customizer without ever having set a custom image), and
+the CSS `var(--hero-bg, url(...))` fallback in `style.css` (only fires if the
+custom property is ever unset, which doesn't happen in practice since
+`front-page.php` always sets it inline — but fixed for consistency). All four
+now point at the same real photo. **Left alone, deliberately:** `.hero-bg`
+also has an *earlier*, fully dead rule (`style.css` line ~243) still carrying
+the old URL in a shorthand `background:` — a later rule's longhand
+`background-image` already overrides it, so it renders nothing and predates
+this work; not touched.
+
 **Harness:** `tools/harness.py`'s `render_home()` (added for Batch 3, still
 needed since the home page's markup no longer matches the fetched production
-page) now mirrors the current file exactly: original hero copy with the new
-photo, Amsterdam featured with the filler paragraph and no spec line, no
-services section. Verified via `getComputedStyle` — zero stale
-`transition-delay` attributes, zero `.services-grid`/`.service-card` nodes in
-the DOM, and the reverted hero/featured text matches source.
+page) mirrors the current file: original hero copy with the new photo, the
+stats bar restored, Amsterdam featured with the filler paragraph and no spec
+line, no services section. Verified via `getComputedStyle`/DOM query — the
+stats bar's four values render correctly, the hero background resolves to the
+real photo, zero `.services-grid`/`.service-card` nodes, zero stale
+`transition-delay` attributes.
 
 ## Batch 4 — performance & hygiene (not started)
 

@@ -104,7 +104,7 @@ function yaya_preload_hero_image() {
         return;
     }
 
-    $hero_img = get_theme_mod('yaya_hero_image', 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80');
+    $hero_img = get_theme_mod('yaya_hero_image', 'https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0103.png');
     if (!$hero_img) {
         return;
     }
@@ -996,7 +996,7 @@ function yaya_customizer($wp_customize) {
 
     // Hero background image
     $wp_customize->add_setting('yaya_hero_image', [
-        'default'           => 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80',
+        'default'           => 'https://www.yayaconstruct.com/wp-content/uploads/2026/04/IMG_0103.png',
         'sanitize_callback' => 'esc_url_raw',
     ]);
     $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'yaya_hero_image', [
