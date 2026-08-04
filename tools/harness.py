@@ -75,14 +75,14 @@ LINK_MAP = [
 # ── The five projects, as production publishes them today ────────────────────
 UPLOADS = SITE + '/wp-content/uploads/2026/04/'
 REGIONS = [
+    ('benelux', 'Benelux', [
+        ('Amsterdam', SITE + '/project/amsterdam/', UPLOADS + 'IMG_0120-300x225.jpg', []),
+        ('Brussels', SITE + '/project/brussels/', UPLOADS + 'IMG_0112-225x300.jpg', []),
+    ]),
     ('aegean', 'Aegean', [
         ('Inkim Suites', '/harness-project.html', UPLOADS + 'IMG_0098-300x180.png', ['Ilica, Cesme', '2021']),
         ('Guzelbahce X', '/harness-project-three.html', UPLOADS + 'IMG_0090-300x225.png', ['Guzelbahce, Izmir', '2018']),
         ('Z-Suites', '/harness-project-thin.html', None, ['Izmir', 'Coming soon']),
-    ]),
-    ('low-countries', 'Low Countries', [
-        ('Amsterdam', SITE + '/project/amsterdam/', UPLOADS + 'IMG_0120-300x225.jpg', []),
-        ('Brussels', SITE + '/project/brussels/', UPLOADS + 'IMG_0112-225x300.jpg', []),
     ]),
 ]
 

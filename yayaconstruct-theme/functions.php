@@ -245,18 +245,19 @@ add_action('init', 'yaya_seed_project_categories', 20);
    rather than by city. City categories stay as they are — they are still how
    a project is filed, and they still label the individual entry — but a
    region is what the page is organised around. Amsterdam and Brussels are one
-   project each; as cities they read as gaps, as "Low Countries" they read as
-   an international position.
+   project each; as cities they read as gaps, as "Benelux" they read as an
+   international position. Benelux listed first — it's the newer, growing
+   side of the practice.
 ───────────────────────────────────────── */
 function yaya_project_regions() {
     return [
+        'benelux' => [
+            'name'   => 'Benelux',
+            'cities' => ['Amsterdam', 'Brussels'],
+        ],
         'aegean' => [
             'name'   => 'Aegean',
             'cities' => ['Izmir'],
-        ],
-        'low-countries' => [
-            'name'   => 'Low Countries',
-            'cities' => ['Amsterdam', 'Brussels'],
         ],
     ];
 }

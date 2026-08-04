@@ -224,7 +224,7 @@ $projects_empty_state = function_exists('yaya_get_projects_page_field')
     // "N projects in <name>" reads wrong for the fallback groups, which are
     // named after a city rather than a region — yaya_project_regions() gives a
     // category it does not know a group of its own, so this can say
-    // "Amsterdam" as easily as "Low Countries". Leading with the name and
+    // "Amsterdam" as easily as "Benelux". Leading with the name and
     // giving the total as well works for both and says more.
     status.textContent = label + ': showing ' + n + ' of ' + total +
       (total === 1 ? ' project.' : ' projects.');
