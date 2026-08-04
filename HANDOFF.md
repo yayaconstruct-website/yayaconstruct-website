@@ -412,6 +412,18 @@ Verified by reading all five project pages on 2 Aug 2026.
 
 Only Inkim Suites (48 words, 10 images) and Güzelbahçe X (83 words, 7 images) are complete.
 
+**Brussels and Amsterdam descriptions — fixed in code, pending an admin page load (4 Aug 2026):**
+added `yaya_maybe_seed_brussels_amsterdam_descriptions()` in `functions.php`, following
+the same one-time-migration shape as the Zabıtçı import and the city-category fixes above
+it. Replaces Brussels' `sdsd` and Amsterdam's empty body with real copy (both ~50 m²
+renovations, Brussels completed 2023, Amsterdam 2024), and fills in `project_location`,
+`project_year`, and `_yaya_project_area` for both — location and area weren't set for
+either project before this. It runs on `admin_init` like its neighbors, so it takes effect
+the next time someone loads wp-admin on the deployed site, not immediately on deploy. Scope
+and status are still unset for both — no scope was specified for Brussels, so it wasn't
+guessed. `z-suites` is the only remaining project with no location/year and no real
+description.
+
 Photos are phone shots capped at 1024px, mixed orientation, some PNG. There's a
 `Yaya CONSTRUCT Photos` folder beside the repo.
 

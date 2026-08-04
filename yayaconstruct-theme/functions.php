@@ -668,6 +668,73 @@ function yaya_maybe_fix_project_city_categories() {
 add_action('admin_init', 'yaya_maybe_fix_project_city_categories', 21);
 
 /* ─────────────────────────────────────────
+   ONE-TIME CONTENT FIX: BRUSSELS / AMSTERDAM DESCRIPTIONS
+   Both placeholder projects went live with no real copy — Brussels held the
+   literal string "sdsd", Amsterdam had nothing at all. Real descriptions,
+   plus the year and area spec fields now that they're known.
+───────────────────────────────────────── */
+function yaya_brussels_amsterdam_descriptions_seed_data() {
+    return [
+        'brussels' => [
+            'content' => implode("\n\n", [
+                'The Brussels project is a compact renovation, completed in 2023, taking roughly 50 m² of existing residential space and rebuilding it into a clean, functional layout.',
+                'The scope ran from layout through finishes, keeping the footprint efficient while giving the home a fresh, considered feel.',
+            ]),
+            'location' => 'Brussels',
+            'year'     => '2023',
+            'area'     => '50 m²',
+        ],
+        'amsterdam' => [
+            'content' => implode("\n\n", [
+                'The Amsterdam project is a 50 m² renovation, completed in 2024, reworking an existing home from the layout up.',
+                'Finishes and fixtures were updated throughout, delivering a fresh, functional space that makes full use of a compact footprint.',
+            ]),
+            'location' => 'Amsterdam',
+            'year'     => '2024',
+            'area'     => '50 m²',
+        ],
+    ];
+}
+
+function yaya_maybe_seed_brussels_amsterdam_descriptions() {
+    if (get_option('yaya_brussels_amsterdam_descriptions_seeded_v1')) {
+        return;
+    }
+
+    if (!post_type_exists('project')) {
+        return;
+    }
+
+    foreach (yaya_brussels_amsterdam_descriptions_seed_data() as $slug => $project) {
+        $existing = get_posts([
+            'post_type'   => 'project',
+            'name'        => $slug,
+            'post_status' => ['publish', 'draft', 'pending', 'private'],
+            'numberposts' => 1,
+            'fields'      => 'ids',
+        ]);
+
+        if (empty($existing)) {
+            continue;
+        }
+
+        $post_id = $existing[0];
+
+        wp_update_post([
+            'ID'           => $post_id,
+            'post_content' => $project['content'],
+        ]);
+
+        update_post_meta($post_id, 'project_location', $project['location']);
+        update_post_meta($post_id, 'project_year', $project['year']);
+        update_post_meta($post_id, '_yaya_project_area', $project['area']);
+    }
+
+    update_option('yaya_brussels_amsterdam_descriptions_seeded_v1', gmdate('c'));
+}
+add_action('admin_init', 'yaya_maybe_seed_brussels_amsterdam_descriptions', 22);
+
+/* ─────────────────────────────────────────
    PROJECT META BOX: PHOTO GALLERY & COMING SOON
 ───────────────────────────────────────── */
 function yaya_add_project_gallery_meta_box() {
