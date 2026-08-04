@@ -673,6 +673,13 @@ add_action('admin_init', 'yaya_maybe_fix_project_city_categories', 21);
    Both placeholder projects went live with no real copy — Brussels held the
    literal string "sdsd", Amsterdam had nothing at all. Real descriptions,
    plus the year and area spec fields now that they're known.
+
+   Hooked on 'init', not 'admin_init' like its neighbors above: those only
+   need to run before an editor next opens wp-admin, but this one should take
+   effect for visitors browsing the live site, so it runs on the next request
+   of any kind — the same hook this file already uses to register the
+   'project' post type and taxonomy. Priority 22 keeps it after both of those
+   (post_type_exists('project') needs to be true) and after category seeding.
 ───────────────────────────────────────── */
 function yaya_brussels_amsterdam_descriptions_seed_data() {
     return [
@@ -733,7 +740,7 @@ function yaya_maybe_seed_brussels_amsterdam_descriptions() {
 
     update_option('yaya_brussels_amsterdam_descriptions_seeded_v1', gmdate('c'));
 }
-add_action('admin_init', 'yaya_maybe_seed_brussels_amsterdam_descriptions', 22);
+add_action('init', 'yaya_maybe_seed_brussels_amsterdam_descriptions', 22);
 
 /* ─────────────────────────────────────────
    PROJECT META BOX: PHOTO GALLERY & COMING SOON
