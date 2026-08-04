@@ -397,16 +397,88 @@ each is a design decision, not an a11y patch:
    off-canvas mobile nav panel in `header.php`. Pre-existing, unchanged by this
    work, and masked by `body { overflow-x: hidden }`.
 
+## Project page — prose width + in-page photo viewer (4 Aug 2026, on `main`)
+
+Two things Emir asked for once the real descriptions were live and the page
+could be judged as a finished page rather than a placeholder.
+
+**1. The description fills the band.** `.project-detail-content` came out of the
+site-wide `max-width: var(--measure)` (68ch) list near the top of `style.css`
+and is now the one deliberate exception to it. The reason it had to change is
+worth keeping: the measure was right in the abstract and wrong here, because
+this paragraph is the only thing on the page that stopped short — full-band spec
+grid above it, full-band gallery below it, and a 640px column between them that
+read as a rendering fault. The type now scales with the viewport
+(`clamp(1.0625rem, 0.95rem + 0.5vw, 1.375rem)` — 17px at 390px, 22px at 1600px)
+so the character count per line stays roughly flat as the band grows, and the
+copy reads as lead-in text rather than body copy set too wide. **Both comments
+that documented the old arrangement were updated** — the one over the shared
+measure list and the one over `.project-detail-body` — so neither still claims
+the prose is bounded as text.
+
+**2. Gallery photos open in place.** Clicking a tile used to leave the page for
+the raw image file in a new tab. There is now a viewer: prev/next buttons, ←/→
+keys, wraparound, Escape and backdrop-click to close, `Photo N of M` in mono
+under the plate, neighbours preloaded so stepping through doesn't blank.
+
+It is a `<dialog>` opened with `showModal()`, not a div, and that choice does
+real work here:
+
+- **No z-index.** `nav` is `position: fixed; z-index: 200` *and* a stacking
+  context of its own via `backdrop-filter` — the thing that has bitten every
+  previous overlay on this site (see the comment on `nav`'s own `z-index`). A
+  modal `<dialog>` renders in the top layer, above the whole stacking hierarchy
+  by definition, so there is no z-index to get wrong. Verified: at (800, 40),
+  dead over the nav, `elementFromPoint` returns the dialog.
+- **Focus trap, Escape, and page inertness are free**, so none of it is
+  hand-rolled. The `close` event fires for the button, the backdrop and Escape
+  alike, so unlocking body scroll and returning focus to the tile that opened
+  the viewer lives in one handler instead of three.
+- **It degrades.** Every tile keeps its real `href` and `target="_blank"`. The
+  script returns early if `showModal` is missing, and modified clicks
+  (cmd/ctrl/shift/middle) are left alone — someone asking for a new tab on
+  purpose still gets one. With no JS at all the gallery behaves exactly as it
+  did before.
+
+Two sizing traps, both fixed before shipping, both of which would only have
+shown up in a specific case:
+
+- `.lightbox-figure` is placed in `grid-column: 2` explicitly. The script
+  removes both arrows when a project has one photo, and an implicitly-placed
+  figure would have fallen into column 1 and hung off the left edge — invisible
+  on the four multi-photo projects, broken on a single-photo one.
+- `.lightbox-img`'s `max-height` is viewport-relative, not a percentage. The
+  figure is sized by its own content, so a percentage height would have been
+  circular and resolved to `auto` — the photo would have overflowed the viewport
+  instead of fitting it.
+
+**Verified by executing the real template, not by reading it.** HANDOFF's
+"Verification, corrected" section predicted this was possible and nobody had
+built it; it works. `single-project.php` runs against a ~60-line WordPress stub
+(`get_header`, `the_content`, `wp_get_attachment_image`, …) with `functions.php`
+required in for the real `yaya_project_spec_rows()`, photos as inline SVG data
+URIs so nothing touches the network, and Playwright drives the result. Nine
+checks pass at 1600px and 390px: prose width and left edge equal to the spec
+grid and gallery to the pixel (1360/120 at 1600px), viewer opens without the
+frame navigating, all four ways of changing photo advance the caption and the
+image together, wraparound lands on 5 of 5, photo fits and centres in the
+viewport, Escape returns focus to the exact tile that opened it and unlocks body
+scroll, backdrop click closes, single-photo gallery still centres, and a build
+with `showModal` stubbed out throws nothing and keeps its hrefs. The stub lives
+in the session scratchpad rather than `tools/` — it is worth committing if
+anyone wants it, and it is a better foundation than `tools/harness.py`, which
+still cannot fetch from this environment.
+
 ## Content blockers — nobody's code can fix these
 
 Verified by reading all five project pages on 2 Aug 2026.
 
 | Page | Published right now |
 |---|---|
-| `/project/brussels` | Description is the literal string `sdsd`, with 5 photos under it |
-| `/project/amsterdam` | No description at all. It's the newest non-coming-soon project, so the homepage featured block leads with it and falls back to filler text. A fix for this was tried in Batch 3 and rolled back — see Batch 3 notes above. |
+| ~~`/project/brussels`~~ | ~~Description is the literal string `sdsd`~~ — **fixed and live, 4 Aug 2026.** Real description, location, year and area. |
+| ~~`/project/amsterdam`~~ | ~~No description at all~~ — **fixed and live, 4 Aug 2026.** Same. It is still the newest non-coming-soon project, so the homepage featured block still leads with it — but it now has real copy to lead with, which is what the reverted Batch 3 change was working around. |
 | `/project/z-suites` | "Details for Z-Suites are coming soon." No images. |
-| 3 of 5 projects | No location or year. The spec block now has five fields to fill and these three can fill none of them, so it doesn't render at all on Brussels, Amsterdam or Z-Suites, and their index rows show a bare name. The fields are in the editor now — **Projects → edit → Project Details** |
+| 1 of 5 projects | No location or year — Z-Suites only, now that Brussels and Amsterdam have theirs. The fields are in the editor — **Projects → edit → Project Details** |
 | Site title | Still "YAYA Construct website" — now the description on every inner page in search and every shared link |
 | Voice | "Inkim Suites *is described as*…", "Güzelbahçe X *is presented as*…" — rewrite in first person |
 
